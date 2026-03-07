@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,7 +11,7 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/base/components.dart';
-import 'package:t3afy/base/primary_widgets.dart';
+import 'package:t3afy/translation/locale_keys.g.dart';
 import '../cubit/splash_cubit.dart';
 
 class SplashView extends StatefulWidget {
@@ -34,7 +35,7 @@ class _SplashViewState extends State<SplashView>
 
   bool _hasCompletedOnboarding = false;
 
-  static const String _splashText = 'معاً للتعافي';
+  static final String _splashText = LocaleKeys.app_name.tr();
 
   @override
   void initState() {
@@ -164,32 +165,28 @@ class _SplashViewState extends State<SplashView>
     final total = chars.length;
     final visibleCount = progress * total; // ← added
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: RichText(
-        textDirection: TextDirection.rtl,
-        softWrap: false, // ← prevents wrapping when right constraint is set
-        text: TextSpan(
-          children: List.generate(total, (i) {
-            final opacity = (visibleCount - i).clamp(0.0, 1.0); // ← added
-            return TextSpan(
-              text: chars[i],
-              style: getBoldStyle(
-                fontSize: FontSize.s32,
-                fontFamily: FontConstants.fontFamily,
-                color: ColorManager.white.withOpacity(opacity), // ← added
-              ).copyWith(
-                shadows: [ // ← added
-                  Shadow(
-                    color: Colors.black.withOpacity(0.25 * opacity),
-                    offset: const Offset(0, 4),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-            );
-          }),
-        ),
+    return RichText(
+      softWrap: false, // ← prevents wrapping when right constraint is set
+      text: TextSpan(
+        children: List.generate(total, (i) {
+          final opacity = (visibleCount - i).clamp(0.0, 1.0); // ← added
+          return TextSpan(
+            text: chars[i],
+            style: getBoldStyle(
+              fontSize: FontSize.s32,
+              fontFamily: FontConstants.fontFamily,
+              color: ColorManager.white.withOpacity(opacity), // ← added
+            ).copyWith(
+              shadows: [ // ← added
+                Shadow(
+                  color: Colors.black.withOpacity(0.25 * opacity),
+                  offset: const Offset(0, 4),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }

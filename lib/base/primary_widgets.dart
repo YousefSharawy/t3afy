@@ -49,9 +49,9 @@ class PrimaryElevatedButton extends StatelessWidget {
           backgroundColor: backGroundColor ?? ColorManager.primary,
           shape: RoundedRectangleBorder(
             side: BorderSide(color: borderColor ?? ColorManager.trasnparent),
-            borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s20),
+            borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s15),
           ),
-          fixedSize: Size(width ?? 1.sw, height ?? AppHeight.s48),
+          fixedSize: Size(width ?? 1.sw, height ?? AppHeight.s68),
         ),
         onPressed: onPress,
         child:

@@ -3,19 +3,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:t3afy/auth/presentation/view/login_view.dart';
 import 'package:t3afy/onBoarding/presentation/first_onboarding.dart';
 import 'package:t3afy/splash/presentation/splash_view.dart';
 import 'package:t3afy/splash/cubit/splash_cubit.dart';
 class Routes {
   static const String splash = '/';
   static const String onboarding1 = '/onboarding1';
-  static const String onboarding2 = '/onboarding2';
-  static const String home = '/home';
-  static const String dictionary = '/dictionary';
-  static const String study = '/study';
-  static const String profile = '/profile';
-  static const String savedItems = '/savedItems';
-  static const String termDetails = '/termDetails';
+  static const String login = '/login';
+  
 }
 
 class AppNavigation {
@@ -45,6 +41,14 @@ class AppNavigation {
             (context, state) => CustomTransitionPage2(
               key: state.pageKey,
               child: const FirstOnboarding(),
+            ),
+      ),
+      GoRoute(
+        path: Routes.login,
+        pageBuilder:
+            (context, state) => CustomTransitionPage2(
+              key: state.pageKey,
+              child: const LoginView(),
             ),
       ),
 

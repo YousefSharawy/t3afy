@@ -194,35 +194,35 @@ class ScaffoldWithNavBar extends StatelessWidget {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavBarItem(
-                iconPath: IconAssets.homeIcon,
-                label: 'Home',
-                isSelected: navigationShell.currentIndex == 0,
-                onTap: () => _onTap(context, 0),
-              ),
-              _NavBarItem(
-                iconPath: IconAssets.dictionaryIcon,
-                label: 'Dictionary',
-                isSelected: navigationShell.currentIndex == 1,
-                onTap: () => _onTap(context, 1),
-              ),
-              _NavBarItem(
-                iconPath: IconAssets.studyIcon,
-                label: 'Study',
-                isSelected: navigationShell.currentIndex == 2,
-                onTap: () => _onTap(context, 2),
-              ),
-              _NavBarItem(
-                iconPath: IconAssets.profileIcon,
-                label: 'Profile',
-                isSelected: navigationShell.currentIndex == 3,
-                onTap: () async {
+            // children: [
+            //   _NavBarItem(
+            //     iconPath: IconAssets.homeIcon,
+            //     label: 'Home',
+            //     isSelected: navigationShell.currentIndex == 0,
+            //     onTap: () => _onTap(context, 0),
+            //   ),
+            //   _NavBarItem(
+            //     iconPath: IconAssets.dictionaryIcon,
+            //     label: 'Dictionary',
+            //     isSelected: navigationShell.currentIndex == 1,
+            //     onTap: () => _onTap(context, 1),
+            //   ),
+            //   _NavBarItem(
+            //     iconPath: IconAssets.studyIcon,
+            //     label: 'Study',
+            //     isSelected: navigationShell.currentIndex == 2,
+            //     onTap: () => _onTap(context, 2),
+            //   ),
+            //   _NavBarItem(
+            //     iconPath: IconAssets.profileIcon,
+            //     label: 'Profile',
+            //     isSelected: navigationShell.currentIndex == 3,
+            //     onTap: () async {
                  
-                  _onTap(context, 3);
-                },
-              ),
-            ],
+            //       _onTap(context, 3);
+            //     },
+            //   ),
+            // ],
           ),
         ),
       ),

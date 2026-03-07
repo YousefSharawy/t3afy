@@ -8,9 +8,10 @@ class ColorManager {
   
   static const background = Color(0XFFF9FAFB);
   static const splashBackground = Color(0XFF4061A7);
+  static const primary = Color(0xff304E80);
 
-  static const primary = Color(0xff1AA6A6);
-  static const primaryText = Color(0xff111827);
+  // static const primaryText = Color(0xff304E80);
+
   static const secondaryText = Color(0xff6B7280);
   static const graySecondaryText = Color(0xff6A7282);
   static const splashGradiant1 = Color(0xff1FB5AE);
