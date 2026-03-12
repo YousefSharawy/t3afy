@@ -9,15 +9,25 @@ import 'package:t3afy/auth/presentation/view/register_view.dart';
 import 'package:t3afy/onBoarding/presentation/first_onboarding.dart';
 import 'package:t3afy/splash/presentation/splash_view.dart';
 import 'package:t3afy/splash/cubit/splash_cubit.dart';
-import 'package:t3afy/user/user_view.dart';
+import 'package:t3afy/volunteer/home/volunteer_home_view.dart';
+import 'package:t3afy/volunteer/maps/volunteer_map_view.dart';
+import 'package:t3afy/volunteer/performance/volunteer_performance_view.dart';
+import 'package:t3afy/volunteer/profile/volunteer_profile_view.dart';
+import 'package:t3afy/volunteer/tasks/volunteer_tasks_view.dart';
+
+import '../../base/components.dart';
+
 class Routes {
   static const String splash = '/';
   static const String onboarding1 = '/onboarding1';
   static const String login = '/login';
-  static const String userHome = '/userHome';
   static const String adminHome = '/adminHome';
-static const String register = '/register';
-  
+  static const String register = '/register';
+  static const String volunteerHome = '/volunteerHome';
+  static const String volunteerTasks = '/volunteerTasks';
+  static const String volunteerMap = '/volunteerMap';
+  static const String volunteerPerformance = '/volunteerPerformance';
+  static const String volunteerProfile = '/volunteerProfile';
 }
 
 class AppNavigation {
@@ -32,69 +42,116 @@ class AppNavigation {
     routes: <RouteBase>[
       GoRoute(
         path: Routes.splash,
-        pageBuilder:
-            (context, state) => CustomTransitionPage2(
-              key: state.pageKey,
-              child: BlocProvider(
-                create: (_) => SplashCubit(),
-                child: const SplashView(),
-              ),
-            ),
-      ),   
+        pageBuilder: (context, state) => CustomTransitionPage2(
+          key: state.pageKey,
+          child: BlocProvider(
+            create: (_) => SplashCubit(),
+            child: const SplashView(),
+          ),
+        ),
+      ),
       GoRoute(
         path: Routes.onboarding1,
-        pageBuilder:
-            (context, state) => CustomTransitionPage2(
-              key: state.pageKey,
-              child: const FirstOnboarding(),
-            ),
+        pageBuilder: (context, state) => CustomTransitionPage2(
+          key: state.pageKey,
+          child: const FirstOnboarding(),
+        ),
       ),
       GoRoute(
         path: Routes.login,
-        pageBuilder:
-            (context, state) => CustomTransitionPage2(
-              key: state.pageKey,
-              child: const LoginView(),
-            ),
-      ),
-      GoRoute(
-        path: Routes.userHome,
-        pageBuilder:
-            (context, state) => CustomTransitionPage2(
-              key: state.pageKey,
-              child: const UserView(),
-            ),
+        pageBuilder: (context, state) =>
+            CustomTransitionPage2(key: state.pageKey, child: const LoginView()),
       ),
       GoRoute(
         path: Routes.adminHome,
-        pageBuilder:
-            (context, state) => CustomTransitionPage2(
-              key: state.pageKey,
-              child: const AdminView(),
-            ),
+        pageBuilder: (context, state) =>
+            CustomTransitionPage2(key: state.pageKey, child: const AdminView()),
       ),
-GoRoute(
-  path: Routes.register,
-  pageBuilder:
-      (context, state) => CustomTransitionPage2(
-        key: state.pageKey,
-        child: const RegisterView(),
+      GoRoute(
+        path: Routes.register,
+        pageBuilder: (context, state) => CustomTransitionPage2(
+          key: state.pageKey,
+          child: const RegisterView(),
+        ),
       ),
-),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return VolunteerScaffoldWithNavBar(navigationShell: navigationShell);
+        },
+        branches: <StatefulShellBranch>[
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.volunteerHome,
+                pageBuilder: (context, state) => CustomTransitionPage2(
+                  key: state.pageKey,
+                  child: const VolunteerHomeView(),
+                ),
+              ),
+            ],
+          ),
+
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.volunteerTasks,
+                pageBuilder: (context, state) => CustomTransitionPage2(
+                  key: state.pageKey,
+                  child: const VolunteerTasksView(),
+                ),
+              ),
+            ],
+          ),
+
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.volunteerMap,
+                pageBuilder: (context, state) => CustomTransitionPage2(
+                  key: state.pageKey,
+                  child: const VolunteerMapView(),
+                ),
+              ),
+            ],
+          ),
+
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.volunteerPerformance,
+                pageBuilder: (context, state) => CustomTransitionPage2(
+                  key: state.pageKey,
+                  child: VolunteerPerformanceView(),
+                ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.volunteerProfile,
+                pageBuilder: (context, state) => CustomTransitionPage2(
+                  key: state.pageKey,
+                  child: VolunteerProfileView(),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
       // StatefulShellRoute.indexedStack(
       //   builder: (context, state, navigationShell) {
-      //     return ScaffoldWithNavBar(navigationShell: navigationShell);
+      //     return AdminScaffoldWithNavBar(navigationShell: navigationShell);
       //   },
       //   branches: <StatefulShellBranch>[
       //     StatefulShellBranch(
       //       routes: <RouteBase>[
       //         GoRoute(
       //           path: Routes.home,
-      //           pageBuilder:
-      //               (context, state) => CustomTransitionPage2(
-      //                 key: state.pageKey,
-      //                 child: const HomeView(),
-      //               ),
+      //           pageBuilder: (context, state) => CustomTransitionPage2(
+      //             key: state.pageKey,
+      //             child: const HomeView(),
+      //           ),
       //         ),
       //       ],
       //     ),
@@ -103,11 +160,10 @@ GoRoute(
       //       routes: <RouteBase>[
       //         GoRoute(
       //           path: Routes.dictionary,
-      //           pageBuilder:
-      //               (context, state) => CustomTransitionPage2(
-      //                 key: state.pageKey,
-      //                 child: const DictionaryView(),
-      //               ),
+      //           pageBuilder: (context, state) => CustomTransitionPage2(
+      //             key: state.pageKey,
+      //             child: const DictionaryView(),
+      //           ),
       //         ),
       //       ],
       //     ),
@@ -116,11 +172,10 @@ GoRoute(
       //       routes: <RouteBase>[
       //         GoRoute(
       //           path: Routes.study,
-      //           pageBuilder:
-      //               (context, state) => CustomTransitionPage2(
-      //                 key: state.pageKey,
-      //                 child: const StudyView(),
-      //               ),
+      //           pageBuilder: (context, state) => CustomTransitionPage2(
+      //             key: state.pageKey,
+      //             child: const StudyView(),
+      //           ),
       //         ),
       //       ],
       //     ),
@@ -129,11 +184,10 @@ GoRoute(
       //       routes: <RouteBase>[
       //         GoRoute(
       //           path: Routes.profile,
-      //           pageBuilder:
-      //               (context, state) => CustomTransitionPage2(
-      //                 key: state.pageKey,
-      //                 child: ProfileView(),
-      //               ),
+      //           pageBuilder: (context, state) => CustomTransitionPage2(
+      //             key: state.pageKey,
+      //             child: ProfileView(),
+      //           ),
       //         ),
       //       ],
       //     ),
@@ -165,16 +219,17 @@ class CustomTransitionPage extends Page {
           reverseCurve: curve.flipped,
         );
 
-        final slideAnimation = Tween<Offset>(
-          begin: const Offset(0, 0.2),
-          end: Offset.zero,
-        ).animate(
-          CurvedAnimation(
-            parent: animation,
-            curve: curve,
-            reverseCurve: curve.flipped,
-          ),
-        );
+        final slideAnimation =
+            Tween<Offset>(
+              begin: const Offset(0, 0.2),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: curve,
+                reverseCurve: curve.flipped,
+              ),
+            );
 
         return SlideTransition(
           position: slideAnimation,

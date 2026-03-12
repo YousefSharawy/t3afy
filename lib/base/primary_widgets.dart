@@ -54,7 +54,7 @@ class PrimaryElevatedButton extends StatelessWidget {
         ),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: backGroundColor ?? ColorManager.blue700,
+            backgroundColor: backGroundColor ?? ColorManager.blueOne700,
             shape: RoundedRectangleBorder(
               side: BorderSide(color: borderColor ?? ColorManager.trasnparent),
               borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s8),
@@ -113,8 +113,8 @@ class PrimaryRadio extends StatelessWidget {
           height: AppWidth.s20,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(width: AppSize.s05, color: ColorManager.blue600),
-            color: isSelected ? ColorManager.blue600 : Colors.transparent,
+            border: Border.all(width: AppSize.s05, color: ColorManager.blueOne600),
+            color: isSelected ? ColorManager.blueOne600 : Colors.transparent,
           ),
         ),
       ),
@@ -172,7 +172,7 @@ class _PrimaryTextFFState extends State<PrimaryTextFF> {
     return Container(
       height: AppHeight.s54,
       decoration: BoxDecoration(
-        border: Border.all(width: 1.5.sp, color: ColorManager.blue700),
+        border: Border.all(width: 1.5.sp, color: ColorManager.blueOne700),
         color: widget.filledColor ?? Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.s8),
       ),
@@ -192,7 +192,7 @@ class _PrimaryTextFFState extends State<PrimaryTextFF> {
         textAlignVertical: TextAlignVertical.center,
         style: getSemiBoldStyle(
           fontSize: FontSize.s18,
-          color: ColorManager.blue700,
+          color: ColorManager.blueOne700,
           fontFamily: FontConstants.fontFamily,
         ),
         decoration: InputDecoration(
@@ -206,7 +206,7 @@ class _PrimaryTextFFState extends State<PrimaryTextFF> {
           hintTextDirection: TextDirection.ltr,
           hintStyle: getSemiBoldStyle(
             fontSize: FontSize.s18,
-            color: ColorManager.blue200,
+            color: ColorManager.blueOne200,
             fontFamily: FontConstants.fontFamily,
           ),
           border: InputBorder.none,
@@ -229,14 +229,14 @@ class _PrimaryTextFFState extends State<PrimaryTextFF> {
                     });
                   },
                   icon: PrimaryIcon(
-                    color: ColorManager.blue700,
+                    color: ColorManager.blueOne700,
                     icon: isObscure
                         ? IconAssets.visibilityoff
                         : IconAssets.visibilityon,
                   ),
                 )
               : widget.icon != null
-              ? PrimaryIcon(icon: widget.icon!, color: ColorManager.blue700)
+              ? PrimaryIcon(icon: widget.icon!, color: ColorManager.blueOne700)
               : null,
         ),
       ),
@@ -348,7 +348,7 @@ class PrimaryIconBtn extends StatelessWidget {
         child: PrimaryIcon(
           icon: icon,
           size: iconSize ?? AppSize.s22,
-          color: iconColor ?? ColorManager.blue600,
+          color: iconColor ?? ColorManager.blueOne600,
         ),
       ),
     );
@@ -385,7 +385,7 @@ class PrimaryOutlineButton extends StatelessWidget {
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           backgroundColor: backGroundColor ?? ColorManager.white,
-          foregroundColor: ColorManager.blue600,
+          foregroundColor: ColorManager.blueOne600,
           fixedSize: Size(width ?? 1.sw, height ?? AppHeight.s48),
         ),
         onPressed: onPress,

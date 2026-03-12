@@ -10,20 +10,20 @@ import 'values_manager.dart';
 ThemeData getApplicationTheme() {
   return ThemeData(
     textSelectionTheme: TextSelectionThemeData(
-      cursorColor: ColorManager.blue600,
-      selectionColor: ColorManager.blue600.withValues(alpha: 0.3),
-      selectionHandleColor: ColorManager.blue600,
+      cursorColor: ColorManager.blueOne600,
+      selectionColor: ColorManager.blueOne600.withValues(alpha: 0.3),
+      selectionHandleColor: ColorManager.blueOne600,
     ),
     useMaterial3: false,
-    primaryColor: ColorManager.blue600,
+    primaryColor: ColorManager.blueOne600,
     scaffoldBackgroundColor: ColorManager.white,
     fontFamily: FontConstants.fontFamily,
     textTheme: _textTheme(),
     dialogTheme: DialogThemeData(backgroundColor: Colors.white),
 
     colorScheme: const ColorScheme.light(
-      primary: ColorManager.blue600,
-      surface: ColorManager.blue600,
+      primary: ColorManager.blueOne600,
+      surface: ColorManager.blueOne600,
       surfaceTint: Colors.transparent,
       secondary: ColorManager.secondary,
     ),
@@ -38,7 +38,7 @@ ThemeData getApplicationTheme() {
       thickness: 1.3.h,
     ),
     switchTheme: const SwitchThemeData(
-      thumbColor: WidgetStatePropertyAll(ColorManager.blue600),
+      thumbColor: WidgetStatePropertyAll(ColorManager.blueOne600),
       trackOutlineColor: WidgetStatePropertyAll(Colors.grey),
       trackColor: WidgetStatePropertyAll(Colors.white),
     ),
@@ -47,7 +47,7 @@ ThemeData getApplicationTheme() {
         borderRadius: BorderRadius.circular(AppRadius.s2),
       ),
       side: WidgetStateBorderSide.resolveWith(
-        (states) => BorderSide(width: AppSize.s1, color: ColorManager.blue600),
+        (states) => BorderSide(width: AppSize.s1, color: ColorManager.blueOne600),
       ),
     ),
   );
@@ -72,7 +72,7 @@ InputDecorationTheme _inputDecorationTheme() {
       maxHeight: AppHeight.s44,
       minHeight: AppHeight.s44,
     ),
-    focusedBorder: getOutlineInputBorder(color: ColorManager.blue600, width: 1),
+    focusedBorder: getOutlineInputBorder(color: ColorManager.blueOne600, width: 1),
     disabledBorder: getOutlineInputBorder(),
     enabledBorder: getOutlineInputBorder(),
     errorBorder: getOutlineInputBorder(color: ColorManager.error, width: 1),
@@ -123,7 +123,7 @@ ElevatedButtonThemeData _elevatedButtonTheme() {
         color: ColorManager.white,
         fontSize: FontSize.s14,
       ),
-      backgroundColor: ColorManager.blue600,
+      backgroundColor: ColorManager.blueOne600,
       foregroundColor: ColorManager.white,
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -137,10 +137,10 @@ _outlineButtonTheme() {
   return OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
       textStyle: getRegularStyle(
-        color: ColorManager.blue600,
+        color: ColorManager.blueOne600,
         fontSize: FontSize.s14,
       ),
-      foregroundColor: ColorManager.blue600,
+      foregroundColor: ColorManager.blueOne600,
       backgroundColor: ColorManager.white,
       elevation: 0,
       side: BorderSide(width: 1, color: Color(0xffE6E6E6)),

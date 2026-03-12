@@ -31,11 +31,11 @@ class RoleSwitcher extends StatelessWidget {
                 height: AppHeight.s47,
                 margin: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: ColorManager.blue600,
+                  color: ColorManager.blueOne600,
                   borderRadius: BorderRadius.circular(AppRadius.s10),
                   boxShadow: [
                     BoxShadow(
-                      color: ColorManager.blue600.withAlpha(80),
+                      color: ColorManager.blueOne600.withAlpha(80),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -61,7 +61,7 @@ class RoleSwitcher extends StatelessWidget {
                             fontFamily: FontConstants.fontFamily,
                             color: !isVolunteer
                                 ? ColorManager.white
-                                : ColorManager.blue100,
+                                : ColorManager.blueOne100,
                             fontSize: FontSize.s14,
                           ),
                           child: const Text("Admin"),
@@ -82,7 +82,7 @@ class RoleSwitcher extends StatelessWidget {
                         fontFamily: FontConstants.fontFamily,
                         color: isVolunteer
                             ? ColorManager.white
-                            : ColorManager.blue100,
+                            : ColorManager.blueOne100,
                         fontSize: FontSize.s14,
                       ),
                       child: const Text("volunteer"),

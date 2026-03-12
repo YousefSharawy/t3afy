@@ -229,7 +229,7 @@ class _SplashViewState extends State<SplashView>
             return Container(
               width: double.infinity,
               height: double.infinity,
-              color: ColorManager.blue500,
+              color: ColorManager.blueOne500,
               child: Stack(
                 children: [
                   Positioned(

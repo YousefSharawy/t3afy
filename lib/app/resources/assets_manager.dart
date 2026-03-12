@@ -18,6 +18,11 @@ class IconAssets {
   static const String apple = '$ICON_PATH/apple.png';
   static const String visibilityon = '$ICON_PATH/visibilityon.png';
   static const String visibilityoff = '$ICON_PATH/visibilityoff.png';
+  static const String home = '$ICON_PATH/home.png';
+  static const String tasks = '$ICON_PATH/tasks.png';
+  static const String map = '$ICON_PATH/map.png';
+  static const String performance = '$ICON_PATH/performance.png';
+  static const String bot = '$ICON_PATH/bot.png';
 }
 
 class DemoAssets {}

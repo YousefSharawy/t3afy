@@ -1,4 +1,8 @@
 {
-  "app_name": "معاً للتعافي"
-  
+  "app_name": "معاً للتعافي",
+  "home": "home",
+  "tasks": "tasks",
+  "map": "map",
+  "performance": "performance",
+  "bot": "bot"
 }

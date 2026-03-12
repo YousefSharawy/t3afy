@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/cubit/navigation_cubit.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
@@ -7,6 +9,8 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/translation/locale_keys.g.dart';
+
 class PrimaryScaffold extends StatefulWidget {
   const PrimaryScaffold({
     super.key,
@@ -152,8 +156,8 @@ class _PrimaryScaffoldState extends State<PrimaryScaffold> {
   }
 }
 
-class ScaffoldWithNavBar extends StatelessWidget {
-  const ScaffoldWithNavBar({required this.navigationShell, Key? key})
+class VolunteerScaffoldWithNavBar extends StatelessWidget {
+  const VolunteerScaffoldWithNavBar({required this.navigationShell, Key? key})
     : super(key: key ?? const ValueKey<String>('ScaffoldWithNavBar'));
 
   final StatefulNavigationShell navigationShell;
@@ -161,68 +165,64 @@ class ScaffoldWithNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        
-        children: [
-          Expanded(
-          child: navigationShell),
-        ],
-      ),
+      body: Column(children: [Expanded(child: navigationShell)]),
       extendBody: false,
       bottomNavigationBar: Container(
         margin: EdgeInsets.only(
-          left: AppWidth.s16,
-          right: AppWidth.s16,
-          bottom: AppHeight.s24,
+          left: AppWidth.s18,
+          right: AppWidth.s18,
+          bottom: AppHeight.s34,
         ),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.s32),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.25),
-              blurRadius: 4,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
-            ),
-          ],
+          borderRadius: BorderRadius.circular(AppRadius.s49),
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 1.2.sp,
+            colors: [ColorManager.blueOne800, ColorManager.blueOne900],
+          ),
         ),
         child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: AppWidth.s9,
-            vertical: AppHeight.s10,
-          ),
+          padding: EdgeInsets.symmetric(vertical: AppHeight.s10),
           child: Row(
+            // spacing: 10.sp,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            // children: [
-            //   _NavBarItem(
-            //     iconPath: IconAssets.homeIcon,
-            //     label: 'Home',
-            //     isSelected: navigationShell.currentIndex == 0,
-            //     onTap: () => _onTap(context, 0),
-            //   ),
-            //   _NavBarItem(
-            //     iconPath: IconAssets.dictionaryIcon,
-            //     label: 'Dictionary',
-            //     isSelected: navigationShell.currentIndex == 1,
-            //     onTap: () => _onTap(context, 1),
-            //   ),
-            //   _NavBarItem(
-            //     iconPath: IconAssets.studyIcon,
-            //     label: 'Study',
-            //     isSelected: navigationShell.currentIndex == 2,
-            //     onTap: () => _onTap(context, 2),
-            //   ),
-            //   _NavBarItem(
-            //     iconPath: IconAssets.profileIcon,
-            //     label: 'Profile',
-            //     isSelected: navigationShell.currentIndex == 3,
-            //     onTap: () async {
-                 
-            //       _onTap(context, 3);
-            //     },
-            //   ),
-            // ],
+            children: [
+              _NavBarItem(
+                iconPath: IconAssets.home,
+                label: LocaleKeys.home.tr(),
+                isSelected: navigationShell.currentIndex == 0,
+                onTap: () => _onTap(context, 0),
+              ),
+              _NavBarItem(
+                iconPath: IconAssets.tasks,
+                label: LocaleKeys.tasks.tr(),
+                isSelected: navigationShell.currentIndex == 1,
+                onTap: () => _onTap(context, 1),
+              ),
+              _NavBarItem(
+                iconPath: IconAssets.map,
+                label: LocaleKeys.map.tr(),
+                isSelected: navigationShell.currentIndex == 2,
+                onTap: () => _onTap(context, 2),
+              ),
+              _NavBarItem(
+                iconPath: IconAssets.performance,
+                label: LocaleKeys.performance.tr(),
+                isSelected: navigationShell.currentIndex == 3,
+                onTap: () async {
+                  _onTap(context, 3);
+                },
+              ),
+              _NavBarItem(
+                iconPath: IconAssets.bot,
+                label: LocaleKeys.bot.tr(),
+                isSelected: navigationShell.currentIndex == 4,
+                onTap: () async {
+                  _onTap(context, 4);
+                },
+              ),
+            ],
           ),
         ),
       ),
@@ -231,8 +231,6 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   void _onTap(BuildContext context, int index) {
     if (index == navigationShell.currentIndex) return;
-    context.read<NavigationCubit>().updateIndex(index);
-
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
@@ -260,8 +258,7 @@ class _NavBarItem extends StatefulWidget {
 class _NavBarItemState extends State<_NavBarItem>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _bounceAnimation;
+  // late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -270,40 +267,6 @@ class _NavBarItemState extends State<_NavBarItem>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 1.0,
-          end: 1.2,
-        ).chain(CurveTween(curve: Curves.easeOut)),
-        weight: 50,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 1.2,
-          end: 1.0,
-        ).chain(CurveTween(curve: Curves.elasticOut)),
-        weight: 50,
-      ),
-    ]).animate(_controller);
-
-    _bounceAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 0.0,
-          end: -8.0,
-        ).chain(CurveTween(curve: Curves.easeOut)),
-        weight: 50,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: -8.0,
-          end: 0.0,
-        ).chain(CurveTween(curve: Curves.bounceOut)),
-        weight: 50,
-      ),
-    ]).animate(_controller);
   }
 
   @override
@@ -328,40 +291,41 @@ class _NavBarItemState extends State<_NavBarItem>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _bounceAnimation.value),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Transform.scale(
-                  scale: _scaleAnimation.value,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    child: Image.asset(
-                      widget.iconPath,
-                      width: AppWidth.s24,
-                      height: AppHeight.s24,
-                      color:
-                          widget.isSelected
-                              ? ColorManager.blue600
-                              : ColorManager.navbarInactiveItem,
-                    ),
-                  ),
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                child: Image.asset(
+                  widget.iconPath,
+                  width: AppWidth.s24,
+                  height: AppHeight.s24,
                 ),
-                SizedBox(height: AppHeight.s4),
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 200),
-                  style: getRegularStyle(
-                    fontSize: FontSize.s10,
-                    color:
-                        widget.isSelected
-                            ? ColorManager.black
-                            : ColorManager.navbarInactiveItemTitle,
-                  ),
-                  child: Text(widget.label),
+              ),
+              SizedBox(height: AppHeight.s4),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: getBoldStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s10,
+                  color: widget.isSelected
+                      ? ColorManager.blueThree500
+                      : ColorManager.white,
                 ),
-              ],
-            ),
+                child: Text(widget.label),
+              ),
+              SizedBox(height: 3.sp),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                width: widget.isSelected ? AppWidth.s24 : 0,
+                height: AppHeight.s2,
+                decoration: BoxDecoration(
+                  color: ColorManager.blueThree500,
+                  borderRadius: BorderRadius.circular(AppRadius.s1),
+                ),
+              ),
+            ],
           );
         },
       ),

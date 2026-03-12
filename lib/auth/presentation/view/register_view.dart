@@ -55,7 +55,7 @@ class _RegisterViewState extends State<RegisterView> {
         context.go(Routes.adminHome);
         break;
       case 'user':
-        context.go(Routes.userHome);
+        context.go(Routes.volunteerHome);
         break;
       default:
     }
@@ -90,7 +90,7 @@ class _RegisterViewState extends State<RegisterView> {
                     "انشاء حساب جديد",
                     style: getBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.blue900,
+                      color: ColorManager.blueOne900,
                       fontSize: FontSize.s24,
                     ),
                   ),
@@ -112,7 +112,7 @@ class _RegisterViewState extends State<RegisterView> {
                       "الاسم كامل",
                       style: getSemiBoldStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blue700,
+                        color: ColorManager.blueOne700,
                         fontSize: FontSize.s18,
                       ),
                     ),
@@ -134,7 +134,7 @@ class _RegisterViewState extends State<RegisterView> {
                       "البريد الإلكتروني",
                       style: getSemiBoldStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blue700,
+                        color: ColorManager.blueOne700,
                         fontSize: FontSize.s18,
                       ),
                     ),
@@ -157,7 +157,7 @@ class _RegisterViewState extends State<RegisterView> {
                       "النوع",
                       style: getSemiBoldStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blue700,
+                        color: ColorManager.blueOne700,
                         fontSize: FontSize.s18,
                       ),
                     ),
@@ -180,7 +180,7 @@ class _RegisterViewState extends State<RegisterView> {
                       "كلمة المرور",
                       style: getSemiBoldStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blue700,
+                        color: ColorManager.blueOne700,
                         fontSize: FontSize.s18,
                       ),
                     ),
@@ -201,7 +201,7 @@ class _RegisterViewState extends State<RegisterView> {
                       "تأكيد كلمة المرور",
                       style: getSemiBoldStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blue700,
+                        color: ColorManager.blueOne700,
                         fontSize: FontSize.s18,
                       ),
                     ),
@@ -241,7 +241,7 @@ class _RegisterViewState extends State<RegisterView> {
                         " لديك حساب بالفعل؟",
                         style: getMediumStyle(
                           fontFamily: FontConstants.fontFamily,
-                          color: ColorManager.blue800,
+                          color: ColorManager.blueOne800,
                           fontSize: FontSize.s12,
                         ),
                       ),
@@ -252,7 +252,7 @@ class _RegisterViewState extends State<RegisterView> {
                           "تسجيل الدخول",
                           style: getBoldStyle(
                             fontFamily: FontConstants.fontFamily,
-                            color: ColorManager.blue500,
+                            color: ColorManager.blueOne500,
                             fontSize: FontSize.s12,
                           ),
                         ),

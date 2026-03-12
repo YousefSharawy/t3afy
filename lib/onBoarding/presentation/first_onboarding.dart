@@ -27,7 +27,7 @@ class FirstOnboarding extends StatelessWidget {
                   "معًا نبدأ طريق التعافى",
                   style: getBoldStyle(
                     fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.blue600,
+                    color: ColorManager.blueOne600,
                     fontSize: FontSize.s24,
                   ),
                 ),
@@ -51,7 +51,7 @@ class FirstOnboarding extends StatelessWidget {
               "كن السبب في إنقاذ حياة",
               style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
-                color: ColorManager.blue600,
+                color: ColorManager.blueOne600,
                 fontSize: FontSize.s20,
               ),
             ),
@@ -60,7 +60,7 @@ class FirstOnboarding extends StatelessWidget {
               "تطوّعك اليوم قد يُغيّر مسار حياة شخص يحتاجك",
               style: getRegularStyle(
                 fontFamily: FontConstants.fontFamily,
-                color: ColorManager.blue600,
+                color: ColorManager.blueOne600,
                 fontSize: FontSize.s14,
               ),
             ),

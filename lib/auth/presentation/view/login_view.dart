@@ -48,7 +48,7 @@ class _LoginViewState extends State<LoginView> {
         context.go(Routes.adminHome);
         break;
       case 'user':
-        context.go(Routes.userHome);
+        context.go(Routes.volunteerHome);
         break;
       default:
     }
@@ -85,7 +85,7 @@ class _LoginViewState extends State<LoginView> {
                       LocaleKeys.app_name.tr(),
                       style: getBoldStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blue600,
+                        color: ColorManager.blueOne600,
                         fontSize: FontSize.s24,
                       ),
                     ),
@@ -102,7 +102,7 @@ class _LoginViewState extends State<LoginView> {
                   "مرحبًا بك",
                   style: getBoldStyle(
                     fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.blue900,
+                    color: ColorManager.blueOne900,
                     fontSize: FontSize.s18,
                   ),
                 ),
@@ -113,7 +113,7 @@ class _LoginViewState extends State<LoginView> {
                     "البريد الالكترونى",
                     style: getSemiBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.blue700,
+                      color: ColorManager.blueOne700,
                       fontSize: FontSize.s18,
                     ),
                   ),
@@ -134,7 +134,7 @@ class _LoginViewState extends State<LoginView> {
                     "كلمة المرور",
                     style: getSemiBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.blue700,
+                      color: ColorManager.blueOne700,
                       fontSize: FontSize.s18,
                     ),
                   ),
@@ -155,7 +155,7 @@ class _LoginViewState extends State<LoginView> {
                     "نسيت كلمة المرور؟",
                     style: getSemiBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.blue800,
+                      color: ColorManager.blueOne800,
                       fontSize: FontSize.s14,
                     ).copyWith(letterSpacing: -0.5.sp),
                   ),
@@ -234,7 +234,7 @@ class _LoginViewState extends State<LoginView> {
                       "  ليس لديك حساب ؟",
                       style: getMediumStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blue800,
+                        color: ColorManager.blueOne800,
                         fontSize: FontSize.s12,
                       ),
                     ),
@@ -245,7 +245,7 @@ class _LoginViewState extends State<LoginView> {
                         "انشاء حساب",
                         style: getBoldStyle(
                           fontFamily: FontConstants.fontFamily,
-                          color: ColorManager.blue500,
+                          color: ColorManager.blueOne500,
                           fontSize: FontSize.s12,
                         ),
                       ),

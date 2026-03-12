@@ -40,7 +40,7 @@ class GenderDropDown extends StatelessWidget {
                       'ذكر',
                       style: getBoldStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blue600,
+                        color: ColorManager.blueOne600,
                         fontSize: FontSize.s14,
                       ),
                     ),
@@ -54,7 +54,7 @@ class GenderDropDown extends StatelessWidget {
                       'أنثى',
                       style: getBoldStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blue600,
+                        color: ColorManager.blueOne600,
                         fontSize: FontSize.s14,
                       ),
                     ),
@@ -66,7 +66,7 @@ class GenderDropDown extends StatelessWidget {
                 decoration: BoxDecoration(
                   border: Border.all(
                     width: 1.5.sp,
-                    color: ColorManager.blue700,
+                    color: ColorManager.blueOne700,
                   ),
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(AppRadius.s8),
@@ -77,7 +77,7 @@ class GenderDropDown extends StatelessWidget {
                     Icon(
                       Icons.keyboard_arrow_down,
                       size: 24.sp,
-                      color: ColorManager.blue900,
+                      color: ColorManager.blueOne900,
                     ),
                     SizedBox(width: AppWidth.s12),
                     Text(
@@ -90,8 +90,8 @@ class GenderDropDown extends StatelessWidget {
                         fontSize: FontSize.s14,
                         fontWeight: FontWeightManager.bold,
                         color: gender != null
-                            ? ColorManager.blue600
-                            : ColorManager.blue100,
+                            ? ColorManager.blueOne600
+                            : ColorManager.blueOne100,
                         fontFamily: FontConstants.fontFamily,
                       ),
                     ),
