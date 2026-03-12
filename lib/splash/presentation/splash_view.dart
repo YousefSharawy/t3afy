@@ -40,7 +40,7 @@ class _SplashViewState extends State<SplashView>
   @override
   void initState() {
     super.initState();
-    _hasCompletedOnboarding = LocalAppStorage.isOnboardingCompleted();
+    // _hasCompletedOnboarding = LocalAppStorage.isOnboardingCompleted();
     context.read<SplashCubit>().start();
 
     if (_hasCompletedOnboarding) {

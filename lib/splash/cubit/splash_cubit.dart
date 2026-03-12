@@ -4,7 +4,6 @@ import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/constants_manager.dart';
 import 'package:t3afy/app/resources/routes.dart';
 
-
 part 'splash_state.dart';
 part 'splash_cubit.freezed.dart';
 
@@ -13,9 +12,14 @@ class SplashCubit extends Cubit<SplashState> {
 
   void start() async {
     await Future.delayed(Duration(seconds: ConstantsManager.splashTimer));
-    final hasCompletedOnboarding = LocalAppStorage.isOnboardingCompleted();
-    if (hasCompletedOnboarding) {
-      emit(SplashState.success(route: Routes.onboarding1));
+
+    if (LocalAppStorage.isLoggedIn()) {
+      final role = LocalAppStorage.getUserRole();
+      emit(
+        SplashState.success(
+          route: role == 'admin' ? Routes.adminHome : Routes.userHome,
+        ),
+      );
     } else {
       emit(SplashState.success(route: Routes.onboarding1));
     }

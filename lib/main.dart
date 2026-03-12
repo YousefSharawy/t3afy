@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/bloc_observer.dart';
 import 'package:t3afy/app/di.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/my_app.dart';
 import 'package:t3afy/app/resources/constants_manager.dart';
 import 'package:t3afy/translation/codegen_loader.g.dart';
@@ -13,6 +14,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await initAppModule();
+  await LocalAppStorage.init();
   await dotenv.load(fileName: '.env');
   await Supabase.initialize(
     url: "${dotenv.env['SUPABASE_URL']}",

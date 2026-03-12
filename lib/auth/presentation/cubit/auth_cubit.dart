@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/auth/data/mappers/user_mapper.dart';
 import 'package:t3afy/auth/domain/entity/user_entity.dart';
 import 'package:t3afy/auth/domain/use_cases/login_use_case.dart';
@@ -29,10 +30,11 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> login(String email, String password) async {
     emit(const AuthState.loading());
     final result = await _login(email, password);
-    result.fold(
-      (failure) => emit(AuthState.error(failure.message)),
-      (user) => emit(AuthState.success(user.toEntity())),
-    );
+    result.fold((failure) => emit(AuthState.error(failure.message)), (user) {
+      final entity = user.toEntity();
+      LocalAppStorage.saveUserSession(entity.role);
+      emit(AuthState.success(entity));
+    });
   }
 
   Future<void> register({
@@ -48,9 +50,10 @@ class AuthCubit extends Cubit<AuthState> {
       password: password,
       role: role,
     );
-    result.fold(
-      (failure) => emit(AuthState.error(failure.message)),
-      (user) => emit(AuthState.success(user.toEntity())),
-    );
+    result.fold((failure) => emit(AuthState.error(failure.message)), (user) {
+      final entity = user.toEntity();
+      LocalAppStorage.saveUserSession(entity.role);
+      emit(AuthState.success(entity));
+    });
   }
 }
