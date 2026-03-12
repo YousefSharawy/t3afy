@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
+import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/theme_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+
 class PrimaryElevatedButton extends StatelessWidget {
   const PrimaryElevatedButton({
     super.key,
@@ -22,6 +24,7 @@ class PrimaryElevatedButton extends StatelessWidget {
     this.buttonRadius,
     required this.textStyle,
     this.borderColor,
+    this.iconColor,
   });
   final String title;
   final double? height;
@@ -34,6 +37,7 @@ class PrimaryElevatedButton extends StatelessWidget {
   final dynamic value;
   final String? iconPath;
   final Color? borderColor;
+  final Color? iconColor;
 
   final TextStyle textStyle;
   final double? buttonRadius;
@@ -42,42 +46,41 @@ class PrimaryElevatedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.center,
-      child: ElevatedButton(
-        
-        style: ElevatedButton.styleFrom(
-          
-          backgroundColor: backGroundColor ?? ColorManager.primary,
-          shape: RoundedRectangleBorder(
-            side: BorderSide(color: borderColor ?? ColorManager.trasnparent),
-            borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s15),
-          ),
-          fixedSize: Size(width ?? 1.sw, height ?? AppHeight.s68),
+      child: Container(
+        width: width ?? 1.sw,
+        height: height ?? AppHeight.s50,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s10),
         ),
-        onPressed: onPress,
-        child:
-            // isLoading
-            //     ? LoadingAnimationWidget.staggeredDotsWave(
-            //         color: ColorManager.white,
-            //         size: AppWidth.s40,
-            //       )
-            //     :
-            titleWidget ??
-            FittedBox(
-              child: Row(
-                children: [
-                  if (iconPath != null) ...[
-                    Image.asset(
-                      iconPath!,
-                      width: AppWidth.s16,
-                      height: AppHeight.s16,
-                      color: ColorManager.white,
-                    ),
-                  ],
-                  SizedBox(width: AppWidth.s8,),
-                  Center(child: Text(title, style: textStyle)),
-                ],
-              ),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: backGroundColor ?? ColorManager.blue700,
+            shape: RoundedRectangleBorder(
+              side: BorderSide(color: borderColor ?? ColorManager.trasnparent),
+              borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s8),
             ),
+            fixedSize: Size(width ?? 1.sw, height ?? AppHeight.s50),
+          ),
+          onPressed: onPress,
+          child:
+              titleWidget ??
+              FittedBox(
+                child: Row(
+                  children: [
+                    if (iconPath != null) ...[
+                      Image.asset(
+                        iconPath!,
+                        width: AppWidth.s16,
+                        height: AppHeight.s16,
+                        color: iconColor ?? ColorManager.white,
+                      ),
+                    ],
+                    SizedBox(width: AppWidth.s8),
+                    Center(child: Text(title, style: textStyle)),
+                  ],
+                ),
+              ),
+        ),
       ),
     );
   }
@@ -110,8 +113,8 @@ class PrimaryRadio extends StatelessWidget {
           height: AppWidth.s20,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(width: AppSize.s05, color: ColorManager.primary),
-            color: isSelected ? ColorManager.primary : Colors.transparent,
+            border: Border.all(width: AppSize.s05, color: ColorManager.blue600),
+            color: isSelected ? ColorManager.blue600 : Colors.transparent,
           ),
         ),
       ),
@@ -134,6 +137,8 @@ class PrimaryTextFF extends StatefulWidget {
     this.onChanged,
     this.keyboardType,
     this.filledColor,
+    this.prefixIcon,
+    this.textAlign = TextAlign.left,
   });
   final String hint;
   final String? label;
@@ -141,12 +146,14 @@ class PrimaryTextFF extends StatefulWidget {
   final int maxLines;
   final TextEditingController? controller;
   final String? icon;
+  final String? prefixIcon;
   final bool isPassword;
   final bool readOnly;
   final VoidCallback? onTap;
   final Function(String)? onChanged;
   final TextInputType? keyboardType;
   final Color? filledColor;
+  final TextAlign? textAlign;
 
   @override
   State<PrimaryTextFF> createState() => _PrimaryTextFFState();
@@ -162,63 +169,76 @@ class _PrimaryTextFFState extends State<PrimaryTextFF> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      maxLines: widget.maxLines,
-      keyboardType: widget.keyboardType,
-      obscureText: isObscure,
-      readOnly: widget.readOnly,
-      controller: widget.controller,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      onTap: widget.onTap,
-      onChanged: widget.onChanged,
-      validator: widget.validator,
-      decoration: InputDecoration(
-        contentPadding: EdgeInsets.symmetric(vertical: AppHeight.s16),
-        fillColor: widget.filledColor,
-        constraints: BoxConstraints(minHeight: AppHeight.s56),
-        labelText: widget.label ?? widget.hint,
-        hintText: widget.hint,
-        hintStyle: TextStyle(
-          fontSize: FontSize.s14,
-          fontWeight: FontWeightManager.regular,
-          color: ColorManager.warmLightGray,
-          fontFamily: FontConstants.almaraiFontFamily,
+    return Container(
+      height: AppHeight.s54,
+      decoration: BoxDecoration(
+        border: Border.all(width: 1.5.sp, color: ColorManager.blue700),
+        color: widget.filledColor ?? Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.s8),
+      ),
+      child: TextFormField(
+        maxLines: 1,
+        expands: false,
+        keyboardType: widget.keyboardType,
+        obscureText: isObscure,
+        readOnly: widget.readOnly,
+        controller: widget.controller,
+        autovalidateMode: AutovalidateMode.onUnfocus,
+        onTap: widget.onTap,
+        onChanged: widget.onChanged,
+        validator: widget.validator,
+        textDirection: TextDirection.ltr,
+        textAlign: widget.textAlign ?? TextAlign.right,
+        textAlignVertical: TextAlignVertical.center,
+        style: getSemiBoldStyle(
+          fontSize: FontSize.s18,
+          color: ColorManager.blue700,
+          fontFamily: FontConstants.fontFamily,
         ),
-        focusedBorder: getOutlineInputBorder(
-          color: widget.readOnly ? Colors.transparent : null,
-          width: 0,
-        ),
-        suffixIcon:
-            widget.isPassword
-                ? IconButton(
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: AppWidth.s12,
+            vertical: AppHeight.s10,
+          ),
+          filled: true,
+          fillColor: Colors.transparent,
+          hintText: widget.hint,
+          hintTextDirection: TextDirection.ltr,
+          hintStyle: getSemiBoldStyle(
+            fontSize: FontSize.s18,
+            color: ColorManager.blue200,
+            fontFamily: FontConstants.fontFamily,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          errorStyle: TextStyle(
+            color: ColorManager.error,
+            fontSize: FontSize.s10,
+            height: -2,
+          ),
+          errorMaxLines: 1,
+          floatingLabelBehavior: FloatingLabelBehavior.never,
+          prefixIcon: widget.isPassword
+              ? IconButton(
                   onPressed: () {
                     setState(() {
                       isObscure = !isObscure;
                     });
                   },
-                  icon: Icon(
-                    isObscure ? Icons.visibility : Icons.visibility_off,
-                    color: ColorManager.warmLightGray,
+                  icon: PrimaryIcon(
+                    color: ColorManager.blue700,
+                    icon: isObscure
+                        ? IconAssets.visibilityoff
+                        : IconAssets.visibilityon,
                   ),
                 )
-                : null,
-        prefixIconConstraints: BoxConstraints(
-          maxHeight: AppHeight.s14,
-          minWidth: AppWidth.s16,
+              : widget.icon != null
+              ? PrimaryIcon(icon: widget.icon!, color: ColorManager.blue700)
+              : null,
         ),
-        prefixIcon:
-            widget.icon != null
-                ? Padding(
-                  padding: EdgeInsets.only(
-                    left: AppWidth.s12,
-                    right: AppWidth.s20,
-                  ),
-                  child: PrimaryIcon(
-                    icon: widget.icon!,
-                    color: ColorManager.warmLightGray,
-                  ),
-                )
-                : null,
       ),
     );
   }
@@ -259,15 +279,10 @@ class PrimaryIcon extends StatelessWidget {
   final double? size;
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
+    return Image.asset(
       icon,
-
-      width: size ?? AppSize.s24,
-      height: size ?? AppSize.s24,
-      colorFilter:
-          color != null
-              ? ColorFilter.mode(color ?? ColorManager.primary, BlendMode.srcIn)
-              : null,
+      width: size ?? AppSize.s21,
+      height: size ?? AppSize.s21,
     );
   }
 }
@@ -289,19 +304,19 @@ class PrimaryIcon extends StatelessWidget {
 //     );
 //   }
 
-  bool hasRouteStack(BuildContext context) {
-    final router = GoRouter.of(context);
-    final routeMatchList = router.routerDelegate.currentConfiguration.matches;
+bool hasRouteStack(BuildContext context) {
+  final router = GoRouter.of(context);
+  final routeMatchList = router.routerDelegate.currentConfiguration.matches;
 
-    // Debugging: Print the current route stack
-    debugPrint('Route stack:');
-    for (final route in routeMatchList) {
-      debugPrint(route.matchedLocation);
-    }
-
-    // Return true if there's more than one route (meaning we can pop)
-    return routeMatchList.length > 1;
+  // Debugging: Print the current route stack
+  debugPrint('Route stack:');
+  for (final route in routeMatchList) {
+    debugPrint(route.matchedLocation);
   }
+
+  // Return true if there's more than one route (meaning we can pop)
+  return routeMatchList.length > 1;
+}
 // }
 
 class PrimaryIconBtn extends StatelessWidget {
@@ -333,7 +348,7 @@ class PrimaryIconBtn extends StatelessWidget {
         child: PrimaryIcon(
           icon: icon,
           size: iconSize ?? AppSize.s22,
-          color: iconColor ?? ColorManager.primary,
+          color: iconColor ?? ColorManager.blue600,
         ),
       ),
     );
@@ -370,7 +385,7 @@ class PrimaryOutlineButton extends StatelessWidget {
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           backgroundColor: backGroundColor ?? ColorManager.white,
-          foregroundColor: ColorManager.primary,
+          foregroundColor: ColorManager.blue600,
           fixedSize: Size(width ?? 1.sw, height ?? AppHeight.s48),
         ),
         onPressed: onPress,

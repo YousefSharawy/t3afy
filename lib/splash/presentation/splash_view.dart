@@ -166,25 +166,17 @@ class _SplashViewState extends State<SplashView>
     final visibleCount = progress * total; // ← added
 
     return RichText(
-      softWrap: false, // ← prevents wrapping when right constraint is set
+      softWrap: false,
       text: TextSpan(
         children: List.generate(total, (i) {
           final opacity = (visibleCount - i).clamp(0.0, 1.0); // ← added
           return TextSpan(
             text: chars[i],
             style: getBoldStyle(
-              fontSize: FontSize.s32,
+              fontSize: FontSize.s28,
               fontFamily: FontConstants.fontFamily,
               color: ColorManager.white.withOpacity(opacity), // ← added
-            ).copyWith(
-              shadows: [ // ← added
-                Shadow(
-                  color: Colors.black.withOpacity(0.25 * opacity),
-                  offset: const Offset(0, 4),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
+            )
           );
         }),
       ),
@@ -237,7 +229,7 @@ class _SplashViewState extends State<SplashView>
             return Container(
               width: double.infinity,
               height: double.infinity,
-              color: ColorManager.splashBackground,
+              color: ColorManager.blue500,
               child: Stack(
                 children: [
                   Positioned(

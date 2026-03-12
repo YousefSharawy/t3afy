@@ -43,13 +43,14 @@ dependencies:
   google_sign_in: ^7.2.0
   flutter_dotenv: ^6.0.0
   crypto: ^3.0.7
+  dotenv: ^4.2.0
+  freezed: ^3.2.5
   # google_mobile_ads: ^7.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  freezed: ^3.2.5
   build_runner: ^2.12.2
   json_serializable: ^6.13.0
 
@@ -60,6 +61,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/fonts/
+    - .env
   fonts:
     - family: Cairo
       fonts:

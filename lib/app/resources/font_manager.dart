@@ -31,11 +31,13 @@ class FontSize {
   static double s16 = 16.sp;
   static double s17 = 17.sp;
   static double s18 = 18.sp;
+  static double s19 = 19.sp;
   static double s20 = 20.sp;
   static double s22 = 22.sp;
   static double s24 = 24.sp;
   static double s25 = 25.sp;
   static double s26 = 26.sp;
+  static double s27 = 27.sp;
   static double s28 = 28.sp;
   static double s30 = 30.sp;
   static double s32 = 32.sp;

@@ -2,19 +2,24 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/bloc_observer.dart';
+import 'package:t3afy/app/di.dart';
 import 'package:t3afy/app/my_app.dart';
 import 'package:t3afy/app/resources/constants_manager.dart';
 import 'package:t3afy/translation/codegen_loader.g.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-  // await dotenv.load(fileName: '.env');
+  await initAppModule();
+  await dotenv.load(fileName: '.env');
+  await Supabase.initialize(
+    url: "${dotenv.env['SUPABASE_URL']}",
+    anonKey: "${dotenv.env['SUPABASE_ANON_KEY']}",
+  );
   // await MobileAds.instance.initialize();
-  // await Supabase.initialize(
-  //   url: "${dotenv.env['SUPABASE_URL']}",
-  //   anonKey: "${dotenv.env['SUPABASE_ANON_KEY']}",
-  // );
+
   Bloc.observer = MyBlocObserver();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 

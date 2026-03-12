@@ -3,14 +3,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:t3afy/admin/admin_view.dart';
 import 'package:t3afy/auth/presentation/view/login_view.dart';
+import 'package:t3afy/auth/presentation/view/register_view.dart';
 import 'package:t3afy/onBoarding/presentation/first_onboarding.dart';
 import 'package:t3afy/splash/presentation/splash_view.dart';
 import 'package:t3afy/splash/cubit/splash_cubit.dart';
+import 'package:t3afy/user/user_view.dart';
 class Routes {
   static const String splash = '/';
   static const String onboarding1 = '/onboarding1';
   static const String login = '/login';
+  static const String userHome = '/userHome';
+  static const String adminHome = '/adminHome';
+static const String register = '/register';
   
 }
 
@@ -51,7 +57,30 @@ class AppNavigation {
               child: const LoginView(),
             ),
       ),
-
+      GoRoute(
+        path: Routes.userHome,
+        pageBuilder:
+            (context, state) => CustomTransitionPage2(
+              key: state.pageKey,
+              child: const UserView(),
+            ),
+      ),
+      GoRoute(
+        path: Routes.adminHome,
+        pageBuilder:
+            (context, state) => CustomTransitionPage2(
+              key: state.pageKey,
+              child: const AdminView(),
+            ),
+      ),
+GoRoute(
+  path: Routes.register,
+  pageBuilder:
+      (context, state) => CustomTransitionPage2(
+        key: state.pageKey,
+        child: const RegisterView(),
+      ),
+),
       // StatefulShellRoute.indexedStack(
       //   builder: (context, state, navigationShell) {
       //     return ScaffoldWithNavBar(navigationShell: navigationShell);

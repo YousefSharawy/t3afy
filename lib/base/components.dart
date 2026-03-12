@@ -343,7 +343,7 @@ class _NavBarItemState extends State<_NavBarItem>
                       height: AppHeight.s24,
                       color:
                           widget.isSelected
-                              ? ColorManager.primary
+                              ? ColorManager.blue600
                               : ColorManager.navbarInactiveItem,
                     ),
                   ),

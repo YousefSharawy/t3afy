@@ -10,5 +10,14 @@ class ImageAssets {
 
 class IconAssets {
   static const String logo = '$ICON_PATH/applogo.png';
+  static const String email = '$ICON_PATH/email.png';
+  static const String password = '$ICON_PATH/password.png';
+  static const String person = '$ICON_PATH/person.png';
+  static const String google = '$ICON_PATH/google.png';
+  static const String facebook = '$ICON_PATH/facebook.png';
+  static const String apple = '$ICON_PATH/apple.png';
+  static const String visibilityon = '$ICON_PATH/visibilityon.png';
+  static const String visibilityoff = '$ICON_PATH/visibilityoff.png';
 }
+
 class DemoAssets {}
