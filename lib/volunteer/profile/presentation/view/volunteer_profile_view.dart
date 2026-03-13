@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/routes.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/error_state.dart';
+import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/volunteer/profile/domain/entity/profile_entity.dart';
 import 'package:t3afy/volunteer/profile/presentation/cubit/profile_cubit.dart';
 import 'package:t3afy/volunteer/profile/presentation/view/widgets/profile_app_bar.dart';
@@ -48,18 +48,15 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
           builder: (context, state) {
             return state.when(
               initial: () => const SizedBox.shrink(),
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: ColorManager.blueOne600),
-              ),
-              error: (message) => Center(
-                child: Text(
-                  message,
-                  style: getRegularStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.error,
-                    fontSize: FontSize.s14,
-                  ),
-                ),
+              loading: () => const LoadingIndicator(),
+              error: (message) => ErrorState(
+                message: message,
+                onRetry: () {
+                  final userId = LocalAppStorage.getUserId();
+                  if (userId != null) {
+                    context.read<ProfileCubit>().loadProfile(userId);
+                  }
+                },
               ),
               loaded: (profile) => _buildContent(profile),
             );

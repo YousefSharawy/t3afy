@@ -3,11 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/base/components.dart';
+import 'package:t3afy/base/widgets/error_state.dart';
+import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/volunteer/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:t3afy/volunteer/notifications/presentation/view/widgets/notification_bubble.dart';
 import 'package:t3afy/volunteer/notifications/presentation/view/widgets/notifications_app_bar.dart';
 import 'package:t3afy/volunteer/notifications/presentation/view/widgets/notifications_empty_state.dart';
-import 'package:t3afy/volunteer/notifications/presentation/view/widgets/notifications_error_state.dart';
 
 class NotificationsView extends StatefulWidget {
   const NotificationsView({super.key});
@@ -48,14 +49,21 @@ class _NotificationsViewState extends State<NotificationsView> {
               child: BlocBuilder<NotificationsCubit, NotificationsState>(
                 builder: (context, state) {
                   if (state is NotificationsStateLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                          color: Color(0xFF00ABD2)),
-                    );
+                    return const LoadingIndicator();
                   }
 
                   if (state is NotificationsStateError) {
-                    return NotificationsErrorState(state: state);
+                    return ErrorState(
+                      message: state.message,
+                      onRetry: () {
+                        final volunteerId = LocalAppStorage.getUserId();
+                        if (volunteerId != null) {
+                          context
+                              .read<NotificationsCubit>()
+                              .loadNotifications(volunteerId);
+                        }
+                      },
+                    );
                   }
 
                   if (state is NotificationsStateLoaded) {

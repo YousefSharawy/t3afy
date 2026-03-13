@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/local_storage.dart';
@@ -9,11 +8,12 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/error_state.dart';
+import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/volunteer/home/representation/cubit/home_cubit.dart';
 import 'package:t3afy/volunteer/home/representation/view/widgets/greeting_card.dart';
 import 'package:t3afy/volunteer/home/representation/view/widgets/home_app_bar.dart';
 import 'package:t3afy/volunteer/home/representation/view/widgets/stats_grid.dart';
-import 'package:t3afy/volunteer/home/representation/view/widgets/error_retry_body.dart';
 import 'package:t3afy/volunteer/home/representation/view/widgets/todays_task_section.dart';
 
 class VolunteerHomeView extends StatefulWidget {
@@ -63,40 +63,15 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
         builder: (context, state) {
           return state.when(
             initial: () => const SizedBox.shrink(),
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: ColorManager.blueOne600),
-            ),
-            error: (message) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    message,
-                    style: getRegularStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.error,
-                      fontSize: FontSize.s14,
-                    ),
-                  ),
-                  SizedBox(height: AppHeight.s16),
-                  GestureDetector(
-                    onTap: () {
-                      final userId = LocalAppStorage.getUserId();
-                      if (userId != null) {
-                        context.read<HomeCubit>().loadHome(userId);
-                      }
-                    },
-                    child: Text(
-                      'إعادة المحاولة',
-                      style: getBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blueOne600,
-                        fontSize: FontSize.s14,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            loading: () => const LoadingIndicator(),
+            error: (message) => ErrorState(
+              message: message,
+              onRetry: () {
+                final userId = LocalAppStorage.getUserId();
+                if (userId != null) {
+                  context.read<HomeCubit>().loadHome(userId);
+                }
+              },
             ),
             loaded: (stats, todayTasks) => SingleChildScrollView(
               padding: EdgeInsets.only(left: AppWidth.s18, right: AppWidth.s18),

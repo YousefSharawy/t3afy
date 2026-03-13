@@ -6,7 +6,8 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/error_state.dart';
+import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_cubit.dart';
 import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_state.dart';
 import 'package:t3afy/volunteer/tasks/presentation/view/widgets/tasks_card.dart';
@@ -36,18 +37,10 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
           builder: (context, state) {
             return state.when(
               initial: () => const SizedBox.shrink(),
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: Colors.white),
-              ),
-              error: (message) => Center(
-                child: Text(
-                  message,
-                  style: getRegularStyle(
-                    fontSize: FontSize.s14,
-                    fontFamily: FontConstants.fontFamily,
-                    color: Colors.white70,
-                  ),
-                ),
+              loading: () => const LoadingIndicator(),
+              error: (message) => ErrorState(
+                message: message,
+                onRetry: () => context.read<TasksCubit>().loadTasks(),
               ),
               loaded: (todayTasks, completedTasks, stats, selectedTab) {
                 final tasks = selectedTab == 0 ? todayTasks : completedTasks;

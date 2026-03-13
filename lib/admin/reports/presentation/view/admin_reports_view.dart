@@ -5,6 +5,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/loading_indicator.dart';
 
 import 'widgets/admin_report_card.dart';
 
@@ -128,11 +129,7 @@ class _AdminReportsViewState extends State<AdminReportsView> {
           // Reports list
           Expanded(
             child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF00ABD2),
-                    ),
-                  )
+                ? const LoadingIndicator()
                 : _filteredReports.isEmpty
                     ? Center(
                         child: Text(

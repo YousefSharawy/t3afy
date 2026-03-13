@@ -11,6 +11,7 @@ import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/volunteer/task_details/data/models/task_report_model.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/report_cubit.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/report_state.dart';
+import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/volunteer/task_details/presentation/view/widgets/report_form_header.dart';
 import 'package:t3afy/volunteer/task_details/presentation/view/widgets/report_star_rating.dart';
 import 'package:t3afy/volunteer/task_details/presentation/view/widgets/report_submit_button.dart';
@@ -140,11 +141,7 @@ class _SubmitReportSheetState extends State<SubmitReportSheet> {
             const Divider(color: Color(0xFF1E3A5F), height: 1),
             Flexible(
               child: _isLoading
-                  ? const Padding(
-                      padding: EdgeInsets.all(40),
-                      child:
-                          CircularProgressIndicator(color: Color(0xFF00ABD2)),
-                    )
+                  ? const LoadingIndicator()
                   : _existingReport != null
                       ? _ExistingReportView(report: _existingReport!)
                       : BlocBuilder<ReportCubit, ReportState>(
