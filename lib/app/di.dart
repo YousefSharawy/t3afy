@@ -1,5 +1,6 @@
 
 import 'package:get_it/get_it.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/auth/data/repository/auth_impl_repository.dart';
 import 'package:t3afy/auth/data/source/auth_impl_remote_data_source.dart';
 import 'package:t3afy/auth/data/source/auth_remote_date_source.dart';
@@ -26,6 +27,14 @@ import 'package:t3afy/volunteer/profile/data/source/profile_impl_data_source.dar
 import 'package:t3afy/volunteer/profile/domain/repository/profile_repository.dart';
 import 'package:t3afy/volunteer/profile/domain/use_cases/profile_use_case.dart';
 import 'package:t3afy/volunteer/profile/presentation/cubit/profile_cubit.dart';
+import 'package:t3afy/volunteer/tasks/data/repository/tasks_impl_repository.dart';
+import 'package:t3afy/volunteer/tasks/data/sources/tasks_impl_remote_data_source.dart';
+import 'package:t3afy/volunteer/tasks/data/sources/tasks_remote_data_source.dart';
+import 'package:t3afy/volunteer/tasks/domain/repository/tasks_repository.dart';
+import 'package:t3afy/volunteer/tasks/domain/use_cases/get_completed_tasks.dart';
+import 'package:t3afy/volunteer/tasks/domain/use_cases/get_tasks_stats.dart';
+import 'package:t3afy/volunteer/tasks/domain/use_cases/get_today_tasks.dart';
+import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -58,7 +67,7 @@ getIt.registerFactory(() => HomeCubit(getIt(), getIt()));
   );
 
   getIt.registerLazySingleton(() => GetVolunteerStats(getIt()));
-  getIt.registerLazySingleton(() => GetTodayTasks(getIt()));
+  getIt.registerLazySingleton(() => GetHomeTodayTasks(getIt()));
 getIt.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileImplRemoteDataSource(),
   );
@@ -86,4 +95,30 @@ getIt.registerLazySingleton<Logout>(() => Logout(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => GetLeaderboard(getIt()));
 
   getIt.registerFactory(() => PerformanceCubit(getIt(), getIt(), getIt()));
+
+
+
+
+  // ===== Tasks =====
+// Data source
+getIt.registerLazySingleton<TasksRemoteDataSource>(
+  () => TasksImplRemoteDataSource(Supabase.instance.client),
+);
+
+// Repository
+getIt.registerLazySingleton<TasksRepository>(
+  () => TasksImplRepository(getIt<TasksRemoteDataSource>()),
+);
+
+// Use cases
+getIt.registerLazySingleton(() => GetTodayTasks(getIt<TasksRepository>()));
+getIt.registerLazySingleton(() => GetCompletedTasks(getIt<TasksRepository>()));
+getIt.registerLazySingleton(() => GetTasksStats(getIt<TasksRepository>()));
+
+// Cubit
+getIt.registerFactory(() => TasksCubit(
+  getIt<GetTodayTasks>(),
+  getIt<GetCompletedTasks>(),
+  getIt<GetTasksStats>(),
+));
 }

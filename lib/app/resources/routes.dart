@@ -20,8 +20,9 @@ import 'package:t3afy/volunteer/notifications/notifications_view.dart';
 import 'package:t3afy/volunteer/performance/volunteer_performance_view.dart';
 import 'package:t3afy/volunteer/profile/presentation/cubit/profile_cubit.dart';
 import 'package:t3afy/volunteer/profile/presentation/view/volunteer_profile_view.dart';
-import 'package:t3afy/volunteer/tasks/tasks_details_view.dart';
-import 'package:t3afy/volunteer/tasks/volunteer_tasks_view.dart';
+import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_cubit.dart';
+import 'package:t3afy/volunteer/taskDetails/tasks_details_view.dart';
+import 'package:t3afy/volunteer/tasks/presentation/view/volunteer_tasks_view.dart';
 
 import '../../base/components.dart';
 
@@ -141,17 +142,17 @@ class AppNavigation {
             ],
           ),
           // Tab 1: Tasks
-          StatefulShellBranch(
-            routes: <RouteBase>[
-              GoRoute(
-                path: Routes.volunteerTasks,
-                pageBuilder: (context, state) => CustomTransitionPage2(
-                  key: state.pageKey,
-                  child: const VolunteerTasksView(),
-                ),
-              ),
-            ],
-          ),
+        StatefulShellBranch(
+  routes: [
+    GoRoute(
+      path: '/volunteerTasks',
+      builder: (context, state) => BlocProvider(
+        create: (_) => getIt<TasksCubit>(),
+        child: const VolunteerTasksView(),
+      ),
+    ),
+  ],
+),
           // Tab 2: Map
           StatefulShellBranch(
             routes: <RouteBase>[

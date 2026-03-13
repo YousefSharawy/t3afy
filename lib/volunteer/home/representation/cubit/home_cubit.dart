@@ -11,7 +11,7 @@ class HomeCubit extends Cubit<HomeState> {
       : super(const HomeState.initial());
 
   final GetVolunteerStats _getVolunteerStats;
-  final GetTodayTasks _getTodayTasks;
+  final GetHomeTodayTasks _getTodayTasks;
 
   Future<void> loadHome(String userId) async {
     emit(const HomeState.loading());

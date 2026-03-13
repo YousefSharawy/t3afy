@@ -2,7 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/volunteer/home/data/sources/volunteer_home_remote_data_source.dart';
 import 'package:t3afy/volunteer/models/volunteer_stats_model.dart';
-import 'package:t3afy/volunteer/tasks/data/models/task_model.dart';
+import 'package:t3afy/volunteer/tasks/data/models/task_models.dart';
 
 class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource {
   final _client = Supabase.instance.client;

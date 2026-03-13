@@ -13,10 +13,10 @@ class GetVolunteerStats {
   }
 }
 
-class GetTodayTasks {
+class GetHomeTodayTasks {
   final VolunteerHomeRepository _repository;
 
-  GetTodayTasks(this._repository);
+  GetHomeTodayTasks(this._repository);
 
   Future<Either<Failture, List<TaskEntity>>> call(String userId) {
     return _repository.getTodayTasks(userId);
