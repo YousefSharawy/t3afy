@@ -7,6 +7,12 @@ import 'package:t3afy/auth/domain/repository/auth_repository.dart';
 import 'package:t3afy/auth/domain/use_cases/login_use_case.dart';
 import 'package:t3afy/auth/domain/use_cases/register_use_case.dart';
 import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
+import 'package:t3afy/volunteer/home/data/repository/volunteer_impl_home_repository.dart';
+import 'package:t3afy/volunteer/home/data/sources/volunteer_home_remote_data_source.dart';
+import 'package:t3afy/volunteer/home/data/sources/volunteer_impl_home_remote_data_source.dart';
+import 'package:t3afy/volunteer/home/domain/repository/home_repository.dart';
+import 'package:t3afy/volunteer/home/domain/use_case/home_use_case.dart';
+import 'package:t3afy/volunteer/home/representation/cubit/home_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -27,4 +33,19 @@ Future<void> initAppModule() async {
 
   // Cubits
   getIt.registerFactory<AuthCubit>(() => AuthCubit(getIt(), getIt()));
+getIt.registerFactory(() => HomeCubit(getIt(), getIt()));
+
+
+  getIt.registerLazySingleton<VolunteerHomeRemoteDataSource>(
+    () => VolunteerImplHomeRemoteDataSource(),
+  );
+
+  getIt.registerLazySingleton<VolunteerHomeRepository>(
+    () => HomeImplRepository(getIt()),
+  );
+
+  getIt.registerLazySingleton(() => GetVolunteerStats(getIt()));
+  getIt.registerLazySingleton(() => GetTodayTasks(getIt()));
+
+  // Cubit
 }

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -155,89 +156,120 @@ class _PrimaryScaffoldState extends State<PrimaryScaffold> {
     return const SizedBox.shrink();
   }
 }
-
-class VolunteerScaffoldWithNavBar extends StatelessWidget {
+class VolunteerScaffoldWithNavBar extends StatefulWidget {
   const VolunteerScaffoldWithNavBar({required this.navigationShell, Key? key})
     : super(key: key ?? const ValueKey<String>('ScaffoldWithNavBar'));
 
   final StatefulNavigationShell navigationShell;
 
   @override
+  State<VolunteerScaffoldWithNavBar> createState() =>
+      _VolunteerScaffoldWithNavBarState();
+}
+
+class _VolunteerScaffoldWithNavBarState
+    extends State<VolunteerScaffoldWithNavBar> {
+  bool _isNavBarVisible = true;
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(children: [Expanded(child: navigationShell)]),
-      extendBody: false,
-      bottomNavigationBar: Container(
-        margin: EdgeInsets.only(
-          left: AppWidth.s18,
-          right: AppWidth.s18,
-          bottom: AppHeight.s34,
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is UserScrollNotification) {
+          if (notification.direction == ScrollDirection.reverse) {
+            // Scrolling down — hide nav bar
+            if (_isNavBarVisible) setState(() => _isNavBarVisible = false);
+          } else if (notification.direction == ScrollDirection.forward) {
+            // Scrolling up — show nav bar
+            if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
+          }
+        }
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: ColorManager.background,
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: widget.navigationShell,
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 700),
+              curve: Curves.easeInOut,
+              left: AppWidth.s18,
+              right: AppWidth.s18,
+              bottom: _isNavBarVisible ? AppHeight.s34 : -90.sp,
+              child: _buildNavBar(context),
+            ),
+          ],
         ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.s49),
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.2.sp,
-            colors: [ColorManager.blueOne800, ColorManager.blueOne900],
-          ),
+      ),
+    );
+  }
+
+  Widget _buildNavBar(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.s49),
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            const Color(0xFF0E2A50),
+            const Color(0xFF132D63),
+            const Color(0xFF0C244E),
+          ],
         ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: AppHeight.s10),
-          child: Row(
-            // spacing: 10.sp,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavBarItem(
-                iconPath: IconAssets.home,
-                label: LocaleKeys.home.tr(),
-                isSelected: navigationShell.currentIndex == 0,
-                onTap: () => _onTap(context, 0),
-              ),
-              _NavBarItem(
-                iconPath: IconAssets.tasks,
-                label: LocaleKeys.tasks.tr(),
-                isSelected: navigationShell.currentIndex == 1,
-                onTap: () => _onTap(context, 1),
-              ),
-              _NavBarItem(
-                iconPath: IconAssets.map,
-                label: LocaleKeys.map.tr(),
-                isSelected: navigationShell.currentIndex == 2,
-                onTap: () => _onTap(context, 2),
-              ),
-              _NavBarItem(
-                iconPath: IconAssets.performance,
-                label: LocaleKeys.performance.tr(),
-                isSelected: navigationShell.currentIndex == 3,
-                onTap: () async {
-                  _onTap(context, 3);
-                },
-              ),
-              _NavBarItem(
-                iconPath: IconAssets.bot,
-                label: LocaleKeys.bot.tr(),
-                isSelected: navigationShell.currentIndex == 4,
-                onTap: () async {
-                  _onTap(context, 4);
-                },
-              ),
-            ],
-          ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: AppHeight.s10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _NavBarItem(
+              iconPath: IconAssets.home,
+              label: LocaleKeys.home.tr(),
+              isSelected: widget.navigationShell.currentIndex == 0,
+              onTap: () => _onTap(context, 0),
+            ),
+            _NavBarItem(
+              iconPath: IconAssets.tasks,
+              label: LocaleKeys.tasks.tr(),
+              isSelected: widget.navigationShell.currentIndex == 1,
+              onTap: () => _onTap(context, 1),
+            ),
+            _NavBarItem(
+              iconPath: IconAssets.map,
+              label: LocaleKeys.map.tr(),
+              isSelected: widget.navigationShell.currentIndex == 2,
+              onTap: () => _onTap(context, 2),
+            ),
+            _NavBarItem(
+              iconPath: IconAssets.performance,
+              label: LocaleKeys.performance.tr(),
+              isSelected: widget.navigationShell.currentIndex == 3,
+              onTap: () => _onTap(context, 3),
+            ),
+            _NavBarItem(
+              iconPath: IconAssets.bot,
+              label: LocaleKeys.bot.tr(),
+              isSelected: widget.navigationShell.currentIndex == 4,
+              onTap: () => _onTap(context, 4),
+            ),
+          ],
         ),
       ),
     );
   }
 
   void _onTap(BuildContext context, int index) {
-    if (index == navigationShell.currentIndex) return;
-    navigationShell.goBranch(
+    if (index == widget.navigationShell.currentIndex) return;
+    widget.navigationShell.goBranch(
       index,
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: index == widget.navigationShell.currentIndex,
     );
   }
 }
-
 class _NavBarItem extends StatefulWidget {
   final String iconPath;
   final String label;

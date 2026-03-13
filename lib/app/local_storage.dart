@@ -7,6 +7,7 @@ class LocalAppStorage {
   static const _userTokenKey = 'user_token';
 
   static const _userRoleKey = 'user_role';
+static const _userIdKey = 'user_id';
 
   static const _isLoggedInKey = 'is_logged_in';
 
@@ -38,10 +39,12 @@ class LocalAppStorage {
     }
   }
 
-  static Future<void> saveUserSession(String role) async {
-    await _appSettingsBoxInstance.put(_isLoggedInKey, true);
-    await _appSettingsBoxInstance.put(_userRoleKey, role);
-  }
+static Future<void> saveUserSession(String role, String userId) async {
+  await _appSettingsBoxInstance.put(_isLoggedInKey, true);
+  await _appSettingsBoxInstance.put(_userRoleKey, role);
+  await _appSettingsBoxInstance.put(_userIdKey, userId);
+}
+
 
   //   // =========================================================================
   //   // BOX ACCESSORS
@@ -71,10 +74,17 @@ class LocalAppStorage {
   }
 
   static Future<void> clearUserSession() async {
-    await _appSettingsBoxInstance.delete(_isLoggedInKey);
-    await _appSettingsBoxInstance.delete(_userRoleKey);
+  await _appSettingsBoxInstance.delete(_isLoggedInKey);
+  await _appSettingsBoxInstance.delete(_userRoleKey);
+  await _appSettingsBoxInstance.delete(_userIdKey);
+}
+static String? getUserId() {
+  try {
+    return _appSettingsBoxInstance.get(_userIdKey) as String?;
+  } catch (_) {
+    return null;
   }
-
+}
   static bool isLoggedIn() {
     try {
       return _appSettingsBoxInstance.get(_isLoggedInKey, defaultValue: false)

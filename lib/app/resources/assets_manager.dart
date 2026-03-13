@@ -23,6 +23,12 @@ class IconAssets {
   static const String map = '$ICON_PATH/map.png';
   static const String performance = '$ICON_PATH/performance.png';
   static const String bot = '$ICON_PATH/bot.png';
+  static const String volHome = '$ICON_PATH/volHome.png';
+  static const String notification = '$ICON_PATH/notification.png';
+  static const String star = '$ICON_PATH/star.png';
+  static const String hours = '$ICON_PATH/hours.png';
+  static const String location = '$ICON_PATH/location.png';
+  static const String done = '$ICON_PATH/done.png';
 }
 
 class DemoAssets {}

@@ -32,7 +32,7 @@ class AuthCubit extends Cubit<AuthState> {
     final result = await _login(email, password);
     result.fold((failure) => emit(AuthState.error(failure.message)), (user) {
       final entity = user.toEntity();
-      LocalAppStorage.saveUserSession(entity.role);
+      LocalAppStorage.saveUserSession(entity.role,entity.id);
       emit(AuthState.success(entity));
     });
   }
@@ -52,7 +52,7 @@ class AuthCubit extends Cubit<AuthState> {
     );
     result.fold((failure) => emit(AuthState.error(failure.message)), (user) {
       final entity = user.toEntity();
-      LocalAppStorage.saveUserSession(entity.role);
+      LocalAppStorage.saveUserSession(entity.role,entity.id);
       emit(AuthState.success(entity));
     });
   }

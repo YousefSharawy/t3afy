@@ -4,15 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/admin/admin_view.dart';
+import 'package:t3afy/app/di.dart';
 import 'package:t3afy/auth/presentation/view/login_view.dart';
 import 'package:t3afy/auth/presentation/view/register_view.dart';
 import 'package:t3afy/onBoarding/presentation/first_onboarding.dart';
 import 'package:t3afy/splash/presentation/splash_view.dart';
 import 'package:t3afy/splash/cubit/splash_cubit.dart';
-import 'package:t3afy/volunteer/home/volunteer_home_view.dart';
+import 'package:t3afy/volunteer/home/representation/cubit/home_cubit.dart';
+import 'package:t3afy/volunteer/home/representation/volunteer_home_view.dart';
 import 'package:t3afy/volunteer/maps/volunteer_map_view.dart';
+import 'package:t3afy/volunteer/notifications/notifications_view.dart';
 import 'package:t3afy/volunteer/performance/volunteer_performance_view.dart';
 import 'package:t3afy/volunteer/profile/volunteer_profile_view.dart';
+import 'package:t3afy/volunteer/tasks/tasks_details_view.dart';
 import 'package:t3afy/volunteer/tasks/volunteer_tasks_view.dart';
 
 import '../../base/components.dart';
@@ -28,6 +32,8 @@ class Routes {
   static const String volunteerMap = '/volunteerMap';
   static const String volunteerPerformance = '/volunteerPerformance';
   static const String volunteerProfile = '/volunteerProfile';
+  static const String taskDetails = '/taskDetails';
+  static const String notifications = '/notifications';
 }
 
 class AppNavigation {
@@ -68,15 +74,37 @@ class AppNavigation {
             CustomTransitionPage2(key: state.pageKey, child: const AdminView()),
       ),
       GoRoute(
+        path: Routes.notifications,
+        pageBuilder: (context, state) => CustomTransitionPage2(
+          key: state.pageKey,
+          child: const NotificationsView(),
+        ),
+      ),
+      GoRoute(
         path: Routes.register,
         pageBuilder: (context, state) => CustomTransitionPage2(
           key: state.pageKey,
           child: const RegisterView(),
         ),
       ),
+      GoRoute(
+        path: Routes.taskDetails,
+        pageBuilder: (context, state) {
+          final taskId = state.extra as String;
+          return CustomTransitionPage2(
+            key: state.pageKey,
+            child: TaskDetailsView(taskId: taskId),
+          );
+        },
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
-          return VolunteerScaffoldWithNavBar(navigationShell: navigationShell);
+          return MultiBlocProvider(
+            providers: [BlocProvider(create: (_) => getIt<HomeCubit>())],
+            child: VolunteerScaffoldWithNavBar(
+              navigationShell: navigationShell,
+            ),
+          );
         },
         branches: <StatefulShellBranch>[
           StatefulShellBranch(
