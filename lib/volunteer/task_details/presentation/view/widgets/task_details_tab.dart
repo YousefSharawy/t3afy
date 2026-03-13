@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:t3afy/app/di.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
@@ -9,6 +11,7 @@ import 'package:t3afy/app/resources/values_manager.dart';
 import '../../../domain/entities/task_details_entity.dart';
 import '../../../domain/entities/task_objective_entity.dart';
 import 'submit_report_sheet.dart';
+import 'package:t3afy/volunteer/task_details/presentation/cubit/report_cubit.dart';
 
 class TaskDetailsTab extends StatelessWidget {
   const TaskDetailsTab({super.key, required this.task});
@@ -487,8 +490,10 @@ class _ReportButton extends StatelessWidget {
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
-            builder: (_) =>
-                SubmitReportSheet(taskId: taskId, taskTitle: taskTitle),
+            builder: (context) => BlocProvider(
+              create: (_) => getIt<ReportCubit>(),
+              child: SubmitReportSheet(taskId: taskId, taskTitle: taskTitle),
+            ),
           );
         },
         style: ElevatedButton.styleFrom(

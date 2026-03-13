@@ -46,6 +46,8 @@ dependencies:
   crypto: ^3.0.7
   dotenv: ^4.2.0
   freezed: ^3.2.5
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
   # google_mobile_ads: ^7.0.0
 
 dev_dependencies:

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,6 +8,9 @@ import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/volunteer/task_details/data/models/task_report_model.dart';
+import 'package:t3afy/volunteer/task_details/presentation/cubit/report_cubit.dart';
+import 'package:t3afy/volunteer/task_details/presentation/cubit/report_state.dart';
 
 class SubmitReportSheet extends StatefulWidget {
   const SubmitReportSheet({
@@ -35,7 +39,6 @@ class _SubmitReportSheetState extends State<SubmitReportSheet> {
   bool _objectivesMet = true;
   int _rating = 5;
   bool _isLoading = true;
-  bool _isSubmitting = false;
   Map<String, dynamic>? _existingReport;
 
   @override
@@ -83,124 +86,123 @@ class _SubmitReportSheetState extends State<SubmitReportSheet> {
     final userId = LocalAppStorage.getUserId();
     if (userId == null) return;
 
-    setState(() => _isSubmitting = true);
-    try {
-      await _client.from('task_reports').insert({
-        'task_id': widget.taskId,
-        'user_id': userId,
-        'summary': _summaryCtrl.text.trim(),
-        'challenges': _challengesCtrl.text.trim().isEmpty
-            ? null
-            : _challengesCtrl.text.trim(),
-        'attendees_count': _attendeesCtrl.text.trim().isEmpty
-            ? null
-            : int.tryParse(_attendeesCtrl.text.trim()),
-        'materials_distributed': _materialsCtrl.text.trim().isEmpty
-            ? null
-            : _materialsCtrl.text.trim(),
-        'objectives_met': _objectivesMet,
-        'additional_notes':
-            _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-        'rating': _rating,
-        'status': 'pending',
-      });
-      if (mounted) {
-        Navigator.of(context).pop(true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم رفع التقرير بنجاح'),
-            backgroundColor: Color(0xFF00ABD2),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('حدث خطأ: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    final model = TaskReportModel(
+      taskId: widget.taskId,
+      userId: userId,
+      summary: _summaryCtrl.text.trim(),
+      challenges: _challengesCtrl.text.trim(),
+      attendeesCount: int.tryParse(_attendeesCtrl.text),
+      materialsDistributed: _materialsCtrl.text.trim().isNotEmpty,
+      objectivesMet: _objectivesMet,
+      additionalNotes: _notesCtrl.text.trim(),
+      rating: _rating,
+    );
+    
+    context.read<ReportCubit>().submitReport(model);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF0C203B),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: AppHeight.s12),
-            child: Container(
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(AppRadius.s2),
+    return BlocListener<ReportCubit, ReportState>(
+      listener: (context, state) {
+        if (state is ReportStateSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم إرسال التقرير بنجاح ✓'),
+              backgroundColor: Color(0xFF4CAF50),
+            ),
+          );
+          Navigator.of(context).pop(true);
+        } else if (state is ReportStateError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF0C203B),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: AppHeight.s12),
+              child: Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(AppRadius.s2),
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppWidth.s20,
-              vertical: AppHeight.s16,
-            ),
-            child: Row(
-              children: [
-                const Spacer(),
-                Text(
-                  'رفع تقرير المهمة',
-                  style: getBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s16,
-                    color: Colors.white,
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppWidth.s20,
+                vertical: AppHeight.s16,
+              ),
+              child: Row(
+                children: [
+                  const Spacer(),
+                  Text(
+                    'رفع تقرير المهمة',
+                    style: getBoldStyle(
+                      fontFamily: FontConstants.fontFamily,
+                      fontSize: FontSize.s16,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Icon(
-                    Icons.close_rounded,
-                    color: Colors.white.withValues(alpha: 0.5),
-                    size: 22.r,
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Icon(
+                      Icons.close_rounded,
+                      color: Colors.white.withValues(alpha: 0.5),
+                      size: 22.r,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const Divider(color: Color(0xFF1E3A5F), height: 1),
-          Flexible(
-            child: _isLoading
-                ? const Padding(
-                    padding: EdgeInsets.all(40),
-                    child: CircularProgressIndicator(color: Color(0xFF00ABD2)),
-                  )
-                : _existingReport != null
-                    ? _ExistingReportView(report: _existingReport!)
-                    : _ReportForm(
-                        formKey: _formKey,
-                        summaryCtrl: _summaryCtrl,
-                        challengesCtrl: _challengesCtrl,
-                        attendeesCtrl: _attendeesCtrl,
-                        materialsCtrl: _materialsCtrl,
-                        notesCtrl: _notesCtrl,
-                        objectivesMet: _objectivesMet,
-                        rating: _rating,
-                        isSubmitting: _isSubmitting,
-                        onObjectivesChanged: (v) =>
-                            setState(() => _objectivesMet = v),
-                        onRatingChanged: (v) => setState(() => _rating = v),
-                        onSubmit: _submit,
-                      ),
-          ),
-        ],
+            const Divider(color: Color(0xFF1E3A5F), height: 1),
+            Flexible(
+              child: _isLoading
+                  ? const Padding(
+                      padding: EdgeInsets.all(40),
+                      child:
+                          CircularProgressIndicator(color: Color(0xFF00ABD2)),
+                    )
+                  : _existingReport != null
+                      ? _ExistingReportView(report: _existingReport!)
+                      : BlocBuilder<ReportCubit, ReportState>(
+                          builder: (context, state) {
+                            final isSubmitting = state is ReportStateLoading;
+                            return _ReportForm(
+                              formKey: _formKey,
+                              summaryCtrl: _summaryCtrl,
+                              challengesCtrl: _challengesCtrl,
+                              attendeesCtrl: _attendeesCtrl,
+                              materialsCtrl: _materialsCtrl,
+                              notesCtrl: _notesCtrl,
+                              objectivesMet: _objectivesMet,
+                              rating: _rating,
+                              isSubmitting: isSubmitting,
+                              onObjectivesChanged: (v) =>
+                                  setState(() => _objectivesMet = v),
+                              onRatingChanged: (v) =>
+                                  setState(() => _rating = v),
+                              onSubmit: _submit,
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
       ),
     );
   }
