@@ -11,6 +11,9 @@ import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/volunteer/task_details/data/models/task_report_model.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/report_cubit.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/report_state.dart';
+import 'package:t3afy/volunteer/task_details/presentation/view/widgets/report_form_header.dart';
+import 'package:t3afy/volunteer/task_details/presentation/view/widgets/report_star_rating.dart';
+import 'package:t3afy/volunteer/task_details/presentation/view/widgets/report_submit_button.dart';
 
 class SubmitReportSheet extends StatefulWidget {
   const SubmitReportSheet({
@@ -130,44 +133,9 @@ class _SubmitReportSheetState extends State<SubmitReportSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: EdgeInsets.only(top: AppHeight.s12),
-              child: Container(
-                width: 40.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(AppRadius.s2),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppWidth.s20,
-                vertical: AppHeight.s16,
-              ),
-              child: Row(
-                children: [
-                  const Spacer(),
-                  Text(
-                    'رفع تقرير المهمة',
-                    style: getBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s16,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Icon(
-                      Icons.close_rounded,
-                      color: Colors.white.withValues(alpha: 0.5),
-                      size: 22.r,
-                    ),
-                  ),
-                ],
-              ),
+            ReportFormHeader(
+              title: 'رفع تقرير المهمة',
+              onClose: () => Navigator.of(context).pop(),
             ),
             const Divider(color: Color(0xFF1E3A5F), height: 1),
             Flexible(
@@ -414,53 +382,9 @@ class _ReportForm extends StatelessWidget {
               ),
             ),
             SizedBox(height: AppHeight.s16),
-            // Star rating
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppWidth.s16,
-                vertical: AppHeight.s12,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0xFF143764),
-                borderRadius: BorderRadius.circular(AppRadius.s12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'تقييمك للمهمة',
-                    style: getMediumStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s13,
-                      color: Colors.white.withValues(alpha: 0.7),
-                    ),
-                  ),
-                  SizedBox(height: AppHeight.s8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(5, (i) {
-                      final star = i + 1;
-                      return GestureDetector(
-                        onTap: () => onRatingChanged(star),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: AppWidth.s4,
-                          ),
-                          child: Icon(
-                            star <= rating
-                                ? Icons.star_rounded
-                                : Icons.star_outline_rounded,
-                            color: star <= rating
-                                ? const Color(0xFFFBBF24)
-                                : Colors.white.withValues(alpha: 0.3),
-                            size: 36.r,
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ],
-              ),
+            ReportStarRating(
+              rating: rating,
+              onRatingChanged: onRatingChanged,
             ),
             SizedBox(height: AppHeight.s16),
             _FormField(
@@ -470,33 +394,9 @@ class _ReportForm extends StatelessWidget {
               hint: 'أي ملاحظات أخرى (اختياري)',
             ),
             SizedBox(height: AppHeight.s24),
-            SizedBox(
-              height: AppHeight.s50,
-              child: ElevatedButton(
-                onPressed: isSubmitting ? null : onSubmit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00ABD2),
-                  disabledBackgroundColor:
-                      const Color(0xFF00ABD2).withValues(alpha: 0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s12),
-                  ),
-                  elevation: 0,
-                ),
-                child: isSubmitting
-                    ? const CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      )
-                    : Text(
-                        'رفع التقرير',
-                        style: getBoldStyle(
-                          fontFamily: FontConstants.fontFamily,
-                          fontSize: FontSize.s16,
-                          color: Colors.white,
-                        ),
-                      ),
-              ),
+            ReportSubmitButton(
+              isSubmitting: isSubmitting,
+              onPressed: onSubmit,
             ),
             SizedBox(height: AppHeight.s24),
           ],

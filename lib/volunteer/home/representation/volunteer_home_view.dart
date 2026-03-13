@@ -13,6 +13,7 @@ import 'package:t3afy/volunteer/home/representation/cubit/home_cubit.dart';
 import 'package:t3afy/volunteer/home/representation/view/widgets/greeting_card.dart';
 import 'package:t3afy/volunteer/home/representation/view/widgets/home_app_bar.dart';
 import 'package:t3afy/volunteer/home/representation/view/widgets/stats_grid.dart';
+import 'package:t3afy/volunteer/home/representation/view/widgets/error_retry_body.dart';
 import 'package:t3afy/volunteer/home/representation/view/widgets/todays_task_section.dart';
 
 class VolunteerHomeView extends StatefulWidget {

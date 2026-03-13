@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
@@ -8,11 +7,12 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
-import 'package:t3afy/base/primary_widgets.dart';
 import 'package:t3afy/volunteer/profile/domain/entity/profile_entity.dart';
 import 'package:t3afy/volunteer/profile/presentation/cubit/profile_cubit.dart';
+import 'package:t3afy/volunteer/profile/presentation/view/widgets/profile_app_bar.dart';
 import 'package:t3afy/volunteer/profile/presentation/view/widgets/profile_header_card.dart';
 import 'package:t3afy/volunteer/profile/presentation/view/widgets/profile_info_section.dart';
+import 'package:t3afy/volunteer/profile/presentation/view/widgets/profile_logout_button.dart';
 import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
 
 class VolunteerProfileView extends StatefulWidget {
@@ -100,28 +100,7 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
       child: Column(
         children: [
           SizedBox(height: AppHeight.s10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              GestureDetector(
-                onTap: () => context.pop(),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: ColorManager.blueOne900,
-                  size: 24.sp,
-                ),
-              ),
-              Text(
-                'الملف الشخصي',
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.blueOne900,
-                  fontSize: FontSize.s16,
-                ),
-              ),
-              SizedBox(width: 36.w),
-            ],
-          ),
+          const ProfileAppBar(),
           SizedBox(height: AppHeight.s24),
           ProfileHeaderCard(
             name: profile.name,
@@ -164,16 +143,7 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
             ],
           ),
           SizedBox(height: AppHeight.s16),
-          PrimaryElevatedButton(
-            backGroundColor: const Color(0xff970909),
-            title: "تسجيل خروج",
-            onPress: _logout,
-            textStyle: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s16,
-              color: ColorManager.white,
-            ),
-          ),
+          ProfileLogoutButton(onPress: _logout),
         ],
       ),
     );
