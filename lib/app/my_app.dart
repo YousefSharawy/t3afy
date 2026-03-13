@@ -25,7 +25,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider(create: ((_) => AuthCubit(getIt(),getIt())))],
+      providers: [BlocProvider(create: ((_) => AuthCubit(getIt(),getIt(),getIt())))],
       child: ScreenUtilInit(
         ensureScreenSize: true,
         builder: (context, child) {

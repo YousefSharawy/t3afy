@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/auth/data/mappers/user_mapper.dart';
 import 'package:t3afy/auth/domain/entity/user_entity.dart';
+import 'package:t3afy/auth/domain/use_cases/log_out_use_case.dart';
 import 'package:t3afy/auth/domain/use_cases/login_use_case.dart';
 import 'package:t3afy/auth/domain/use_cases/register_use_case.dart';
 
@@ -10,10 +11,12 @@ part 'auth_state.dart';
 part 'auth_cubit.freezed.dart';
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit(this._login, this._register) : super(const AuthState.initial());
+  AuthCubit(this._logout, this._login, this._register)
+    : super(const AuthState.initial());
 
   final Login _login;
   final Register _register;
+  final Logout _logout;
   bool isVolunteer = false;
   String? gender;
 
@@ -32,7 +35,7 @@ class AuthCubit extends Cubit<AuthState> {
     final result = await _login(email, password);
     result.fold((failure) => emit(AuthState.error(failure.message)), (user) {
       final entity = user.toEntity();
-      LocalAppStorage.saveUserSession(entity.role,entity.id);
+      LocalAppStorage.saveUserSession(entity.role, entity.id);
       emit(AuthState.success(entity));
     });
   }
@@ -52,8 +55,20 @@ class AuthCubit extends Cubit<AuthState> {
     );
     result.fold((failure) => emit(AuthState.error(failure.message)), (user) {
       final entity = user.toEntity();
-      LocalAppStorage.saveUserSession(entity.role,entity.id);
+      LocalAppStorage.saveUserSession(entity.role, entity.id);
       emit(AuthState.success(entity));
     });
+  }
+
+  Future<void> logout() async {
+    emit(const AuthState.loading());
+    try {
+      await _logout();
+      await LocalAppStorage.clearUserSession();
+      emit(const AuthState.initial());
+    } catch (e) {
+      await LocalAppStorage.clearUserSession(); // clear anyway
+      emit(const AuthState.initial());
+    }
   }
 }

@@ -15,7 +15,8 @@ import 'package:t3afy/volunteer/home/representation/volunteer_home_view.dart';
 import 'package:t3afy/volunteer/maps/volunteer_map_view.dart';
 import 'package:t3afy/volunteer/notifications/notifications_view.dart';
 import 'package:t3afy/volunteer/performance/volunteer_performance_view.dart';
-import 'package:t3afy/volunteer/profile/volunteer_profile_view.dart';
+import 'package:t3afy/volunteer/profile/presentation/cubit/profile_cubit.dart';
+import 'package:t3afy/volunteer/profile/presentation/view/volunteer_profile_view.dart';
 import 'package:t3afy/volunteer/tasks/tasks_details_view.dart';
 import 'package:t3afy/volunteer/tasks/volunteer_tasks_view.dart';
 
@@ -100,7 +101,10 @@ class AppNavigation {
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return MultiBlocProvider(
-            providers: [BlocProvider(create: (_) => getIt<HomeCubit>())],
+            providers: [
+              BlocProvider(create: (_) => getIt<HomeCubit>()),
+              BlocProvider(create: (_) => getIt<ProfileCubit>()),
+            ],
             child: VolunteerScaffoldWithNavBar(
               navigationShell: navigationShell,
             ),
