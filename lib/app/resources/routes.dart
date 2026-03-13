@@ -18,6 +18,7 @@ import 'package:t3afy/volunteer/home/representation/cubit/home_cubit.dart';
 import 'package:t3afy/volunteer/home/representation/volunteer_home_view.dart';
 import 'package:t3afy/volunteer/maps/volunteer_map_view.dart';
 import 'package:t3afy/volunteer/notifications/notifications_view.dart';
+import 'package:t3afy/volunteer/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:t3afy/volunteer/performance/volunteer_performance_view.dart';
 import 'package:t3afy/volunteer/profile/presentation/cubit/profile_cubit.dart';
 import 'package:t3afy/volunteer/profile/presentation/view/volunteer_profile_view.dart';
@@ -93,7 +94,10 @@ class AppNavigation {
         path: Routes.notifications,
         pageBuilder: (context, state) => CustomTransitionPage2(
           key: state.pageKey,
-          child: const NotificationsView(),
+          child: BlocProvider(
+            create: (_) => getIt<NotificationsCubit>(),
+            child: const NotificationsView(),
+          ),
         ),
       ),
       GoRoute(

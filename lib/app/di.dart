@@ -47,6 +47,14 @@ import 'package:t3afy/volunteer/task_details/data/repository/report_impl_reposit
 import 'package:t3afy/volunteer/task_details/domain/repository/report_repository.dart';
 import 'package:t3afy/volunteer/task_details/domain/use_cases/submit_report_use_case.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/report_cubit.dart';
+import 'package:t3afy/volunteer/notifications/data/sources/notifications_remote_data_source.dart';
+import 'package:t3afy/volunteer/notifications/data/sources/notifications_impl_remote_data_source.dart';
+import 'package:t3afy/volunteer/notifications/data/repository/notifications_impl_repository.dart';
+import 'package:t3afy/volunteer/notifications/domain/repository/notifications_repository.dart';
+import 'package:t3afy/volunteer/notifications/domain/use_cases/get_notifications_use_case.dart';
+import 'package:t3afy/volunteer/notifications/domain/use_cases/mark_as_read_use_case.dart';
+import 'package:t3afy/volunteer/notifications/domain/use_cases/mark_all_as_read_use_case.dart';
+import 'package:t3afy/volunteer/notifications/presentation/cubit/notifications_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -166,5 +174,29 @@ getIt.registerFactory(() => TasksCubit(
   );
   getIt.registerFactory(
     () => ReportCubit(getIt<SubmitReportUseCase>()),
+  );
+
+  // ===== Notifications =====
+  getIt.registerLazySingleton<NotificationsRemoteDataSource>(
+    () => NotificationsImplRemoteDataSource(),
+  );
+  getIt.registerLazySingleton<NotificationsRepository>(
+    () => NotificationsImplRepository(getIt<NotificationsRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetNotificationsUseCase(getIt<NotificationsRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => MarkAsReadUseCase(getIt<NotificationsRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => MarkAllAsReadUseCase(getIt<NotificationsRepository>()),
+  );
+  getIt.registerFactory(
+    () => NotificationsCubit(
+      getIt<GetNotificationsUseCase>(),
+      getIt<MarkAsReadUseCase>(),
+      getIt<MarkAllAsReadUseCase>(),
+    ),
   );
 }

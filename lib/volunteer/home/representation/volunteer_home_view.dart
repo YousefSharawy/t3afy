@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -21,6 +23,8 @@ class VolunteerHomeView extends StatefulWidget {
 }
 
 class _VolunteerHomeViewState extends State<VolunteerHomeView> {
+  int _unreadCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +37,22 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
       return;
     }
     context.read<HomeCubit>().loadHome(userId);
+    _fetchUnreadCount(userId);
+  }
+
+  Future<void> _fetchUnreadCount(String userId) async {
+    try {
+      final res = await Supabase.instance.client
+          .from('admin_notes')
+          .select('id')
+          .eq('volunteer_id', userId)
+          .eq('is_read', false);
+      if (mounted) {
+        setState(() => _unreadCount = res.length);
+      }
+    } catch (_) {
+      // Silently fail
+    }
   }
 
   @override
@@ -90,6 +110,7 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                     onNotificationTap: () {
                       context.push(Routes.notifications);
                     },
+                    unreadCount: _unreadCount,
                   ),
                   SizedBox(height: AppHeight.s24),
                   GreetingCard(
