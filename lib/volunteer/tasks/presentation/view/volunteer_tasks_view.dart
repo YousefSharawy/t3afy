@@ -30,6 +30,7 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+    
       body: SafeArea(
         child: BlocBuilder<TasksCubit, TasksState>(
           builder: (context, state) {
@@ -54,7 +55,6 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: Column(
                     children: [
-                      SizedBox(height: AppHeight.s10),
                       Text(
                         'المهام اليومية',
                         style: getBoldStyle(
@@ -113,8 +113,7 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
               },
             );
           },
-        ),
-      ),
+        ) ),
     );
   }
 }

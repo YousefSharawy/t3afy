@@ -144,6 +144,7 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                       context.push(Routes.taskDetails, extra: task.id);
                     },
                   ),
+                  SizedBox(height: AppHeight.s100,),
                 ],
               ),
             ),
