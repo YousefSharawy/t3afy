@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/admin/admin_view.dart';
+import 'package:t3afy/admin/reports/presentation/view/admin_reports_view.dart';
 import 'package:t3afy/app/di.dart';
 import 'package:t3afy/auth/presentation/view/login_view.dart';
 import 'package:t3afy/auth/presentation/view/register_view.dart';
@@ -21,7 +22,8 @@ import 'package:t3afy/volunteer/performance/volunteer_performance_view.dart';
 import 'package:t3afy/volunteer/profile/presentation/cubit/profile_cubit.dart';
 import 'package:t3afy/volunteer/profile/presentation/view/volunteer_profile_view.dart';
 import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_cubit.dart';
-import 'package:t3afy/volunteer/taskDetails/tasks_details_view.dart';
+import 'package:t3afy/volunteer/task_details/presentation/cubit/task_details_cubit.dart';
+import 'package:t3afy/volunteer/task_details/presentation/view/task_details_view.dart';
 import 'package:t3afy/volunteer/tasks/presentation/view/volunteer_tasks_view.dart';
 
 import '../../base/components.dart';
@@ -40,6 +42,7 @@ class Routes {
   static const String taskDetails = '/taskDetails';
   static const String notifications = '/notifications';
   static const String bot = '/bot';
+  static const String adminReports = '/adminReports';
 }
 
 class AppNavigation {
@@ -80,6 +83,13 @@ class AppNavigation {
             CustomTransitionPage2(key: state.pageKey, child: const AdminView()),
       ),
       GoRoute(
+        path: Routes.adminReports,
+        pageBuilder: (context, state) => CustomTransitionPage2(
+          key: state.pageKey,
+          child: const AdminReportsView(),
+        ),
+      ),
+      GoRoute(
         path: Routes.notifications,
         pageBuilder: (context, state) => CustomTransitionPage2(
           key: state.pageKey,
@@ -99,7 +109,10 @@ class AppNavigation {
           final taskId = state.extra as String;
           return CustomTransitionPage2(
             key: state.pageKey,
-            child: TaskDetailsView(taskId: taskId),
+            child: BlocProvider(
+              create: (_) => getIt<TaskDetailsCubit>(),
+              child: TaskDetailsView(taskId: taskId),
+            ),
           );
         },
       ),

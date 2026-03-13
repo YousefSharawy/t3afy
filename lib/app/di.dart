@@ -35,6 +35,12 @@ import 'package:t3afy/volunteer/tasks/domain/use_cases/get_completed_tasks.dart'
 import 'package:t3afy/volunteer/tasks/domain/use_cases/get_tasks_stats.dart';
 import 'package:t3afy/volunteer/tasks/domain/use_cases/get_today_tasks.dart';
 import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_cubit.dart';
+import 'package:t3afy/volunteer/task_details/data/sources/task_details_remote_data_source.dart';
+import 'package:t3afy/volunteer/task_details/data/sources/task_details_impl_remote_data_source.dart';
+import 'package:t3afy/volunteer/task_details/data/repository/task_details_impl_repository.dart';
+import 'package:t3afy/volunteer/task_details/domain/repository/task_details_repository.dart';
+import 'package:t3afy/volunteer/task_details/domain/use_cases/get_task_details_use_case.dart';
+import 'package:t3afy/volunteer/task_details/presentation/cubit/task_details_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -121,4 +127,24 @@ getIt.registerFactory(() => TasksCubit(
   getIt<GetCompletedTasks>(),
   getIt<GetTasksStats>(),
 ));
+
+  // ===== Task Details =====
+  getIt.registerLazySingleton<TaskDetailsRemoteDataSource>(
+    () => TaskDetailsImplRemoteDataSource(),
+  );
+  getIt.registerLazySingleton<TaskDetailsImplRemoteDataSource>(
+    () => getIt<TaskDetailsRemoteDataSource>() as TaskDetailsImplRemoteDataSource,
+  );
+  getIt.registerLazySingleton<TaskDetailsRepository>(
+    () => TaskDetailsImplRepository(getIt<TaskDetailsRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetTaskDetailsUseCase(getIt<TaskDetailsRepository>()),
+  );
+  getIt.registerFactory(
+    () => TaskDetailsCubit(
+      getIt<GetTaskDetailsUseCase>(),
+      getIt<TaskDetailsImplRemoteDataSource>(),
+    ),
+  );
 }
