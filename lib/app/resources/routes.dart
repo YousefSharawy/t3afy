@@ -10,6 +10,8 @@ import 'package:t3afy/auth/presentation/view/register_view.dart';
 import 'package:t3afy/onBoarding/presentation/first_onboarding.dart';
 import 'package:t3afy/splash/presentation/splash_view.dart';
 import 'package:t3afy/splash/cubit/splash_cubit.dart';
+import 'package:t3afy/volunteer/bot/presentation/cubit/chatbot_cubit.dart';
+import 'package:t3afy/volunteer/bot/presentation/view/volunteer_bot_view.dart';
 import 'package:t3afy/volunteer/home/representation/cubit/home_cubit.dart';
 import 'package:t3afy/volunteer/home/representation/volunteer_home_view.dart';
 import 'package:t3afy/volunteer/maps/volunteer_map_view.dart';
@@ -35,6 +37,7 @@ class Routes {
   static const String volunteerProfile = '/volunteerProfile';
   static const String taskDetails = '/taskDetails';
   static const String notifications = '/notifications';
+  static const String bot = '/bot';
 }
 
 class AppNavigation {
@@ -98,12 +101,24 @@ class AppNavigation {
           );
         },
       ),
+      // Profile — standalone fullscreen (no bottom nav)
+      GoRoute(
+        path: Routes.volunteerProfile,
+        pageBuilder: (context, state) => CustomTransitionPage2(
+          key: state.pageKey,
+          child: BlocProvider(
+            create: (_) => getIt<ProfileCubit>(),
+            child: const VolunteerProfileView(),
+          ),
+        ),
+      ),
+      // Shell route with bottom nav
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return MultiBlocProvider(
             providers: [
               BlocProvider(create: (_) => getIt<HomeCubit>()),
-              BlocProvider(create: (_) => getIt<ProfileCubit>()),
+              BlocProvider(create: (_) => ChatbotCubit()),
             ],
             child: VolunteerScaffoldWithNavBar(
               navigationShell: navigationShell,
@@ -111,6 +126,7 @@ class AppNavigation {
           );
         },
         branches: <StatefulShellBranch>[
+          // Tab 0: Home
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
@@ -122,7 +138,7 @@ class AppNavigation {
               ),
             ],
           ),
-
+          // Tab 1: Tasks
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
@@ -134,7 +150,7 @@ class AppNavigation {
               ),
             ],
           ),
-
+          // Tab 2: Map
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
@@ -146,7 +162,7 @@ class AppNavigation {
               ),
             ],
           ),
-
+          // Tab 3: Performance
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
@@ -158,73 +174,20 @@ class AppNavigation {
               ),
             ],
           ),
+          // Tab 4: Bot
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
-                path: Routes.volunteerProfile,
+                path: Routes.bot,
                 pageBuilder: (context, state) => CustomTransitionPage2(
                   key: state.pageKey,
-                  child: VolunteerProfileView(),
+                  child: VolunteerChatbotView(),
                 ),
               ),
             ],
           ),
         ],
       ),
-      // StatefulShellRoute.indexedStack(
-      //   builder: (context, state, navigationShell) {
-      //     return AdminScaffoldWithNavBar(navigationShell: navigationShell);
-      //   },
-      //   branches: <StatefulShellBranch>[
-      //     StatefulShellBranch(
-      //       routes: <RouteBase>[
-      //         GoRoute(
-      //           path: Routes.home,
-      //           pageBuilder: (context, state) => CustomTransitionPage2(
-      //             key: state.pageKey,
-      //             child: const HomeView(),
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-
-      //     StatefulShellBranch(
-      //       routes: <RouteBase>[
-      //         GoRoute(
-      //           path: Routes.dictionary,
-      //           pageBuilder: (context, state) => CustomTransitionPage2(
-      //             key: state.pageKey,
-      //             child: const DictionaryView(),
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-
-      //     StatefulShellBranch(
-      //       routes: <RouteBase>[
-      //         GoRoute(
-      //           path: Routes.study,
-      //           pageBuilder: (context, state) => CustomTransitionPage2(
-      //             key: state.pageKey,
-      //             child: const StudyView(),
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-
-      //     StatefulShellBranch(
-      //       routes: <RouteBase>[
-      //         GoRoute(
-      //           path: Routes.profile,
-      //           pageBuilder: (context, state) => CustomTransitionPage2(
-      //             key: state.pageKey,
-      //             child: ProfileView(),
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //   ],
-      // ),
     ],
   );
 }
@@ -273,9 +236,6 @@ class CustomTransitionPage extends Page {
   }
 }
 
-/// Custom transition with cross-fade masked by a diagonal light sweep.
-/// The light travels from primary button area (bottom-right) to back button (top-left)
-/// and back, creating continuity illusion rather than navigation feel.
 class CustomTransitionPage2 extends Page {
   final Widget child;
   final Duration duration;

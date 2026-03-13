@@ -41,27 +41,30 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: BlocBuilder<ProfileCubit, ProfileState>(
-        builder: (context, state) {
-          return state.when(
-            initial: () => const SizedBox.shrink(),
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: ColorManager.blueOne600),
-            ),
-            error: (message) => Center(
-              child: Text(
-                message,
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.error,
-                  fontSize: FontSize.s14,
+    return Scaffold(
+      backgroundColor: ColorManager.background,
+      body: SafeArea(
+        child: BlocBuilder<ProfileCubit, ProfileState>(
+          builder: (context, state) {
+            return state.when(
+              initial: () => const SizedBox.shrink(),
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: ColorManager.blueOne600),
+              ),
+              error: (message) => Center(
+                child: Text(
+                  message,
+                  style: getRegularStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    color: ColorManager.error,
+                    fontSize: FontSize.s14,
+                  ),
                 ),
               ),
-            ),
-            loaded: (profile) => _buildContent(profile),
-          );
-        },
+              loaded: (profile) => _buildContent(profile),
+            );
+          },
+        ),
       ),
     );
   }

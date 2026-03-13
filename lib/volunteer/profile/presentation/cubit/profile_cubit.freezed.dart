@@ -272,12 +272,12 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other.profile, profile));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&(identical(other.profile, profile) || other.profile == profile));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(profile));
+int get hashCode => Object.hash(runtimeType,profile);
 
 @override
 String toString() {
@@ -309,9 +309,9 @@ class __$LoadedCopyWithImpl<$Res>
 
 /// Create a copy of ProfileState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? profile = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? profile = null,}) {
   return _then(_Loaded(
-freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
+null == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
 as ProfileEntity,
   ));
 }

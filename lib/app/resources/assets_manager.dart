@@ -6,6 +6,7 @@ const String ICON_PATH = 'assets/icons';
 
 class ImageAssets {
   static const String onBoarding = '$IMAGE_Path/onboarding.png';
+  static const String botAvatar = '$IMAGE_Path/botavatar.png';
 }
 
 class IconAssets {

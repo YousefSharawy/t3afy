@@ -88,7 +88,7 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                       context.push(Routes.volunteerProfile);
                     },
                     onNotificationTap: () {
-                      context.push(Routes.volunteerProfile);
+                      context.push(Routes.notifications);
                     },
                   ),
                   SizedBox(height: AppHeight.s24),

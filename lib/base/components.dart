@@ -175,6 +175,11 @@ class _VolunteerScaffoldWithNavBarState
   Widget build(BuildContext context) {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
+        // Don't hide nav bar on the bot/chatbot tab (index 4)
+        if (widget.navigationShell.currentIndex == 4) {
+          if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
+          return false;
+        }
         if (notification is UserScrollNotification) {
           if (notification.direction == ScrollDirection.reverse) {
             // Scrolling down — hide nav bar
