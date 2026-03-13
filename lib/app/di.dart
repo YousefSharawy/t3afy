@@ -14,6 +14,12 @@ import 'package:t3afy/volunteer/home/data/sources/volunteer_impl_home_remote_dat
 import 'package:t3afy/volunteer/home/domain/repository/home_repository.dart';
 import 'package:t3afy/volunteer/home/domain/use_case/home_use_case.dart';
 import 'package:t3afy/volunteer/home/representation/cubit/home_cubit.dart';
+import 'package:t3afy/volunteer/performance/data/repository/performance_impl_repository.dart';
+import 'package:t3afy/volunteer/performance/data/sources/performance_impl_remote_data_source.dart';
+import 'package:t3afy/volunteer/performance/data/sources/performance_remote_data_source.dart';
+import 'package:t3afy/volunteer/performance/domain/repository/performance_repository.dart';
+import 'package:t3afy/volunteer/performance/domain/use_cases/performance_use_cases.dart';
+import 'package:t3afy/volunteer/performance/presentation/cubit/performance_cubit.dart';
 import 'package:t3afy/volunteer/profile/data/repository/profile_impl_remote_data_source.dart';
 import 'package:t3afy/volunteer/profile/data/source/profile_data_source.dart';
 import 'package:t3afy/volunteer/profile/data/source/profile_impl_data_source.dart';
@@ -65,5 +71,19 @@ getIt.registerLazySingleton<Logout>(() => Logout(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => GetProfile(getIt()));
 
   getIt.registerFactory(() => ProfileCubit(getIt()));
-  // Cubit
+
+  // ── Performance ──
+  getIt.registerLazySingleton<PerformanceRemoteDataSource>(
+    () => PerformanceImplRemoteDataSource(),
+  );
+
+  getIt.registerLazySingleton<PerformanceRepository>(
+    () => PerformanceImplRepository(getIt()),
+  );
+
+  getIt.registerLazySingleton(() => GetPerformanceStats(getIt()));
+  getIt.registerLazySingleton(() => GetMonthlyHours(getIt()));
+  getIt.registerLazySingleton(() => GetLeaderboard(getIt()));
+
+  getIt.registerFactory(() => PerformanceCubit(getIt(), getIt(), getIt()));
 }

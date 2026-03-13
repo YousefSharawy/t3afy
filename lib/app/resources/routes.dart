@@ -12,6 +12,7 @@ import 'package:t3afy/splash/presentation/splash_view.dart';
 import 'package:t3afy/splash/cubit/splash_cubit.dart';
 import 'package:t3afy/volunteer/bot/presentation/cubit/chatbot_cubit.dart';
 import 'package:t3afy/volunteer/bot/presentation/view/volunteer_bot_view.dart';
+import 'package:t3afy/volunteer/performance/presentation/cubit/performance_cubit.dart';
 import 'package:t3afy/volunteer/home/representation/cubit/home_cubit.dart';
 import 'package:t3afy/volunteer/home/representation/volunteer_home_view.dart';
 import 'package:t3afy/volunteer/maps/volunteer_map_view.dart';
@@ -119,6 +120,7 @@ class AppNavigation {
             providers: [
               BlocProvider(create: (_) => getIt<HomeCubit>()),
               BlocProvider(create: (_) => ChatbotCubit()),
+              BlocProvider(create: (_) => getIt<PerformanceCubit>()),
             ],
             child: VolunteerScaffoldWithNavBar(
               navigationShell: navigationShell,

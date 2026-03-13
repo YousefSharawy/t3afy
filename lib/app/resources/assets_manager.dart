@@ -30,6 +30,9 @@ class IconAssets {
   static const String hours = '$ICON_PATH/hours.png';
   static const String location = '$ICON_PATH/location.png';
   static const String done = '$ICON_PATH/done.png';
+  static const String trophy = '$ICON_PATH/trophy.png';
+  static const String commit = '$ICON_PATH/commit.png';
+  static const String alarm = '$ICON_PATH/alarm.png';
 }
 
 class DemoAssets {}

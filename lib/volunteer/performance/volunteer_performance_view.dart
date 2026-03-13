@@ -1,11 +1,122 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/base/components.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/font_manager.dart';
+import 'package:t3afy/app/resources/style_manager.dart';
+import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/volunteer/performance/domain/entities/performance_entities.dart';
+import 'package:t3afy/volunteer/performance/presentation/cubit/performance_cubit.dart';
+import 'package:t3afy/volunteer/performance/presentation/view/widgets/honor_board.dart';
+import 'package:t3afy/volunteer/performance/presentation/view/widgets/monthly_chart.dart';
+import 'package:t3afy/volunteer/performance/presentation/view/widgets/performance_stats_row.dart';
+import 'package:t3afy/volunteer/performance/presentation/view/widgets/rating_card.dart';
 
-class VolunteerPerformanceView extends StatelessWidget {
+class VolunteerPerformanceView extends StatefulWidget {
   const VolunteerPerformanceView({super.key});
 
   @override
+  State<VolunteerPerformanceView> createState() =>
+      _VolunteerPerformanceViewState();
+}
+
+class _VolunteerPerformanceViewState extends State<VolunteerPerformanceView> {
+  @override
+  void initState() {
+    super.initState();
+    final userId = LocalAppStorage.getUserId();
+    if (userId != null) {
+      context.read<PerformanceCubit>().loadPerformance(userId);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const PrimaryScaffold(body: Column(children: [Text("user")]));
+    return SafeArea(
+      child: BlocBuilder<PerformanceCubit, PerformanceState>(
+        builder: (context, state) {
+          return state.when(
+            initial: () => const SizedBox.shrink(),
+            loading: () => const Center(
+              child:
+                  CircularProgressIndicator(color: ColorManager.blueOne600),
+            ),
+            error: (message) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    message,
+                    style: getRegularStyle(
+                      fontFamily: FontConstants.fontFamily,
+                      color: ColorManager.error,
+                      fontSize: FontSize.s14,
+                    ),
+                  ),
+                  SizedBox(height: AppHeight.s16),
+                  GestureDetector(
+                    onTap: () {
+                      final userId = LocalAppStorage.getUserId();
+                      if (userId != null) {
+                        context
+                            .read<PerformanceCubit>()
+                            .loadPerformance(userId);
+                      }
+                    },
+                    child: Text(
+                      'إعادة المحاولة',
+                      style: getBoldStyle(
+                        fontFamily: FontConstants.fontFamily,
+                        color: ColorManager.blueOne600,
+                        fontSize: FontSize.s14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            loaded: (stats, monthlyHours, leaderboard, currentUserId) =>
+                _buildContent(stats, monthlyHours, leaderboard, currentUserId),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildContent(
+    PerformanceStatsEntity stats,
+    List<MonthlyHoursEntity> monthlyHours,
+    List<LeaderboardEntryEntity> leaderboard,
+    String currentUserId,
+  ) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(height: AppHeight.s10),
+          Text(
+            'الاداء و التقييم',
+            style: getBoldStyle(
+              fontFamily: FontConstants.fontFamily,
+              color: ColorManager.blueOne900,
+              fontSize: FontSize.s16,
+            ),
+          ),
+          SizedBox(height: AppHeight.s31),
+          RatingCard(stats: stats),
+          SizedBox(height: AppHeight.s16),
+          PerformanceStatsRow(stats: stats),
+          SizedBox(height: AppHeight.s16),
+          MonthlyChart(monthlyHours: monthlyHours),
+          SizedBox(height: AppHeight.s16),
+          HonorBoard(
+            leaderboard: leaderboard,
+            currentUserId: currentUserId,
+          ),
+        ],
+      ),
+    );
   }
 }
