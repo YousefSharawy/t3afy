@@ -114,7 +114,7 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                   TodayTasksSection(
                     tasks: todayTasks,
                     onViewAll: () {
-                      context.push(Routes.volunteerTasks);
+                      StatefulNavigationShell.of(context).goBranch(1);
                     },
                     onTaskTap: (task) {
                       context.push(Routes.taskDetails, extra: task.id);
