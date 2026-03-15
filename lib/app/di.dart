@@ -62,10 +62,39 @@ import 'package:t3afy/admin/reports/domain/repos/admin_reports_repo.dart';
 import 'package:t3afy/admin/reports/domain/usecases/get_reports_usecase.dart';
 import 'package:t3afy/admin/reports/domain/usecases/review_report_usecase.dart';
 import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
+import 'package:t3afy/admin/home/data/datasources/admin_home_remote_datasource.dart';
+import 'package:t3afy/admin/home/data/datasources/admin_home_remote_datasource_impl.dart';
+import 'package:t3afy/admin/home/data/repos/admin_home_repo_impl.dart';
+import 'package:t3afy/admin/home/domain/repos/admin_home_repo.dart';
+import 'package:t3afy/admin/home/domain/usecases/get_admin_home_data_usecase.dart';
+import 'package:t3afy/admin/home/domain/usecases/send_announcement_usecase.dart';
+import 'package:t3afy/admin/home/presentation/cubit/admin_home_cubit.dart';
+import 'package:t3afy/admin/campaigns/data/datasources/campaigns_remote_datasource.dart';
+import 'package:t3afy/admin/campaigns/data/datasources/campaigns_remote_datasource_impl.dart';
+import 'package:t3afy/admin/campaigns/data/repos/campaigns_repo_impl.dart';
+import 'package:t3afy/admin/campaigns/domain/repos/campaigns_repo.dart';
+import 'package:t3afy/admin/campaigns/domain/usecases/get_campaigns_usecase.dart';
+import 'package:t3afy/admin/campaigns/domain/usecases/get_campaign_stats_usecase.dart';
+import 'package:t3afy/admin/campaigns/domain/usecases/get_campaign_detail_usecase.dart';
+import 'package:t3afy/admin/campaigns/domain/usecases/create_campaign_usecase.dart';
+import 'package:t3afy/admin/campaigns/domain/usecases/update_campaign_usecase.dart';
+import 'package:t3afy/admin/campaigns/domain/usecases/delete_campaign_usecase.dart';
+import 'package:t3afy/admin/campaigns/domain/usecases/assign_volunteer_usecase.dart';
+import 'package:t3afy/admin/campaigns/domain/usecases/remove_volunteer_usecase.dart';
+import 'package:t3afy/admin/campaigns/domain/usecases/send_team_alert_usecase.dart';
+import 'package:t3afy/admin/campaigns/domain/usecases/get_unassigned_volunteers_usecase.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/campaigns_cubit.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
+import 'package:t3afy/app/services/online_status_cubit.dart';
 
 final getIt = GetIt.instance;
 
 Future<void> initAppModule() async {
+  // Services
+  getIt.registerFactory<OnlineStatusCubit>(
+    () => OnlineStatusCubit(Supabase.instance.client),
+  );
+
   // Data source
   getIt.registerLazySingleton<AuthRemoteDateSource>(
     () => AuthImplRemoteDataSource(),
@@ -221,6 +250,60 @@ getIt.registerFactory(() => TasksCubit(
       getIt<GetReportsUsecase>(),
       getIt<ReviewReportUsecase>(),
       getIt<AdminReportsRepo>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<AdminHomeRemoteDatasource>(
+    () => AdminHomeRemoteDatasourceImpl(),
+  );
+  getIt.registerLazySingleton<AdminHomeRepo>(
+    () => AdminHomeRepoImpl(getIt<AdminHomeRemoteDatasource>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetAdminHomeDataUsecase(getIt<AdminHomeRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => SendAnnouncementUsecase(getIt<AdminHomeRepo>()),
+  );
+  getIt.registerFactory(
+    () => AdminHomeCubit(
+      getIt<GetAdminHomeDataUsecase>(),
+      getIt<SendAnnouncementUsecase>(),
+    ),
+  );
+
+  // ===== Campaigns =====
+  getIt.registerLazySingleton<CampaignsRemoteDatasource>(
+    () => CampaignsRemoteDatasourceImpl(),
+  );
+  getIt.registerLazySingleton<CampaignsRepo>(
+    () => CampaignsRepoImpl(getIt<CampaignsRemoteDatasource>()),
+  );
+  getIt.registerLazySingleton(() => GetCampaignsUsecase(getIt<CampaignsRepo>()));
+  getIt.registerLazySingleton(() => GetCampaignStatsUsecase(getIt<CampaignsRepo>()));
+  getIt.registerLazySingleton(() => GetCampaignDetailUsecase(getIt<CampaignsRepo>()));
+  getIt.registerLazySingleton(() => CreateCampaignUsecase(getIt<CampaignsRepo>()));
+  getIt.registerLazySingleton(() => UpdateCampaignUsecase(getIt<CampaignsRepo>()));
+  getIt.registerLazySingleton(() => DeleteCampaignUsecase(getIt<CampaignsRepo>()));
+  getIt.registerLazySingleton(() => AssignVolunteerUsecase(getIt<CampaignsRepo>()));
+  getIt.registerLazySingleton(() => RemoveVolunteerUsecase(getIt<CampaignsRepo>()));
+  getIt.registerLazySingleton(() => SendTeamAlertUsecase(getIt<CampaignsRepo>()));
+  getIt.registerLazySingleton(() => GetUnassignedVolunteersUsecase(getIt<CampaignsRepo>()));
+  getIt.registerFactory(
+    () => CampaignsCubit(
+      getIt<GetCampaignsUsecase>(),
+      getIt<GetCampaignStatsUsecase>(),
+    ),
+  );
+  getIt.registerFactory(
+    () => CampaignDetailCubit(
+      getIt<GetCampaignDetailUsecase>(),
+      getIt<AssignVolunteerUsecase>(),
+      getIt<RemoveVolunteerUsecase>(),
+      getIt<SendTeamAlertUsecase>(),
+      getIt<DeleteCampaignUsecase>(),
+      getIt<UpdateCampaignUsecase>(),
+      getIt<GetUnassignedVolunteersUsecase>(),
     ),
   );
 }

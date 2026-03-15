@@ -4,11 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/admin/campaigns/campaigns_view.dart';
-import 'package:t3afy/admin/home/admin_view.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/campaigns_cubit.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
+import 'package:t3afy/admin/campaigns/presentation/view/campaign_detail_view.dart';
+import 'package:t3afy/admin/campaigns/presentation/view/create_campaign_view.dart';
+import 'package:t3afy/admin/home/presentation/cubit/admin_home_cubit.dart';
+import 'package:t3afy/admin/home/presentation/view/admin_home_view.dart';
 import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
 import 'package:t3afy/admin/reports/presentation/view/admin_reports_view.dart';
 import 'package:t3afy/admin/volunteers/volunteers_panel_view.dart';
 import 'package:t3afy/app/di.dart';
+import 'package:t3afy/app/services/online_status_cubit.dart';
 import 'package:t3afy/auth/presentation/view/login_view.dart';
 import 'package:t3afy/auth/presentation/view/register_view.dart';
 import 'package:t3afy/onBoarding/presentation/first_onboarding.dart';
@@ -49,6 +55,9 @@ class Routes {
 static const String volunteers = '/adminVolunteers';
   static const String campaigns = '/campaigns';
   static const String adminReports = '/adminReports';
+  static const String campaignDetails = '/campaignDetails';
+  static const String createCampaign = '/createCampaign';
+  static const String editCampaign = '/editCampaign';
 }
 
 class AppNavigation {
@@ -143,6 +152,7 @@ class AppNavigation {
               BlocProvider(create: (_) => getIt<HomeCubit>()),
               BlocProvider(create: (_) => ChatbotCubit()),
               BlocProvider(create: (_) => getIt<PerformanceCubit>()),
+              BlocProvider(create: (_) => getIt<OnlineStatusCubit>()),
             ],
             child: VolunteerScaffoldWithNavBar(
               navigationShell: navigationShell,
@@ -212,6 +222,36 @@ class AppNavigation {
           ),
         ],
       ),
+      GoRoute(
+        path: '/campaignDetails/:id',
+        pageBuilder: (context, state) {
+          final taskId = state.pathParameters['id']!;
+          return CustomTransitionPage2(
+            key: state.pageKey,
+            child: BlocProvider(
+              create: (_) => getIt<CampaignDetailCubit>(),
+              child: CampaignDetailView(taskId: taskId),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/createCampaign',
+        pageBuilder: (context, state) => CustomTransitionPage2(
+          key: state.pageKey,
+          child: const CreateCampaignView(),
+        ),
+      ),
+      GoRoute(
+        path: '/editCampaign/:id',
+        pageBuilder: (context, state) {
+          final taskId = state.pathParameters['id']!;
+          return CustomTransitionPage2(
+            key: state.pageKey,
+            child: CreateCampaignView(taskId: taskId),
+          );
+        },
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return AdminScaffoldWithNavBar(navigationShell: navigationShell);
@@ -224,7 +264,10 @@ class AppNavigation {
                 path: Routes.adminHome,
                 pageBuilder: (context, state) => CustomTransitionPage2(
                   key: state.pageKey,
-                  child: const AdminView(),
+                  child: BlocProvider(
+                    create: (_) => getIt<AdminHomeCubit>(),
+                    child: const AdminHomeView(),
+                  ),
                 ),
               ),
             ],
@@ -241,14 +284,17 @@ class AppNavigation {
               ),
             ],
           ),
-          // Tab 2: Map
+          // Tab 2: Campaigns
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
                 path: Routes.campaigns,
                 pageBuilder: (context, state) => CustomTransitionPage2(
                   key: state.pageKey,
-                  child: const CampaignsView(),
+                  child: BlocProvider(
+                    create: (_) => getIt<CampaignsCubit>(),
+                    child: const CampaignsView(),
+                  ),
                 ),
               ),
             ],
