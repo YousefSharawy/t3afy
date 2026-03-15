@@ -1,53 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
-
-import 'admin_review_sheet.dart';
+import 'package:t3afy/admin/reports/domain/entities/admin_report_entity.dart';
 
 class AdminReportCard extends StatelessWidget {
   const AdminReportCard({
     super.key,
     required this.report,
-    required this.onUpdated,
+    required this.onTap,
   });
 
-  final Map<String, dynamic> report;
-  final VoidCallback onUpdated;
+  final AdminReportEntity report;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final status = report['status'] as String? ?? 'pending';
-    final taskTitle =
-        (report['tasks'] as Map<String, dynamic>?)?['title'] as String? ??
-        'مهمة';
-    final volunteerName =
-        (report['volunteers'] as Map<String, dynamic>?)?['full_name']
-            as String? ??
-        'متطوع';
-    final rating = report['rating'] as int? ?? 0;
-    final createdAt = report['created_at'] != null
-        ? DateTime.tryParse(report['created_at'] as String)
-        : null;
-
-    final (statusLabel, statusColor) = switch (status) {
+    final (statusLabel, statusColor) = switch (report.status) {
       'approved' => ('موافق عليه', const Color(0xFF4CAF50)),
       'rejected' => ('مرفوض', Colors.red),
       _ => ('قيد المراجعة', const Color(0xFFFBBF24)),
     };
 
     return GestureDetector(
-      onTap: () async {
-        await showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) =>
-              AdminReviewSheet(report: report, onUpdated: onUpdated),
-        );
-      },
+      onTap: onTap,
       child: Container(
         margin: EdgeInsets.only(bottom: AppHeight.s12),
         padding: EdgeInsets.all(AppSize.s16),
@@ -87,7 +64,7 @@ class AdminReportCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  taskTitle,
+                  report.taskTitle,
                   style: getBoldStyle(
                     fontFamily: FontConstants.fontFamily,
                     fontSize: FontSize.s14,
@@ -99,24 +76,23 @@ class AdminReportCard extends StatelessWidget {
             SizedBox(height: AppHeight.s8),
             Row(
               children: [
-                if (createdAt != null)
-                  Text(
-                    '${createdAt.day}/${createdAt.month}/${createdAt.year}',
-                    style: getRegularStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s11,
-                      color: Colors.white.withValues(alpha: 0.4),
-                    ),
+                Text(
+                  '${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
+                  style: getRegularStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    fontSize: FontSize.s11,
+                    color: Colors.white.withValues(alpha: 0.4),
                   ),
+                ),
                 const Spacer(),
                 Row(
                   children: List.generate(
                     5,
                     (i) => Icon(
-                      i < rating
+                      i < report.rating
                           ? Icons.star_rounded
                           : Icons.star_outline_rounded,
-                      color: i < rating
+                      color: i < report.rating
                           ? const Color(0xFFFBBF24)
                           : Colors.white.withValues(alpha: 0.2),
                       size: 14.r,
@@ -125,7 +101,7 @@ class AdminReportCard extends StatelessWidget {
                 ),
                 SizedBox(width: AppWidth.s8),
                 Text(
-                  volunteerName,
+                  report.volunteerName,
                   style: getMediumStyle(
                     fontFamily: FontConstants.fontFamily,
                     fontSize: FontSize.s13,

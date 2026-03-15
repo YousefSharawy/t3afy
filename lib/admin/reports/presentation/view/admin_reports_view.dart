@@ -1,74 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
+import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
+import 'package:t3afy/admin/reports/presentation/view/widgets/admin_report_card.dart';
+import 'package:t3afy/admin/reports/presentation/view/widgets/admin_review_sheet.dart';
 
-import 'widgets/admin_report_card.dart';
-
-class AdminReportsView extends StatefulWidget {
+class AdminReportsView extends StatelessWidget {
   const AdminReportsView({super.key});
-
-  @override
-  State<AdminReportsView> createState() => _AdminReportsViewState();
-}
-
-class _AdminReportsViewState extends State<AdminReportsView> {
-  final _client = Supabase.instance.client;
-  List<Map<String, dynamic>> _reports = [];
-  bool _isLoading = true;
-  String _filter = 'all';
-  RealtimeChannel? _channel;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadReports();
-    _subscribeRealtime();
-  }
-
-  @override
-  void dispose() {
-    if (_channel != null) _client.removeChannel(_channel!);
-    super.dispose();
-  }
-
-  Future<void> _loadReports() async {
-    try {
-      final data = await _client
-          .from('task_reports')
-          .select('*, tasks(title), volunteers(full_name)')
-          .order('created_at', ascending: false);
-      if (mounted) {
-        setState(() {
-          _reports = List<Map<String, dynamic>>.from(data as List);
-          _isLoading = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  void _subscribeRealtime() {
-    _channel = _client
-        .channel('task_reports_admin')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'task_reports',
-          callback: (_) => _loadReports(),
-        )
-        .subscribe();
-  }
-
-  List<Map<String, dynamic>> get _filteredReports {
-    if (_filter == 'all') return _reports;
-    return _reports.where((r) => r['status'] == _filter).toList();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,79 +30,112 @@ class _AdminReportsViewState extends State<AdminReportsView> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          // Filter chips
-          SizedBox(
-            height: AppHeight.s48,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(
-                horizontal: AppWidth.s16,
-                vertical: AppHeight.s8,
-              ),
-              reverse: true,
-              children: [
-                _FilterChip(
-                  label: 'الكل',
-                  selected: _filter == 'all',
-                  onTap: () => setState(() => _filter = 'all'),
-                ),
-                SizedBox(width: AppWidth.s8),
-                _FilterChip(
-                  label: 'قيد المراجعة',
-                  selected: _filter == 'pending',
-                  onTap: () => setState(() => _filter = 'pending'),
-                ),
-                SizedBox(width: AppWidth.s8),
-                _FilterChip(
-                  label: 'موافق عليه',
-                  selected: _filter == 'approved',
-                  onTap: () => setState(() => _filter = 'approved'),
-                ),
-                SizedBox(width: AppWidth.s8),
-                _FilterChip(
-                  label: 'مرفوض',
-                  selected: _filter == 'rejected',
-                  onTap: () => setState(() => _filter = 'rejected'),
-                ),
-              ],
+      body: BlocBuilder<AdminReportsCubit, AdminReportsState>(
+        builder: (context, state) {
+          return state.when(
+            initial: () => const SizedBox.shrink(),
+            loading: () => const LoadingIndicator(),
+            error: (message) => ErrorState(
+              message: message,
+              onRetry: () => context.read<AdminReportsCubit>().loadReports(),
             ),
-          ),
-          // Reports list
-          Expanded(
-            child: _isLoading
-                ? const LoadingIndicator()
-                : _filteredReports.isEmpty
-                    ? Center(
-                        child: Text(
-                          'لا توجد تقارير',
-                          style: getMediumStyle(
-                            fontFamily: FontConstants.fontFamily,
-                            fontSize: FontSize.s14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: AppWidth.s16,
-                          vertical: AppHeight.s8,
-                        ),
-                        itemCount: _filteredReports.length,
-                        itemBuilder: (context, i) => AdminReportCard(
-                          report: _filteredReports[i],
-                          onUpdated: _loadReports,
-                        ),
+            loaded: (reports, filter) {
+              final cubit = context.read<AdminReportsCubit>();
+              final list = filter == 'all'
+                  ? reports
+                  : reports.where((r) => r.status == filter).toList();
+              return Column(
+                children: [
+                  SizedBox(
+                    height: AppHeight.s48,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppWidth.s16,
+                        vertical: AppHeight.s8,
                       ),
-          ),
-        ],
+                      children: [
+                        _FilterChip(
+                          label: 'الكل',
+                          selected: filter == 'all',
+                          onTap: () => cubit.setFilter('all'),
+                        ),
+                        SizedBox(width: AppWidth.s8),
+                        _FilterChip(
+                          label: 'قيد المراجعة',
+                          selected: filter == 'pending',
+                          onTap: () => cubit.setFilter('pending'),
+                        ),
+                        SizedBox(width: AppWidth.s8),
+                        _FilterChip(
+                          label: 'موافق عليه',
+                          selected: filter == 'approved',
+                          onTap: () => cubit.setFilter('approved'),
+                        ),
+                        SizedBox(width: AppWidth.s8),
+                        _FilterChip(
+                          label: 'مرفوض',
+                          selected: filter == 'rejected',
+                          onTap: () => cubit.setFilter('rejected'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: list.isEmpty
+                        ? Center(
+                            child: Text(
+                              'لا توجد تقارير',
+                              style: getMediumStyle(
+                                fontFamily: FontConstants.fontFamily,
+                                fontSize: FontSize.s14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: () =>
+                                context.read<AdminReportsCubit>().loadReports(),
+                            color: const Color(0xFF00ABD2),
+                            child: ListView.builder(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppWidth.s16,
+                                vertical: AppHeight.s8,
+                              ),
+                              itemCount: list.length,
+                              itemBuilder: (context, i) => AdminReportCard(
+                                report: list[i],
+                                onTap: () async {
+                                  final refreshed =
+                                      await showModalBottomSheet<bool>(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (_) => AdminReviewSheet(
+                                      report: list[i],
+                                    ),
+                                  );
+                                  if (refreshed == true && context.mounted) {
+                                    context
+                                        .read<AdminReportsCubit>()
+                                        .loadReports();
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                  ),
+                ],
+              );
+            },
+            reviewing: () => const LoadingIndicator(),
+            reviewed: () => const LoadingIndicator(),
+          );
+        },
       ),
     );
   }
 }
-
-// ─── Filter chip ───────────────────────────────────────────────────────────
 
 class _FilterChip extends StatelessWidget {
   const _FilterChip({

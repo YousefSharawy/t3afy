@@ -3,8 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:t3afy/admin/admin_view.dart';
+import 'package:t3afy/admin/campaigns/campaigns_view.dart';
+import 'package:t3afy/admin/home/admin_view.dart';
+import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
 import 'package:t3afy/admin/reports/presentation/view/admin_reports_view.dart';
+import 'package:t3afy/admin/volunteers/volunteers_panel_view.dart';
 import 'package:t3afy/app/di.dart';
 import 'package:t3afy/auth/presentation/view/login_view.dart';
 import 'package:t3afy/auth/presentation/view/register_view.dart';
@@ -43,6 +46,8 @@ class Routes {
   static const String taskDetails = '/taskDetails';
   static const String notifications = '/notifications';
   static const String bot = '/bot';
+static const String volunteers = '/adminVolunteers';
+  static const String campaigns = '/campaigns';
   static const String adminReports = '/adminReports';
 }
 
@@ -78,18 +83,18 @@ class AppNavigation {
         pageBuilder: (context, state) =>
             CustomTransitionPage2(key: state.pageKey, child: const LoginView()),
       ),
-      GoRoute(
-        path: Routes.adminHome,
-        pageBuilder: (context, state) =>
-            CustomTransitionPage2(key: state.pageKey, child: const AdminView()),
-      ),
-      GoRoute(
-        path: Routes.adminReports,
-        pageBuilder: (context, state) => CustomTransitionPage2(
-          key: state.pageKey,
-          child: const AdminReportsView(),
-        ),
-      ),
+      // GoRoute(
+      //   path: Routes.adminHome,
+      //   pageBuilder: (context, state) =>
+      //       CustomTransitionPage2(key: state.pageKey, child: const AdminView()),
+      // ),
+      // GoRoute(
+      //   path: Routes.adminReports,
+      //   pageBuilder: (context, state) => CustomTransitionPage2(
+      //     key: state.pageKey,
+      //     child: const AdminReportsView(),
+      //   ),
+      // ),
       GoRoute(
         path: Routes.notifications,
         pageBuilder: (context, state) => CustomTransitionPage2(
@@ -120,7 +125,6 @@ class AppNavigation {
           );
         },
       ),
-      // Profile — standalone fullscreen (no bottom nav)
       GoRoute(
         path: Routes.volunteerProfile,
         pageBuilder: (context, state) => CustomTransitionPage2(
@@ -159,17 +163,17 @@ class AppNavigation {
             ],
           ),
           // Tab 1: Tasks
-        StatefulShellBranch(
-  routes: [
-    GoRoute(
-      path: '/volunteerTasks',
-      builder: (context, state) => BlocProvider(
-        create: (_) => getIt<TasksCubit>(),
-        child: const VolunteerTasksView(),
-      ),
-    ),
-  ],
-),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/volunteerTasks',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => getIt<TasksCubit>(),
+                  child: const VolunteerTasksView(),
+                ),
+              ),
+            ],
+          ),
           // Tab 2: Map
           StatefulShellBranch(
             routes: <RouteBase>[
@@ -206,6 +210,66 @@ class AppNavigation {
               ),
             ],
           ),
+        ],
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return AdminScaffoldWithNavBar(navigationShell: navigationShell);
+        },
+        branches: <StatefulShellBranch>[
+          // Tab 0: Home
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.adminHome,
+                pageBuilder: (context, state) => CustomTransitionPage2(
+                  key: state.pageKey,
+                  child: const AdminView(),
+                ),
+              ),
+            ],
+          ),
+          // Tab 1: Tasks
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.volunteers,
+                 pageBuilder: (context, state) => CustomTransitionPage2(
+                  key: state.pageKey,
+                  child: const VolunteersPanelView(),
+                ),
+              ),
+            ],
+          ),
+          // Tab 2: Map
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.campaigns,
+                pageBuilder: (context, state) => CustomTransitionPage2(
+                  key: state.pageKey,
+                  child: const CampaignsView(),
+                ),
+              ),
+            ],
+          ),
+          // Tab 3: Performance
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.adminReports,
+                pageBuilder: (context, state) => CustomTransitionPage2(
+                  key: state.pageKey,
+                  child: BlocProvider(
+                    create: (_) => getIt<AdminReportsCubit>(),
+                    child: const AdminReportsView(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // Tab 4: Bot
+       
         ],
       ),
     ],

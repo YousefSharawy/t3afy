@@ -55,6 +55,13 @@ import 'package:t3afy/volunteer/notifications/domain/use_cases/get_notifications
 import 'package:t3afy/volunteer/notifications/domain/use_cases/mark_as_read_use_case.dart';
 import 'package:t3afy/volunteer/notifications/domain/use_cases/mark_all_as_read_use_case.dart';
 import 'package:t3afy/volunteer/notifications/presentation/cubit/notifications_cubit.dart';
+import 'package:t3afy/admin/reports/data/datasources/admin_reports_remote_datasource.dart';
+import 'package:t3afy/admin/reports/data/datasources/admin_reports_remote_datasource_impl.dart';
+import 'package:t3afy/admin/reports/data/repos/admin_reports_repo_impl.dart';
+import 'package:t3afy/admin/reports/domain/repos/admin_reports_repo.dart';
+import 'package:t3afy/admin/reports/domain/usecases/get_reports_usecase.dart';
+import 'package:t3afy/admin/reports/domain/usecases/review_report_usecase.dart';
+import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -197,6 +204,23 @@ getIt.registerFactory(() => TasksCubit(
       getIt<GetNotificationsUseCase>(),
       getIt<MarkAsReadUseCase>(),
       getIt<MarkAllAsReadUseCase>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<AdminReportsRemoteDatasource>(
+    () => AdminReportsRemoteDatasourceImpl(),
+  );
+  getIt.registerLazySingleton<AdminReportsRepo>(
+    () => AdminReportsRepoImpl(getIt<AdminReportsRemoteDatasource>()),
+  );
+  getIt.registerLazySingleton(() => GetReportsUsecase(getIt<AdminReportsRepo>()));
+  getIt.registerLazySingleton(
+      () => ReviewReportUsecase(getIt<AdminReportsRepo>()));
+  getIt.registerFactory(
+    () => AdminReportsCubit(
+      getIt<GetReportsUsecase>(),
+      getIt<ReviewReportUsecase>(),
+      getIt<AdminReportsRepo>(),
     ),
   );
 }

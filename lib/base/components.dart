@@ -156,6 +156,7 @@ class _PrimaryScaffoldState extends State<PrimaryScaffold> {
     return const SizedBox.shrink();
   }
 }
+
 class VolunteerScaffoldWithNavBar extends StatefulWidget {
   const VolunteerScaffoldWithNavBar({required this.navigationShell, Key? key})
     : super(key: key ?? const ValueKey<String>('ScaffoldWithNavBar'));
@@ -195,9 +196,7 @@ class _VolunteerScaffoldWithNavBarState
         backgroundColor: ColorManager.background,
         body: Stack(
           children: [
-            Positioned.fill(
-              child: widget.navigationShell,
-            ),
+            Positioned.fill(child: widget.navigationShell),
             AnimatedPositioned(
               duration: const Duration(milliseconds: 700),
               curve: Curves.easeInOut,
@@ -275,6 +274,7 @@ class _VolunteerScaffoldWithNavBarState
     );
   }
 }
+
 class _NavBarItem extends StatefulWidget {
   final String iconPath;
   final String label;
@@ -366,6 +366,117 @@ class _NavBarItemState extends State<_NavBarItem>
           );
         },
       ),
+    );
+  }
+}
+
+class AdminScaffoldWithNavBar extends StatefulWidget {
+  const AdminScaffoldWithNavBar({required this.navigationShell, Key? key})
+    : super(key: key ?? const ValueKey<String>('ScaffoldWithNavBar'));
+
+  final StatefulNavigationShell navigationShell;
+
+  @override
+  State<AdminScaffoldWithNavBar> createState() =>
+      _AdminScaffoldWithNavBarState();
+}
+
+class _AdminScaffoldWithNavBarState extends State<AdminScaffoldWithNavBar> {
+  bool _isNavBarVisible = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        // // Don't hide nav bar on the bot/chatbot tab (index 4)
+        // if (widget.navigationShell.currentIndex == 4) {
+        //   if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
+        //   return false;
+        // }
+        if (notification is UserScrollNotification) {
+          if (notification.direction == ScrollDirection.reverse) {
+            // Scrolling down — hide nav bar
+            if (_isNavBarVisible) setState(() => _isNavBarVisible = false);
+          } else if (notification.direction == ScrollDirection.forward) {
+            // Scrolling up — show nav bar
+            if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
+          }
+        }
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: ColorManager.background,
+        body: Stack(
+          children: [
+            Positioned.fill(child: widget.navigationShell),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 700),
+              curve: Curves.easeInOut,
+              left: AppWidth.s18,
+              right: AppWidth.s18,
+              bottom: _isNavBarVisible ? AppHeight.s34 : -90.sp,
+              child: _buildNavBar(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavBar(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.s49),
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            const Color(0xFF0E2A50),
+            const Color(0xFF132D63),
+            const Color(0xFF0C244E),
+          ],
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: AppHeight.s10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _NavBarItem(
+              iconPath: IconAssets.home,
+              label: "الرئيسية",
+              isSelected: widget.navigationShell.currentIndex == 0,
+              onTap: () => _onTap(context, 0),
+            ),
+            _NavBarItem(
+              iconPath: IconAssets.group,
+              label: "المتطوعين",
+              isSelected: widget.navigationShell.currentIndex == 1,
+              onTap: () => _onTap(context, 1),
+            ),
+            _NavBarItem(
+              iconPath: IconAssets.campaigns,
+              label:"الحملات",
+              isSelected: widget.navigationShell.currentIndex == 2,
+              onTap: () => _onTap(context, 2),
+            ),
+            _NavBarItem(
+              iconPath: IconAssets.reports,
+              label: "التقارير",
+              isSelected: widget.navigationShell.currentIndex == 3,
+              onTap: () => _onTap(context, 3),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onTap(BuildContext context, int index) {
+    if (index == widget.navigationShell.currentIndex) return;
+    widget.navigationShell.goBranch(
+      index,
+      initialLocation: index == widget.navigationShell.currentIndex,
     );
   }
 }

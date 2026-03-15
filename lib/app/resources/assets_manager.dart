@@ -34,6 +34,9 @@ class IconAssets {
   static const String commit = '$ICON_PATH/commit.png';
   static const String alarm = '$ICON_PATH/alarm.png';
   static const String admin = '$ICON_PATH/admin.png';
+  static const String campaigns = '$ICON_PATH/campaigns.png';
+  static const String group = '$ICON_PATH/group.png';
+  static const String reports = '$ICON_PATH/reports.png';
 }
 
 class DemoAssets {}

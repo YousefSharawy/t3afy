@@ -6,6 +6,12 @@ class AdminView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const PrimaryScaffold(body: Column(children: [Text("Admin")]));
+    return const PrimaryScaffold(body: Column(
+      mainAxisAlignment: .center,
+      children: [
+      
+      
+      
+      Center(child: Text("Admin"))]));
   }
 }
