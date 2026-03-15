@@ -108,13 +108,16 @@ class AdminReportsView extends StatelessWidget {
                                 onTap: () async {
                                   final refreshed =
                                       await showModalBottomSheet<bool>(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    builder: (_) => AdminReviewSheet(
-                                      report: list[i],
-                                    ),
-                                  );
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (_) => BlocProvider.value(
+                                          value: cubit,
+                                          child: AdminReviewSheet(
+                                            report: list[i],
+                                          ),
+                                        ),
+                                      );
                                   if (refreshed == true && context.mounted) {
                                     context
                                         .read<AdminReportsCubit>()
@@ -156,14 +159,10 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
         decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xFF00ABD2)
-              : const Color(0xFF0C203B),
+          color: selected ? const Color(0xFF00ABD2) : const Color(0xFF0C203B),
           borderRadius: BorderRadius.circular(AppRadius.s20),
           border: Border.all(
-            color: selected
-                ? const Color(0xFF00ABD2)
-                : const Color(0xFF1E3A5F),
+            color: selected ? const Color(0xFF00ABD2) : const Color(0xFF1E3A5F),
           ),
         ),
         child: Center(

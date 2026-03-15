@@ -195,11 +195,13 @@ class _StatusBadge extends StatelessWidget {
     switch (s) {
       case 'active':
       case 'ongoing':
-        return const Color(0xFF2DD4BF);
+        return const Color(0xFF16A34A);
       case 'upcoming':
-        return const Color(0xFFFBBF24);
+        return const Color(0xFF7C3AED);
       case 'done':
-        return const Color(0xFF4CAF50);
+        return Colors.grey;
+      case 'paused':
+        return Colors.orange;
       default:
         return Colors.grey;
     }
@@ -208,13 +210,14 @@ class _StatusBadge extends StatelessWidget {
   String _statusLabel(String s) {
     switch (s) {
       case 'active':
-        return 'نشطة';
       case 'ongoing':
         return 'جارية';
       case 'upcoming':
         return 'قادمة';
       case 'done':
-        return 'منتهية';
+        return 'مكتملة';
+      case 'paused':
+        return 'موقوفة';
       default:
         return s;
     }

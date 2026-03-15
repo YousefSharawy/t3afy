@@ -31,12 +31,91 @@ class AdminReportsRemoteDatasourceImpl
     required String adminId,
   }) async {
     try {
-      await _client.from('task_reports').update({
-        'status': status,
-        'admin_feedback': feedback,
-        'reviewed_by': adminId,
-        'reviewed_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', reportId);
+      // Update the report and retrieve task_id + user_id in one call
+      final updated = await _client
+          .from('task_reports')
+          .update({
+            'status': status,
+            'admin_feedback': feedback,
+            'reviewed_by': adminId,
+            'reviewed_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', reportId)
+          .select('task_id, user_id')
+          .single();
+
+      final taskId = updated['task_id'] as String;
+      final volunteerId = updated['user_id'] as String;
+
+      if (status == 'approved') {
+        // Fetch task details needed for stats
+        final task = await _client
+            .from('tasks')
+            .select('duration_hours, location_name')
+            .eq('id', taskId)
+            .single();
+        final durationHours =
+            ((task['duration_hours'] as num?) ?? 0).toDouble();
+        final locationName = task['location_name'] as String?;
+
+        // Update volunteer stats
+        final userRow = await _client
+            .from('users')
+            .select('total_tasks, total_hours, places_visited')
+            .eq('id', volunteerId)
+            .single();
+        final currentTasks = (userRow['total_tasks'] as int?) ?? 0;
+        final currentHours = (userRow['total_hours'] as int?) ?? 0;
+        final currentPlaces = (userRow['places_visited'] as int?) ?? 0;
+
+        // Check if this is a new location for the volunteer
+        int newPlaces = currentPlaces;
+        if (locationName != null && locationName.isNotEmpty) {
+          final locRes = await _client
+              .from('task_assignments')
+              .select('tasks!inner(location_name)')
+              .eq('user_id', volunteerId)
+              .eq('status', 'completed')
+              .eq('tasks.location_name', locationName);
+          if ((locRes as List).isEmpty) {
+            newPlaces = currentPlaces + 1;
+          }
+        }
+
+        await _client.from('users').update({
+          'total_tasks': currentTasks + 1,
+          'total_hours': currentHours + durationHours.round(),
+          'places_visited': newPlaces,
+        }).eq('id', volunteerId);
+
+        // Mark task as done if ALL submitted reports are now approved
+        final pending = await _client
+            .from('task_reports')
+            .select('id')
+            .eq('task_id', taskId)
+            .neq('status', 'approved');
+        if ((pending as List).isEmpty) {
+          await _client
+              .from('tasks')
+              .update({'status': 'done'})
+              .eq('id', taskId);
+          await _client
+              .from('task_assignments')
+              .update({'status': 'completed'})
+              .eq('task_id', taskId);
+        }
+      } else if (status == 'rejected') {
+        // Send rejection notification to volunteer
+        await _client.from('admin_notes').insert({
+          'admin_id': adminId,
+          'volunteer_id': volunteerId,
+          'task_id': taskId,
+          'title': 'تم رفض التقرير',
+          'body': feedback ?? 'تم رفض تقريرك من قبل المشرف',
+          'is_read': false,
+          'created_at': DateTime.now().toUtc().toIso8601String(),
+        });
+      }
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

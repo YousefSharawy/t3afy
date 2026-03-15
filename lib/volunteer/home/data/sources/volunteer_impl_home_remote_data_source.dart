@@ -28,25 +28,27 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
     try {
       final today = DateTime.now().toIso8601String().split('T').first;
 
-      final assignments = await _client
-          .from('task_assignments')
-          .select('task_id')
-          .eq('user_id', userId);
-
-      final taskIds =
-          (assignments as List).map((a) => a['task_id'] as String).toList();
-
-      if (taskIds.isEmpty) return [];
-
       final response = await _client
-          .from('tasks')
-          .select()
-          .inFilter('id', taskIds)
-          .eq('date', today);
+          .from('task_assignments')
+          .select('''
+            status,
+            tasks!inner(
+              id, title, type, description, status, date,
+              time_start, time_end, duration_hours, points,
+              location_name, location_address, location_lat, location_lng,
+              supervisor_name, supervisor_phone, notes
+            )
+          ''')
+          .eq('user_id', userId)
+          .eq('tasks.date', today);
 
-      return (response as List)
-          .map((json) => TaskModel.fromJson(json))
-          .toList();
+      return (response as List).map<TaskModel>((row) {
+        final task = row['tasks'] as Map<String, dynamic>;
+        return TaskModel.fromJson({
+          ...task,
+          'assignment_status': row['status'] ?? 'assigned',
+        });
+      }).toList();
     } catch (error) {
       throw ErrorHandler.handle(error).failture;
     }
