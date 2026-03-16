@@ -17,6 +17,7 @@ extension ProfileMapper on ProfileModel {
       totalHours: totalHours,
       totalTasks: totalTasks,
       placesVisited: placesVisited,
+      totalPoints: totalPoints,
       joinedAt: joinedAt,
     );
   }

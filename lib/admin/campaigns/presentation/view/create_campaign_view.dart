@@ -217,6 +217,10 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
       _showSnack('يرجى اختيار تاريخ الحملة');
       return;
     }
+    if (_timeStart == null || _timeEnd == null) {
+      _showSnack('يجب تحديد وقت البداية والنهاية');
+      return;
+    }
 
     setState(() => _saving = true);
     try {

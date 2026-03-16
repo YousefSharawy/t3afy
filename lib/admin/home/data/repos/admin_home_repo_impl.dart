@@ -37,4 +37,10 @@ class AdminHomeRepoImpl implements AdminHomeRepo {
       return Left(f);
     }
   }
+
+  @override
+  void subscribeRealtime(void Function() onChanged) {}
+
+  @override
+  void disposeRealtime() {}
 }

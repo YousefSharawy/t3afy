@@ -109,6 +109,7 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                     totalHours: stats.totalHours,
                     rating: stats.rating,
                     totalTasks: stats.totalTasks,
+                    totalPoints: stats.totalPoints,
                   ),
                   SizedBox(height: AppHeight.s16),
                   TodayTasksSection(

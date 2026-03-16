@@ -6,20 +6,34 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 class StatusBanner extends StatelessWidget {
-  const StatusBanner({
-    super.key,
-    required this.activeVolunteersCount,
-  });
+  const StatusBanner({super.key, required this.activeVolunteersCount});
 
   final int activeVolunteersCount;
 
   static String _formatDate(DateTime d) {
     const weekdays = [
-      'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'
+      'الإثنين',
+      'الثلاثاء',
+      'الأربعاء',
+      'الخميس',
+      'الجمعة',
+      'السبت',
+      'الأحد',
     ];
     const months = [
-      '', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+      '',
+      'يناير',
+      'فبراير',
+      'مارس',
+      'أبريل',
+      'مايو',
+      'يونيو',
+      'يوليو',
+      'أغسطس',
+      'سبتمبر',
+      'أكتوبر',
+      'نوفمبر',
+      'ديسمبر',
     ];
     final weekday = weekdays[d.weekday - 1];
     return 'اليوم, $weekday ${d.day} ${months[d.month]} ${d.year}';
@@ -28,10 +42,9 @@ class StatusBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: AppWidth.s18),
       padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s16,
-        vertical: AppHeight.s14,
+        horizontal: AppWidth.s12,
+        vertical: AppHeight.s12,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -43,31 +56,12 @@ class StatusBanner extends StatelessWidget {
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
-        borderRadius: BorderRadius.circular(AppRadius.s16),
+        borderRadius: BorderRadius.circular(AppRadius.s12),
       ),
       child: Row(
         children: [
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppWidth.s10,
-              vertical: AppHeight.s4,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2DD4BF).withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppRadius.s20),
-            ),
-            child: Text(
-              'النظام يعمل ✓',
-              style: getSemiBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s11,
-                color: const Color(0xFF2DD4BF),
-              ),
-            ),
-          ),
-          const Spacer(),
           Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: .start,
             children: [
               Text(
                 _formatDate(DateTime.now()),
@@ -101,6 +95,25 @@ class StatusBanner extends StatelessWidget {
                 ],
               ),
             ],
+          ),
+          const Spacer(),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppWidth.s10,
+              vertical: AppHeight.s4,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2DD4BF).withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(AppRadius.s20),
+            ),
+            child: Text(
+              'النظام يعمل ✓',
+              style: getSemiBoldStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s11,
+                color: const Color(0xFF2DD4BF),
+              ),
+            ),
           ),
         ],
       ),

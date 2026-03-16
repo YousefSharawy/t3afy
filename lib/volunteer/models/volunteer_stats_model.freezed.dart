@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$VolunteerStatsModel {
 
- String get id; String get name; String get email; String get phone; String get role; String get gender;@JsonKey(name: 'avatar_url') String get avatarUrl; String get region; String get qualification; int get level;@JsonKey(name: 'level_title') String get levelTitle; double get rating;@JsonKey(name: 'total_hours') int get totalHours;@JsonKey(name: 'total_tasks') int get totalTasks;@JsonKey(name: 'places_visited') int get placesVisited;
+ String get id; String get name; String get email; String get phone; String get role; String get gender;@JsonKey(name: 'avatar_url') String get avatarUrl; String get region; String get qualification; int get level;@JsonKey(name: 'level_title') String get levelTitle; double get rating;@JsonKey(name: 'total_hours') int get totalHours;@JsonKey(name: 'total_tasks') int get totalTasks;@JsonKey(name: 'places_visited') int get placesVisited;@JsonKey(name: 'total_points') int get totalPoints;
 /// Create a copy of VolunteerStatsModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $VolunteerStatsModelCopyWith<VolunteerStatsModel> get copyWith => _$VolunteerSta
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VolunteerStatsModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.role, role) || other.role == role)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.region, region) || other.region == region)&&(identical(other.qualification, qualification) || other.qualification == qualification)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelTitle, levelTitle) || other.levelTitle == levelTitle)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.totalHours, totalHours) || other.totalHours == totalHours)&&(identical(other.totalTasks, totalTasks) || other.totalTasks == totalTasks)&&(identical(other.placesVisited, placesVisited) || other.placesVisited == placesVisited));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VolunteerStatsModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.role, role) || other.role == role)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.region, region) || other.region == region)&&(identical(other.qualification, qualification) || other.qualification == qualification)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelTitle, levelTitle) || other.levelTitle == levelTitle)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.totalHours, totalHours) || other.totalHours == totalHours)&&(identical(other.totalTasks, totalTasks) || other.totalTasks == totalTasks)&&(identical(other.placesVisited, placesVisited) || other.placesVisited == placesVisited)&&(identical(other.totalPoints, totalPoints) || other.totalPoints == totalPoints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,email,phone,role,gender,avatarUrl,region,qualification,level,levelTitle,rating,totalHours,totalTasks,placesVisited);
+int get hashCode => Object.hash(runtimeType,id,name,email,phone,role,gender,avatarUrl,region,qualification,level,levelTitle,rating,totalHours,totalTasks,placesVisited,totalPoints);
 
 @override
 String toString() {
-  return 'VolunteerStatsModel(id: $id, name: $name, email: $email, phone: $phone, role: $role, gender: $gender, avatarUrl: $avatarUrl, region: $region, qualification: $qualification, level: $level, levelTitle: $levelTitle, rating: $rating, totalHours: $totalHours, totalTasks: $totalTasks, placesVisited: $placesVisited)';
+  return 'VolunteerStatsModel(id: $id, name: $name, email: $email, phone: $phone, role: $role, gender: $gender, avatarUrl: $avatarUrl, region: $region, qualification: $qualification, level: $level, levelTitle: $levelTitle, rating: $rating, totalHours: $totalHours, totalTasks: $totalTasks, placesVisited: $placesVisited, totalPoints: $totalPoints)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $VolunteerStatsModelCopyWith<$Res>  {
   factory $VolunteerStatsModelCopyWith(VolunteerStatsModel value, $Res Function(VolunteerStatsModel) _then) = _$VolunteerStatsModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String email, String phone, String role, String gender,@JsonKey(name: 'avatar_url') String avatarUrl, String region, String qualification, int level,@JsonKey(name: 'level_title') String levelTitle, double rating,@JsonKey(name: 'total_hours') int totalHours,@JsonKey(name: 'total_tasks') int totalTasks,@JsonKey(name: 'places_visited') int placesVisited
+ String id, String name, String email, String phone, String role, String gender,@JsonKey(name: 'avatar_url') String avatarUrl, String region, String qualification, int level,@JsonKey(name: 'level_title') String levelTitle, double rating,@JsonKey(name: 'total_hours') int totalHours,@JsonKey(name: 'total_tasks') int totalTasks,@JsonKey(name: 'places_visited') int placesVisited,@JsonKey(name: 'total_points') int totalPoints
 });
 
 
@@ -65,7 +65,7 @@ class _$VolunteerStatsModelCopyWithImpl<$Res>
 
 /// Create a copy of VolunteerStatsModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? email = null,Object? phone = null,Object? role = null,Object? gender = null,Object? avatarUrl = null,Object? region = null,Object? qualification = null,Object? level = null,Object? levelTitle = null,Object? rating = null,Object? totalHours = null,Object? totalTasks = null,Object? placesVisited = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? email = null,Object? phone = null,Object? role = null,Object? gender = null,Object? avatarUrl = null,Object? region = null,Object? qualification = null,Object? level = null,Object? levelTitle = null,Object? rating = null,Object? totalHours = null,Object? totalTasks = null,Object? placesVisited = null,Object? totalPoints = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -82,6 +82,7 @@ as String,rating: null == rating ? _self.rating : rating // ignore: cast_nullabl
 as double,totalHours: null == totalHours ? _self.totalHours : totalHours // ignore: cast_nullable_to_non_nullable
 as int,totalTasks: null == totalTasks ? _self.totalTasks : totalTasks // ignore: cast_nullable_to_non_nullable
 as int,placesVisited: null == placesVisited ? _self.placesVisited : placesVisited // ignore: cast_nullable_to_non_nullable
+as int,totalPoints: null == totalPoints ? _self.totalPoints : totalPoints // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -167,10 +168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String email,  String phone,  String role,  String gender, @JsonKey(name: 'avatar_url')  String avatarUrl,  String region,  String qualification,  int level, @JsonKey(name: 'level_title')  String levelTitle,  double rating, @JsonKey(name: 'total_hours')  int totalHours, @JsonKey(name: 'total_tasks')  int totalTasks, @JsonKey(name: 'places_visited')  int placesVisited)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String email,  String phone,  String role,  String gender, @JsonKey(name: 'avatar_url')  String avatarUrl,  String region,  String qualification,  int level, @JsonKey(name: 'level_title')  String levelTitle,  double rating, @JsonKey(name: 'total_hours')  int totalHours, @JsonKey(name: 'total_tasks')  int totalTasks, @JsonKey(name: 'places_visited')  int placesVisited, @JsonKey(name: 'total_points')  int totalPoints)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VolunteerStatsModel() when $default != null:
-return $default(_that.id,_that.name,_that.email,_that.phone,_that.role,_that.gender,_that.avatarUrl,_that.region,_that.qualification,_that.level,_that.levelTitle,_that.rating,_that.totalHours,_that.totalTasks,_that.placesVisited);case _:
+return $default(_that.id,_that.name,_that.email,_that.phone,_that.role,_that.gender,_that.avatarUrl,_that.region,_that.qualification,_that.level,_that.levelTitle,_that.rating,_that.totalHours,_that.totalTasks,_that.placesVisited,_that.totalPoints);case _:
   return orElse();
 
 }
@@ -188,10 +189,10 @@ return $default(_that.id,_that.name,_that.email,_that.phone,_that.role,_that.gen
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String email,  String phone,  String role,  String gender, @JsonKey(name: 'avatar_url')  String avatarUrl,  String region,  String qualification,  int level, @JsonKey(name: 'level_title')  String levelTitle,  double rating, @JsonKey(name: 'total_hours')  int totalHours, @JsonKey(name: 'total_tasks')  int totalTasks, @JsonKey(name: 'places_visited')  int placesVisited)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String email,  String phone,  String role,  String gender, @JsonKey(name: 'avatar_url')  String avatarUrl,  String region,  String qualification,  int level, @JsonKey(name: 'level_title')  String levelTitle,  double rating, @JsonKey(name: 'total_hours')  int totalHours, @JsonKey(name: 'total_tasks')  int totalTasks, @JsonKey(name: 'places_visited')  int placesVisited, @JsonKey(name: 'total_points')  int totalPoints)  $default,) {final _that = this;
 switch (_that) {
 case _VolunteerStatsModel():
-return $default(_that.id,_that.name,_that.email,_that.phone,_that.role,_that.gender,_that.avatarUrl,_that.region,_that.qualification,_that.level,_that.levelTitle,_that.rating,_that.totalHours,_that.totalTasks,_that.placesVisited);case _:
+return $default(_that.id,_that.name,_that.email,_that.phone,_that.role,_that.gender,_that.avatarUrl,_that.region,_that.qualification,_that.level,_that.levelTitle,_that.rating,_that.totalHours,_that.totalTasks,_that.placesVisited,_that.totalPoints);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +209,10 @@ return $default(_that.id,_that.name,_that.email,_that.phone,_that.role,_that.gen
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String email,  String phone,  String role,  String gender, @JsonKey(name: 'avatar_url')  String avatarUrl,  String region,  String qualification,  int level, @JsonKey(name: 'level_title')  String levelTitle,  double rating, @JsonKey(name: 'total_hours')  int totalHours, @JsonKey(name: 'total_tasks')  int totalTasks, @JsonKey(name: 'places_visited')  int placesVisited)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String email,  String phone,  String role,  String gender, @JsonKey(name: 'avatar_url')  String avatarUrl,  String region,  String qualification,  int level, @JsonKey(name: 'level_title')  String levelTitle,  double rating, @JsonKey(name: 'total_hours')  int totalHours, @JsonKey(name: 'total_tasks')  int totalTasks, @JsonKey(name: 'places_visited')  int placesVisited, @JsonKey(name: 'total_points')  int totalPoints)?  $default,) {final _that = this;
 switch (_that) {
 case _VolunteerStatsModel() when $default != null:
-return $default(_that.id,_that.name,_that.email,_that.phone,_that.role,_that.gender,_that.avatarUrl,_that.region,_that.qualification,_that.level,_that.levelTitle,_that.rating,_that.totalHours,_that.totalTasks,_that.placesVisited);case _:
+return $default(_that.id,_that.name,_that.email,_that.phone,_that.role,_that.gender,_that.avatarUrl,_that.region,_that.qualification,_that.level,_that.levelTitle,_that.rating,_that.totalHours,_that.totalTasks,_that.placesVisited,_that.totalPoints);case _:
   return null;
 
 }
@@ -223,7 +224,7 @@ return $default(_that.id,_that.name,_that.email,_that.phone,_that.role,_that.gen
 @JsonSerializable()
 
 class _VolunteerStatsModel implements VolunteerStatsModel {
-  const _VolunteerStatsModel({required this.id, required this.name, required this.email, this.phone = '', this.role = '', this.gender = '', @JsonKey(name: 'avatar_url') this.avatarUrl = '', this.region = '', this.qualification = '', this.level = 1, @JsonKey(name: 'level_title') this.levelTitle = 'متطوع جديد', this.rating = 0.0, @JsonKey(name: 'total_hours') this.totalHours = 0, @JsonKey(name: 'total_tasks') this.totalTasks = 0, @JsonKey(name: 'places_visited') this.placesVisited = 0});
+  const _VolunteerStatsModel({required this.id, required this.name, required this.email, this.phone = '', this.role = '', this.gender = '', @JsonKey(name: 'avatar_url') this.avatarUrl = '', this.region = '', this.qualification = '', this.level = 1, @JsonKey(name: 'level_title') this.levelTitle = 'متطوع جديد', this.rating = 0.0, @JsonKey(name: 'total_hours') this.totalHours = 0, @JsonKey(name: 'total_tasks') this.totalTasks = 0, @JsonKey(name: 'places_visited') this.placesVisited = 0, @JsonKey(name: 'total_points') this.totalPoints = 0});
   factory _VolunteerStatsModel.fromJson(Map<String, dynamic> json) => _$VolunteerStatsModelFromJson(json);
 
 @override final  String id;
@@ -241,6 +242,7 @@ class _VolunteerStatsModel implements VolunteerStatsModel {
 @override@JsonKey(name: 'total_hours') final  int totalHours;
 @override@JsonKey(name: 'total_tasks') final  int totalTasks;
 @override@JsonKey(name: 'places_visited') final  int placesVisited;
+@override@JsonKey(name: 'total_points') final  int totalPoints;
 
 /// Create a copy of VolunteerStatsModel
 /// with the given fields replaced by the non-null parameter values.
@@ -255,16 +257,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VolunteerStatsModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.role, role) || other.role == role)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.region, region) || other.region == region)&&(identical(other.qualification, qualification) || other.qualification == qualification)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelTitle, levelTitle) || other.levelTitle == levelTitle)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.totalHours, totalHours) || other.totalHours == totalHours)&&(identical(other.totalTasks, totalTasks) || other.totalTasks == totalTasks)&&(identical(other.placesVisited, placesVisited) || other.placesVisited == placesVisited));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VolunteerStatsModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.role, role) || other.role == role)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.region, region) || other.region == region)&&(identical(other.qualification, qualification) || other.qualification == qualification)&&(identical(other.level, level) || other.level == level)&&(identical(other.levelTitle, levelTitle) || other.levelTitle == levelTitle)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.totalHours, totalHours) || other.totalHours == totalHours)&&(identical(other.totalTasks, totalTasks) || other.totalTasks == totalTasks)&&(identical(other.placesVisited, placesVisited) || other.placesVisited == placesVisited)&&(identical(other.totalPoints, totalPoints) || other.totalPoints == totalPoints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,email,phone,role,gender,avatarUrl,region,qualification,level,levelTitle,rating,totalHours,totalTasks,placesVisited);
+int get hashCode => Object.hash(runtimeType,id,name,email,phone,role,gender,avatarUrl,region,qualification,level,levelTitle,rating,totalHours,totalTasks,placesVisited,totalPoints);
 
 @override
 String toString() {
-  return 'VolunteerStatsModel(id: $id, name: $name, email: $email, phone: $phone, role: $role, gender: $gender, avatarUrl: $avatarUrl, region: $region, qualification: $qualification, level: $level, levelTitle: $levelTitle, rating: $rating, totalHours: $totalHours, totalTasks: $totalTasks, placesVisited: $placesVisited)';
+  return 'VolunteerStatsModel(id: $id, name: $name, email: $email, phone: $phone, role: $role, gender: $gender, avatarUrl: $avatarUrl, region: $region, qualification: $qualification, level: $level, levelTitle: $levelTitle, rating: $rating, totalHours: $totalHours, totalTasks: $totalTasks, placesVisited: $placesVisited, totalPoints: $totalPoints)';
 }
 
 
@@ -275,7 +277,7 @@ abstract mixin class _$VolunteerStatsModelCopyWith<$Res> implements $VolunteerSt
   factory _$VolunteerStatsModelCopyWith(_VolunteerStatsModel value, $Res Function(_VolunteerStatsModel) _then) = __$VolunteerStatsModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String email, String phone, String role, String gender,@JsonKey(name: 'avatar_url') String avatarUrl, String region, String qualification, int level,@JsonKey(name: 'level_title') String levelTitle, double rating,@JsonKey(name: 'total_hours') int totalHours,@JsonKey(name: 'total_tasks') int totalTasks,@JsonKey(name: 'places_visited') int placesVisited
+ String id, String name, String email, String phone, String role, String gender,@JsonKey(name: 'avatar_url') String avatarUrl, String region, String qualification, int level,@JsonKey(name: 'level_title') String levelTitle, double rating,@JsonKey(name: 'total_hours') int totalHours,@JsonKey(name: 'total_tasks') int totalTasks,@JsonKey(name: 'places_visited') int placesVisited,@JsonKey(name: 'total_points') int totalPoints
 });
 
 
@@ -292,7 +294,7 @@ class __$VolunteerStatsModelCopyWithImpl<$Res>
 
 /// Create a copy of VolunteerStatsModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? email = null,Object? phone = null,Object? role = null,Object? gender = null,Object? avatarUrl = null,Object? region = null,Object? qualification = null,Object? level = null,Object? levelTitle = null,Object? rating = null,Object? totalHours = null,Object? totalTasks = null,Object? placesVisited = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? email = null,Object? phone = null,Object? role = null,Object? gender = null,Object? avatarUrl = null,Object? region = null,Object? qualification = null,Object? level = null,Object? levelTitle = null,Object? rating = null,Object? totalHours = null,Object? totalTasks = null,Object? placesVisited = null,Object? totalPoints = null,}) {
   return _then(_VolunteerStatsModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -309,6 +311,7 @@ as String,rating: null == rating ? _self.rating : rating // ignore: cast_nullabl
 as double,totalHours: null == totalHours ? _self.totalHours : totalHours // ignore: cast_nullable_to_non_nullable
 as int,totalTasks: null == totalTasks ? _self.totalTasks : totalTasks // ignore: cast_nullable_to_non_nullable
 as int,placesVisited: null == placesVisited ? _self.placesVisited : placesVisited // ignore: cast_nullable_to_non_nullable
+as int,totalPoints: null == totalPoints ? _self.totalPoints : totalPoints // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }

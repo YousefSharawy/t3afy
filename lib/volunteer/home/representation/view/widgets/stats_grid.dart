@@ -13,12 +13,14 @@ class StatsGrid extends StatelessWidget {
     required this.totalHours,
     required this.rating,
     required this.totalTasks,
+    required this.totalPoints,
   });
 
   final int placesVisited;
   final int totalHours;
   final double rating;
   final int totalTasks;
+  final int totalPoints;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,7 @@ class StatsGrid extends StatelessWidget {
           children: [
             Expanded(
               child: _StatCard(
-                icon:IconAssets.done,
+                icon: IconAssets.done,
                 iconColor: ColorManager.blueThree300,
                 value: totalTasks.toString(),
                 label: 'مهام منجزة',
@@ -63,6 +65,19 @@ class StatsGrid extends StatelessWidget {
                 iconColor: Colors.amber,
                 value: rating.toStringAsFixed(1),
                 label: 'التقييم',
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: AppHeight.s12),
+        Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                icon: IconAssets.trophy,
+                iconColor: Colors.orangeAccent,
+                value: totalPoints.toString(),
+                label: 'النقاط المكتسبة',
               ),
             ),
           ],

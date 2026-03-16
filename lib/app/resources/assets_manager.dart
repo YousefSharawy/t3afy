@@ -37,6 +37,9 @@ class IconAssets {
   static const String campaigns = '$ICON_PATH/campaigns.png';
   static const String group = '$ICON_PATH/group.png';
   static const String reports = '$ICON_PATH/reports.png';
+  static const String boy = '$ICON_PATH/boy.png';
+  static const String fast = '$ICON_PATH/fast.png';
+  static const String announcement = '$ICON_PATH/announcement.png';
 }
 
 class DemoAssets {}

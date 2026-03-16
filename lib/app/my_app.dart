@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/di.dart';
 import 'package:t3afy/app/resources/routes.dart';
+import 'package:t3afy/app/services/online_status_cubit.dart';
 import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
 
 import 'resources/constants_manager.dart';
@@ -25,7 +26,16 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider(create: ((_) => AuthCubit(getIt(),getIt(),getIt())))],
+      providers: [
+        BlocProvider(create: ((_) => AuthCubit(getIt(), getIt(), getIt()))),
+        BlocProvider(
+          lazy: false,
+          create: (_) {
+            debugPrint('🟡 Creating OnlineStatusCubit from MyApp...');
+            return getIt<OnlineStatusCubit>();
+          },
+        ),
+      ],
       child: ScreenUtilInit(
         ensureScreenSize: true,
         builder: (context, child) {

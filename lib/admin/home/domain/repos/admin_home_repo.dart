@@ -9,4 +9,6 @@ abstract class AdminHomeRepo {
     required String body,
     required String adminId,
   });
+  void subscribeRealtime(void Function() onChanged);
+  void disposeRealtime();
 }

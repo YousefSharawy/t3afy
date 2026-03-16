@@ -23,6 +23,7 @@ _VolunteerStatsModel _$VolunteerStatsModelFromJson(Map<String, dynamic> json) =>
       totalHours: (json['total_hours'] as num?)?.toInt() ?? 0,
       totalTasks: (json['total_tasks'] as num?)?.toInt() ?? 0,
       placesVisited: (json['places_visited'] as num?)?.toInt() ?? 0,
+      totalPoints: (json['total_points'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$VolunteerStatsModelToJson(
@@ -43,4 +44,5 @@ Map<String, dynamic> _$VolunteerStatsModelToJson(
   'total_hours': instance.totalHours,
   'total_tasks': instance.totalTasks,
   'places_visited': instance.placesVisited,
+  'total_points': instance.totalPoints,
 };

@@ -13,42 +13,50 @@ class TodayTaskCard extends StatelessWidget {
   final TaskEntity task;
   final VoidCallback? onTap;
 
-  Color get _statusTextColor {
-    switch (task.status) {
-      case 'ongoing':
-        return const Color(0xFF00FFCF);
-      case 'upcoming':
-        return const Color(0xFFFFA600);
-      case 'completed':
-        return ColorManager.blueThree500;
-      default:
-        return Colors.grey;
-    }
-  }
-  Color get _statusFillColor {
+  String get _statusLabel {
   switch (task.status) {
     case 'ongoing':
-      return const Color(0xFF147489); 
+    case 'active':
+      return 'جارية';
+    case 'upcoming':
+      return 'قادمة';
+    case 'completed':
+    case 'done':
+      return 'مكتملة';
+    default:
+      return task.status;
+  }
+}
+
+Color get _statusTextColor {
+  switch (task.status) {
+    case 'ongoing':
+    case 'active':
+      return const Color(0xFF00FFCF);
+    case 'upcoming':
+      return const Color(0xFFFFA600);
+    case 'completed':
+    case 'done':
+      return ColorManager.blueThree500;
+    default:
+      return Colors.grey;
+  }
+}
+
+Color get _statusFillColor {
+  switch (task.status) {
+    case 'ongoing':
+    case 'active':
+      return const Color(0xFF147489);
     case 'upcoming':
       return const Color(0xffD08E00).withOpacity(0.45);
     case 'completed':
+    case 'done':
       return const Color(0xFF0D2D5A);
     default:
       return Colors.grey.withOpacity(0.2);
   }
 }
-  String get _statusLabel {
-    switch (task.status) {
-      case 'ongoing':
-        return 'جارية';
-      case 'upcoming':
-        return 'قادمة';
-      case 'completed':
-        return 'مكتملة';
-      default:
-        return '';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +80,7 @@ class TodayTaskCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
+              mainAxisAlignment: .spaceBetween,
               children: [
                 Flexible(
                   child: Text(
@@ -83,7 +92,6 @@ class TodayTaskCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Spacer(),
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: AppWidth.s10,

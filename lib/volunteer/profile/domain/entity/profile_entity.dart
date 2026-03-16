@@ -12,6 +12,7 @@ class ProfileEntity {
   final int totalHours;
   final int totalTasks;
   final int placesVisited;
+  final int totalPoints;
   final String joinedAt;
 
   ProfileEntity({
@@ -28,6 +29,7 @@ class ProfileEntity {
     required this.totalHours,
     required this.totalTasks,
     required this.placesVisited,
+    required this.totalPoints,
     required this.joinedAt,
   });
 }

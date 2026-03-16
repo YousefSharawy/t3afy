@@ -16,6 +16,7 @@ extension VolunteerStatsMapper on VolunteerStatsModel {
       totalHours: totalHours,
       totalTasks: totalTasks,
       placesVisited: placesVisited,
+      totalPoints: totalPoints,
     );
   }
 }

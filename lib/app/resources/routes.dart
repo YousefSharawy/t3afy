@@ -12,8 +12,10 @@ import 'package:t3afy/admin/home/presentation/cubit/admin_home_cubit.dart';
 import 'package:t3afy/admin/home/presentation/view/admin_home_view.dart';
 import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
 import 'package:t3afy/admin/reports/presentation/view/admin_reports_view.dart';
-import 'package:t3afy/admin/volunteers/volunteers_panel_view.dart';
+import 'package:t3afy/admin/volunteers/presentation/cubit/volunteers_cubit.dart';
+import 'package:t3afy/admin/volunteers/presentation/view/volunteers_panel_view.dart';
 import 'package:t3afy/app/di.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/services/online_status_cubit.dart';
 import 'package:t3afy/auth/presentation/view/login_view.dart';
 import 'package:t3afy/auth/presentation/view/register_view.dart';
@@ -31,6 +33,8 @@ import 'package:t3afy/volunteer/notifications/presentation/cubit/notifications_c
 import 'package:t3afy/volunteer/performance/volunteer_performance_view.dart';
 import 'package:t3afy/volunteer/profile/presentation/cubit/profile_cubit.dart';
 import 'package:t3afy/volunteer/profile/presentation/view/volunteer_profile_view.dart';
+import 'package:t3afy/admin/profile/presentation/cubit/admin_profile_cubit.dart';
+import 'package:t3afy/admin/profile/presentation/view/admin_profile_view.dart';
 import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_cubit.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/task_details_cubit.dart';
 import 'package:t3afy/volunteer/task_details/presentation/view/task_details_view.dart';
@@ -58,6 +62,7 @@ static const String volunteers = '/adminVolunteers';
   static const String campaignDetails = '/campaignDetails';
   static const String createCampaign = '/createCampaign';
   static const String editCampaign = '/editCampaign';
+  static const String adminProfile = '/adminProfile';
 }
 
 class AppNavigation {
@@ -144,15 +149,32 @@ class AppNavigation {
           ),
         ),
       ),
+      GoRoute(
+        path: Routes.adminProfile,
+        pageBuilder: (context, state) => CustomTransitionPage2(
+          key: state.pageKey,
+          child: BlocProvider(
+            create: (_) => getIt<AdminProfileCubit>(),
+            child: const AdminProfileView(),
+          ),
+        ),
+      ),
       // Shell route with bottom nav
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
+            debugPrint('🔑 Hive userId: ${LocalAppStorage.getUserId()}');
+
           return MultiBlocProvider(
             providers: [
               BlocProvider(create: (_) => getIt<HomeCubit>()),
               BlocProvider(create: (_) => ChatbotCubit()),
               BlocProvider(create: (_) => getIt<PerformanceCubit>()),
-              BlocProvider(create: (_) => getIt<OnlineStatusCubit>()),
+  //              BlocProvider(
+  //   create: (_) {
+  //     debugPrint('🟡 Creating OnlineStatusCubit...');
+  //     return getIt<OnlineStatusCubit>();
+  //   },
+  // ),
             ],
             child: VolunteerScaffoldWithNavBar(
               navigationShell: navigationShell,
@@ -272,14 +294,17 @@ class AppNavigation {
               ),
             ],
           ),
-          // Tab 1: Tasks
+          // Tab 1: Volunteers
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: Routes.volunteers,
-                 pageBuilder: (context, state) => CustomTransitionPage2(
+                pageBuilder: (context, state) => CustomTransitionPage2(
                   key: state.pageKey,
-                  child: const VolunteersPanelView(),
+                  child: BlocProvider(
+                    create: (_) => getIt<VolunteersCubit>(),
+                    child: const VolunteersPanelView(),
+                  ),
                 ),
               ),
             ],

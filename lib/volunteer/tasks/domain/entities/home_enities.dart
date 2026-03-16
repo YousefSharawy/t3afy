@@ -10,6 +10,7 @@ class VolunteerStatsEntity {
   final int totalHours;
   final int totalTasks;
   final int placesVisited;
+  final int totalPoints;
 
   VolunteerStatsEntity({
     required this.id,
@@ -23,6 +24,7 @@ class VolunteerStatsEntity {
     required this.totalHours,
     required this.totalTasks,
     required this.placesVisited,
+    required this.totalPoints,
   });
 }
 

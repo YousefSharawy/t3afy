@@ -21,6 +21,7 @@ _ProfileModel _$ProfileModelFromJson(Map<String, dynamic> json) =>
       totalHours: (json['total_hours'] as num?)?.toInt() ?? 0,
       totalTasks: (json['total_tasks'] as num?)?.toInt() ?? 0,
       placesVisited: (json['places_visited'] as num?)?.toInt() ?? 0,
+      totalPoints: (json['total_points'] as num?)?.toInt() ?? 0,
       joinedAt: json['joined_at'] as String? ?? '',
     );
 
@@ -39,5 +40,6 @@ Map<String, dynamic> _$ProfileModelToJson(_ProfileModel instance) =>
       'total_hours': instance.totalHours,
       'total_tasks': instance.totalTasks,
       'places_visited': instance.placesVisited,
+      'total_points': instance.totalPoints,
       'joined_at': instance.joinedAt,
     };

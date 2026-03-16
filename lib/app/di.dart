@@ -85,7 +85,20 @@ import 'package:t3afy/admin/campaigns/domain/usecases/send_team_alert_usecase.da
 import 'package:t3afy/admin/campaigns/domain/usecases/get_unassigned_volunteers_usecase.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/campaigns_cubit.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
+import 'package:t3afy/admin/volunteers/data/datasources/volunteers_remote_datasource.dart';
+import 'package:t3afy/admin/volunteers/data/datasources/volunteers_remote_datasource_impl.dart';
+import 'package:t3afy/admin/volunteers/data/repos/volunteers_repo_impl.dart';
+import 'package:t3afy/admin/volunteers/domain/repos/volunteers_repo.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/get_volunteers_usecase.dart';
+import 'package:t3afy/admin/volunteers/presentation/cubit/volunteers_cubit.dart';
 import 'package:t3afy/app/services/online_status_cubit.dart';
+import 'package:t3afy/admin/profile/data/datasources/admin_profile_remote_datasource.dart';
+import 'package:t3afy/admin/profile/data/datasources/admin_profile_remote_datasource_impl.dart';
+import 'package:t3afy/admin/profile/data/repos/admin_profile_repo_impl.dart';
+import 'package:t3afy/admin/profile/domain/repos/admin_profile_repo.dart';
+import 'package:t3afy/admin/profile/domain/usecases/get_admin_profile_usecase.dart';
+import 'package:t3afy/admin/profile/domain/usecases/update_admin_profile_usecase.dart';
+import 'package:t3afy/admin/profile/presentation/cubit/admin_profile_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -269,6 +282,7 @@ getIt.registerFactory(() => TasksCubit(
     () => AdminHomeCubit(
       getIt<GetAdminHomeDataUsecase>(),
       getIt<SendAnnouncementUsecase>(),
+      getIt<AdminHomeRepo>(),
     ),
   );
 
@@ -305,5 +319,39 @@ getIt.registerFactory(() => TasksCubit(
       getIt<UpdateCampaignUsecase>(),
       getIt<GetUnassignedVolunteersUsecase>(),
     ),
+  );
+
+  // ===== Admin Profile =====
+  getIt.registerLazySingleton<AdminProfileRemoteDatasource>(
+    () => AdminProfileRemoteDatasourceImpl(),
+  );
+  getIt.registerLazySingleton<AdminProfileRepo>(
+    () => AdminProfileRepoImpl(getIt<AdminProfileRemoteDatasource>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetAdminProfileUsecase(getIt<AdminProfileRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => UpdateAdminProfileUsecase(getIt<AdminProfileRepo>()),
+  );
+  getIt.registerFactory(
+    () => AdminProfileCubit(
+      getIt<GetAdminProfileUsecase>(),
+      getIt<UpdateAdminProfileUsecase>(),
+    ),
+  );
+
+  // ===== Volunteers =====
+  getIt.registerLazySingleton<VolunteersRemoteDatasource>(
+    () => VolunteersRemoteDatasourceImpl(),
+  );
+  getIt.registerLazySingleton<VolunteersRepo>(
+    () => VolunteersRepoImpl(getIt<VolunteersRemoteDatasource>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetVolunteersUsecase(getIt<VolunteersRepo>()),
+  );
+  getIt.registerFactory(
+    () => VolunteersCubit(getIt<GetVolunteersUsecase>(), getIt<VolunteersRepo>()),
   );
 }

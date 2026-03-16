@@ -21,6 +21,7 @@ abstract class VolunteerStatsModel with _$VolunteerStatsModel {
     @JsonKey(name: 'total_hours') @Default(0) int totalHours,
     @JsonKey(name: 'total_tasks') @Default(0) int totalTasks,
     @JsonKey(name: 'places_visited') @Default(0) int placesVisited,
+    @JsonKey(name: 'total_points') @Default(0) int totalPoints,
   }) = _VolunteerStatsModel;
 
   factory VolunteerStatsModel.fromJson(Map<String, dynamic> json) =>

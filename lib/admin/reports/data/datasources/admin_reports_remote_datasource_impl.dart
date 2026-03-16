@@ -51,22 +51,24 @@ class AdminReportsRemoteDatasourceImpl
         // Fetch task details needed for stats
         final task = await _client
             .from('tasks')
-            .select('duration_hours, location_name')
+            .select('duration_hours, location_name, points')
             .eq('id', taskId)
             .single();
         final durationHours =
             ((task['duration_hours'] as num?) ?? 0).toDouble();
+        final taskPoints = (task['points'] as int?) ?? 0;
         final locationName = task['location_name'] as String?;
 
         // Update volunteer stats
         final userRow = await _client
             .from('users')
-            .select('total_tasks, total_hours, places_visited')
+            .select('total_tasks, total_hours, places_visited, total_points')
             .eq('id', volunteerId)
             .single();
         final currentTasks = (userRow['total_tasks'] as int?) ?? 0;
         final currentHours = (userRow['total_hours'] as int?) ?? 0;
         final currentPlaces = (userRow['places_visited'] as int?) ?? 0;
+        final currentPoints = (userRow['total_points'] as int?) ?? 0;
 
         // Check if this is a new location for the volunteer
         int newPlaces = currentPlaces;
@@ -86,6 +88,7 @@ class AdminReportsRemoteDatasourceImpl
           'total_tasks': currentTasks + 1,
           'total_hours': currentHours + durationHours.round(),
           'places_visited': newPlaces,
+          'total_points': currentPoints + taskPoints,
         }).eq('id', volunteerId);
 
         // Mark task as done if ALL submitted reports are now approved

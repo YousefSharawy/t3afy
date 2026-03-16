@@ -19,6 +19,7 @@ abstract class ProfileModel with _$ProfileModel {
     @JsonKey(name: 'total_hours') @Default(0) int totalHours,
     @JsonKey(name: 'total_tasks') @Default(0) int totalTasks,
     @JsonKey(name: 'places_visited') @Default(0) int placesVisited,
+    @JsonKey(name: 'total_points') @Default(0) int totalPoints,
     @JsonKey(name: 'joined_at') @Default('') String joinedAt,
   }) = _ProfileModel;
 

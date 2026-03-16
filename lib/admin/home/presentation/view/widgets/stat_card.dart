@@ -9,67 +9,66 @@ class StatCard extends StatelessWidget {
   const StatCard({
     super.key,
     required this.icon,
-    required this.iconColor,
     required this.value,
     required this.label,
     this.trend,
   });
-
-  final IconData icon;
-  final Color iconColor;
+  final String icon;
   final String value;
   final String label;
   final String? trend;
-
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: AppWidth.s160,
+      height: AppHeight.s150,
       padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s14,
-        vertical: AppHeight.s14,
+        horizontal: AppWidth.s35,
+        vertical: AppHeight.s12,
       ),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne900,
         borderRadius: BorderRadius.circular(AppRadius.s12),
         border: Border.all(color: ColorManager.blueOne700),
+        gradient: LinearGradient(
+          begin: .topCenter,
+          end: .bottomCenter,
+          colors: [ColorManager.blueOne900, ColorManager.blueOne800],
+        ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.all(8.r),
+            padding: EdgeInsets.all(10.sp),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppRadius.s10),
+              color: ColorManager.blueOne700,
+              borderRadius: BorderRadius.circular(AppRadius.s8),
             ),
-            child: Icon(icon, color: iconColor, size: 22.r),
+            child: Image.asset(icon),
           ),
-          SizedBox(height: AppHeight.s10),
           Text(
             value,
             style: getBoldStyle(
               fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s22,
+              fontSize: FontSize.s20,
               color: Colors.white,
             ),
           ),
-          SizedBox(height: AppHeight.s2),
           Text(
             label,
-            style: getMediumStyle(
+            style: getRegularStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s12,
-              color: ColorManager.blueTwo100,
+              color: ColorManager.blueOne100,
             ),
           ),
           if (trend != null) ...[
-            SizedBox(height: AppHeight.s4),
             Text(
               trend!,
               style: getRegularStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s10,
-                color: const Color(0xFF00ABD2),
+                color: const Color(0xFF66F839),
               ),
             ),
           ],

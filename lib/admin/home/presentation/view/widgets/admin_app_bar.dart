@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
+import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
@@ -10,56 +13,50 @@ class AdminAppBar extends StatelessWidget {
     super.key,
     required this.adminName,
     this.avatarUrl,
-    this.onNotificationTap,
   });
 
   final String adminName;
   final String? avatarUrl;
-  final VoidCallback? onNotificationTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s18,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
       child: Row(
         children: [
-          Column(
-
-            crossAxisAlignment: .start,
-            children: [
-              SizedBox(height: AppHeight.s71,),
-              CircleAvatar(
-                radius: 24.r,
-                backgroundColor: ColorManager.blueOne600,
-                backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
-                    ? NetworkImage(avatarUrl!)
-                    : null,
-                child: avatarUrl == null || avatarUrl!.isEmpty
-                    ? Icon(Icons.person, color: Colors.white, size: 28.r)
-                    : null,
+          SizedBox(height: AppHeight.s71),
+          GestureDetector(
+            onTap: () => context.push(Routes.adminProfile),
+            child: Container(
+              width: AppWidth.s34,
+              height: AppHeight.s34,
+              decoration: BoxDecoration(
+                color: ColorManager.blueOne800,
+                borderRadius: BorderRadius.all(Radius.circular(AppRadius.s8)),
               ),
+              child: Image.asset(
+                width: AppWidth.s24,
+              height: AppHeight.s24,
+                IconAssets.volHome),
+            ),
+          ),
+          SizedBox(width: AppWidth.s8,),
+           Column(
+            crossAxisAlignment: .start,
+            mainAxisAlignment: .center,
+            children: [
+           Text("لوحة تحكم",style: getLightStyle(
+            fontSize: FontSize.s10,
+            fontFamily: FontConstants.fontFamily,
+            color: Color(0xff25374F),
+           ),),
+           Text(adminName,style: getBoldStyle(
+             fontSize: FontSize.s12,
+            fontFamily: FontConstants.fontFamily,
+            color: Color(0xff25374F),
+           ),),
             ],
           ),
-          SizedBox(width: AppWidth.s12),
-            Text(
-                adminName,
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s18,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: AppHeight.s2),
-              Text(
-                'لوحة تحكم',
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s12,
-                  color: ColorManager.blueOne100,
-                ),
-              ),
         ],
       ),
     );

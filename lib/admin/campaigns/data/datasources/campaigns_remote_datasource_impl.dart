@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
+import 'package:t3afy/app/failture.dart';
 import '../../domain/entities/campaign_entity.dart';
 import '../../domain/entities/campaign_detail_entity.dart';
 import '../../domain/entities/campaign_member_entity.dart';
@@ -181,6 +182,12 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
   @override
   Future<String> createCampaign(Map<String, dynamic> data) async {
     try {
+      final timeStart = data['time_start'] as String?;
+      final timeEnd = data['time_end'] as String?;
+      if (timeStart == null || timeStart.isEmpty || timeEnd == null || timeEnd.isEmpty) {
+        throw Failture(400, 'يجب تحديد وقت البداية والنهاية');
+      }
+
       final volunteerIds = data.remove('volunteer_ids') as List<String>? ?? [];
       final objectiveTitles = data.remove('objective_titles') as List<String>? ?? [];
       final suppliesData = data.remove('supplies_data') as List<Map<String, dynamic>>? ?? [];

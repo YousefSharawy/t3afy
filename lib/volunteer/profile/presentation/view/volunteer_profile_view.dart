@@ -135,6 +135,10 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
               ProfileInfoItem(
                 label: 'إجمالي عدد الساعات',
                 value: '${profile.totalHours} ساعة',
+              ),
+              ProfileInfoItem(
+                label: 'النقاط المكتسبة',
+                value: '${profile.totalPoints} نقطة',
                 hasDivider: false,
               ),
             ],
