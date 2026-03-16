@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 
 class NotificationsAppBar {
@@ -16,9 +18,14 @@ class NotificationsAppBar {
             color: Colors.black, size: 20.sp),
       ),
       centerTitle: true,
-      title: Text('الإشعارات',
-          style: getBoldStyle(
-              color: Colors.white, fontSize: 20.sp)),
+      title: Text(
+        'التنبيهات والاشعارات',
+        style: getBoldStyle(
+          fontFamily: FontConstants.fontFamily,
+          fontSize: FontSize.s16,
+          color: ColorManager.blueOne900,
+        ),
+      ),
       actions: [
         if (onMarkAllRead != null)
           TextButton(

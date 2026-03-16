@@ -44,6 +44,7 @@ class IconAssets {
   static const String search = '$ICON_PATH/search.png';
   static const String phone = '$ICON_PATH/phone.png';
   static const String target = '$ICON_PATH/target.png';
+  static const String warning = '$ICON_PATH/warning.png';
   static const String announcement = '$ICON_PATH/announcement.png';
 }
 
