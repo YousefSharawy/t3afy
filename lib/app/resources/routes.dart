@@ -12,7 +12,11 @@ import 'package:t3afy/admin/home/presentation/cubit/admin_home_cubit.dart';
 import 'package:t3afy/admin/home/presentation/view/admin_home_view.dart';
 import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
 import 'package:t3afy/admin/reports/presentation/view/admin_reports_view.dart';
+import 'package:t3afy/admin/performance/presentation/cubit/admin_performance_cubit.dart';
+import 'package:t3afy/admin/performance/presentation/view/admin_performance_view.dart';
+import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_cubit.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteers_cubit.dart';
+import 'package:t3afy/admin/volunteers/presentation/view/volunteer_details_view.dart';
 import 'package:t3afy/admin/volunteers/presentation/view/volunteers_panel_view.dart';
 import 'package:t3afy/app/di.dart';
 import 'package:t3afy/app/local_storage.dart';
@@ -63,6 +67,8 @@ static const String volunteers = '/adminVolunteers';
   static const String createCampaign = '/createCampaign';
   static const String editCampaign = '/editCampaign';
   static const String adminProfile = '/adminProfile';
+  static const String volunteerDetails = '/volunteerDetails';
+  static const String adminPerformance = '/adminPerformance';
 }
 
 class AppNavigation {
@@ -245,6 +251,19 @@ class AppNavigation {
         ],
       ),
       GoRoute(
+        path: '/volunteerDetails/:id',
+        pageBuilder: (context, state) {
+          final volunteerId = state.pathParameters['id']!;
+          return CustomTransitionPage2(
+            key: state.pageKey,
+            child: BlocProvider(
+              create: (_) => getIt<VolunteerDetailsCubit>(),
+              child: VolunteerDetailsView(volunteerId: volunteerId),
+            ),
+          );
+        },
+      ),
+      GoRoute(
         path: '/campaignDetails/:id',
         pageBuilder: (context, state) {
           final taskId = state.pathParameters['id']!;
@@ -316,15 +335,15 @@ class AppNavigation {
                 path: Routes.campaigns,
                 pageBuilder: (context, state) => CustomTransitionPage2(
                   key: state.pageKey,
-                  child: BlocProvider(
-                    create: (_) => getIt<CampaignsCubit>(),
+                  child: BlocProvider.value(
+                    value: getIt<CampaignsCubit>(),
                     child: const CampaignsView(),
                   ),
                 ),
               ),
             ],
           ),
-          // Tab 3: Performance
+          // Tab 3: Reports
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
@@ -339,8 +358,21 @@ class AppNavigation {
               ),
             ],
           ),
-          // Tab 4: Bot
-       
+          // Tab 4: Performance / Stats
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.adminPerformance,
+                pageBuilder: (context, state) => CustomTransitionPage2(
+                  key: state.pageKey,
+                  child: BlocProvider(
+                    create: (_) => getIt<AdminPerformanceCubit>(),
+                    child: const AdminPerformanceView(),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     ],

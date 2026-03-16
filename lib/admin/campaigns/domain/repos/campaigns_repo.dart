@@ -5,6 +5,8 @@ import '../entities/campaign_detail_entity.dart';
 import '../entities/volunteer_entity.dart';
 
 abstract class CampaignsRepo {
+  void subscribeRealtime(void Function() onChanged);
+  void disposeRealtime();
   Future<Either<Failture, List<CampaignEntity>>> getCampaigns();
   Future<Either<Failture, Map<String, int>>> getCampaignStats();
   Future<Either<Failture, CampaignDetailEntity>> getCampaignDetail(String id);

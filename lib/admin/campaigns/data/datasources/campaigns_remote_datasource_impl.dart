@@ -408,6 +408,19 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
   }
 
   @override
+  RealtimeChannel subscribeCampaignsChanges(void Function() onChanged) {
+    return _client
+        .channel('tasks_changes_campaigns')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'tasks',
+          callback: (_) => onChanged(),
+        )
+        .subscribe();
+  }
+
+  @override
   Future<List<VolunteerEntity>> getUnassignedVolunteers(String taskId) async {
     try {
       final assignedRes = await _client

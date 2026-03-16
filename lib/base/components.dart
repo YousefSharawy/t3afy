@@ -474,6 +474,12 @@ class _AdminScaffoldWithNavBarState extends State<AdminScaffoldWithNavBar> {
               isSelected: widget.navigationShell.currentIndex == 3,
               onTap: () => _onTap(context, 3),
             ),
+            _NavBarItem(
+              iconPath: IconAssets.performance,
+              label: "الاحصاء",
+              isSelected: widget.navigationShell.currentIndex == 4,
+              onTap: () => _onTap(context, 4),
+            ),
           ],
         ),
       ),

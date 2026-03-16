@@ -101,10 +101,7 @@ class ActionsTab extends StatelessWidget {
               confirmColor: Colors.redAccent,
             );
             if (confirmed && context.mounted) {
-              final deleted = await cubit.deleteCampaign(detail.id);
-              if (deleted && context.mounted) {
-                context.go('/campaigns');
-              }
+              cubit.deleteCampaign(detail.id);
             }
           },
         ),

@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/admin/volunteers/data/datasources/volunteers_remote_datasource.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/admin_volunteer_entity.dart';
+import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
 
 class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
   final _client = Supabase.instance.client;
@@ -54,6 +55,41 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
       return (data as List)
           .map((e) => AdminVolunteerEntity.fromJson(e as Map<String, dynamic>))
           .toList();
+    } catch (e) {
+      throw ErrorHandler.handle(e).failture;
+    }
+  }
+
+  @override
+  Future<VolunteerDetailsEntity> getVolunteerDetails(String volunteerId) async {
+    try {
+      final userRaw = await _client
+          .from('users')
+          .select('*')
+          .eq('id', volunteerId)
+          .single();
+      final tasksRaw = await _client
+          .from('task_assignments')
+          .select('*, tasks(*)')
+          .eq('user_id', volunteerId)
+          .order('assigned_at', ascending: false);
+      final tasks = tasksRaw
+          .map(
+            (e) => VolunteerTaskAssignmentEntity.fromJson(
+              e as Map<String, dynamic>,
+            ),
+          )
+          .toList();
+      return VolunteerDetailsEntity.fromJson(userRaw, tasks);
+    } catch (e) {
+      throw ErrorHandler.handle(e).failture;
+    }
+  }
+
+  @override
+  Future<void> deleteVolunteer(String volunteerId) async {
+    try {
+      await _client.from('users').delete().eq('id', volunteerId);
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

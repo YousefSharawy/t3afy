@@ -49,9 +49,8 @@ class StatusBanner extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            ColorManager.blueOne800,
             ColorManager.blueOne900,
-            const Color(0xFF0A3D2E),
+            ColorManager.blueOne800,
           ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,

@@ -12,8 +12,21 @@ import 'widgets/campaign_stat_box.dart';
 import 'widgets/campaign_filter_chips.dart';
 import 'widgets/campaign_list_card.dart';
 
-class CampaignsView extends StatelessWidget {
+class CampaignsView extends StatefulWidget {
   const CampaignsView({super.key});
+
+  @override
+  State<CampaignsView> createState() => _CampaignsViewState();
+}
+
+class _CampaignsViewState extends State<CampaignsView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<CampaignsCubit>().load();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

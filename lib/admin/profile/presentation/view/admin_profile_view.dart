@@ -329,9 +329,9 @@ class _EditSheetState extends State<_EditSheet> {
                   ),
                 ),
                 child: _saving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
+                    ?  SizedBox(
+                        width: 20.sp,
+                        height: 20.sp,
                         child: CircularProgressIndicator(
                           color: Colors.white,
                           strokeWidth: 2,

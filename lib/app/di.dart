@@ -90,9 +90,18 @@ import 'package:t3afy/admin/volunteers/data/datasources/volunteers_remote_dataso
 import 'package:t3afy/admin/volunteers/data/repos/volunteers_repo_impl.dart';
 import 'package:t3afy/admin/volunteers/domain/repos/volunteers_repo.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/add_volunteer_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/delete_volunteer_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/get_volunteer_details_usecase.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/get_volunteers_usecase.dart';
+import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_cubit.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteers_cubit.dart';
 import 'package:t3afy/app/services/online_status_cubit.dart';
+import 'package:t3afy/admin/performance/data/datasources/admin_performance_remote_datasource.dart';
+import 'package:t3afy/admin/performance/data/datasources/admin_performance_remote_datasource_impl.dart';
+import 'package:t3afy/admin/performance/data/repos/admin_performance_repo_impl.dart';
+import 'package:t3afy/admin/performance/domain/repos/admin_performance_repo.dart';
+import 'package:t3afy/admin/performance/domain/usecases/get_admin_performance_usecase.dart';
+import 'package:t3afy/admin/performance/presentation/cubit/admin_performance_cubit.dart';
 import 'package:t3afy/admin/profile/data/datasources/admin_profile_remote_datasource.dart';
 import 'package:t3afy/admin/profile/data/datasources/admin_profile_remote_datasource_impl.dart';
 import 'package:t3afy/admin/profile/data/repos/admin_profile_repo_impl.dart';
@@ -304,10 +313,11 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton(() => RemoveVolunteerUsecase(getIt<CampaignsRepo>()));
   getIt.registerLazySingleton(() => SendTeamAlertUsecase(getIt<CampaignsRepo>()));
   getIt.registerLazySingleton(() => GetUnassignedVolunteersUsecase(getIt<CampaignsRepo>()));
-  getIt.registerFactory(
+  getIt.registerLazySingleton(
     () => CampaignsCubit(
       getIt<GetCampaignsUsecase>(),
       getIt<GetCampaignStatsUsecase>(),
+      getIt<CampaignsRepo>(),
     ),
   );
   getIt.registerFactory(
@@ -355,11 +365,37 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton(
     () => AddVolunteerUsecase(getIt<VolunteersRepo>()),
   );
+  getIt.registerLazySingleton(
+    () => GetVolunteerDetailsUsecase(getIt<VolunteersRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => DeleteVolunteerUsecase(getIt<VolunteersRepo>()),
+  );
   getIt.registerFactory(
     () => VolunteersCubit(
       getIt<GetVolunteersUsecase>(),
       getIt<VolunteersRepo>(),
       getIt<AddVolunteerUsecase>(),
     ),
+  );
+  getIt.registerFactory(
+    () => VolunteerDetailsCubit(
+      getIt<GetVolunteerDetailsUsecase>(),
+      getIt<DeleteVolunteerUsecase>(),
+    ),
+  );
+
+  // ===== Admin Performance =====
+  getIt.registerLazySingleton<AdminPerformanceRemoteDatasource>(
+    () => AdminPerformanceRemoteDatasourceImpl(),
+  );
+  getIt.registerLazySingleton<AdminPerformanceRepo>(
+    () => AdminPerformanceRepoImpl(getIt<AdminPerformanceRemoteDatasource>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetAdminPerformanceUsecase(getIt<AdminPerformanceRepo>()),
+  );
+  getIt.registerFactory(
+    () => AdminPerformanceCubit(getIt<GetAdminPerformanceUsecase>()),
   );
 }

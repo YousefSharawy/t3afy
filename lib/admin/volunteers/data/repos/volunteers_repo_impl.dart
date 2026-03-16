@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/failture.dart';
 import 'package:t3afy/admin/volunteers/data/datasources/volunteers_remote_datasource.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/admin_volunteer_entity.dart';
+import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
 import 'package:t3afy/admin/volunteers/domain/repos/volunteers_repo.dart';
 
 class VolunteersRepoImpl implements VolunteersRepo {
@@ -53,6 +54,28 @@ class VolunteersRepoImpl implements VolunteersRepo {
     if (_channel != null) {
       Supabase.instance.client.removeChannel(_channel!);
       _channel = null;
+    }
+  }
+
+  @override
+  Future<Either<Failture, VolunteerDetailsEntity>> getVolunteerDetails(
+    String volunteerId,
+  ) async {
+    try {
+      final details = await _datasource.getVolunteerDetails(volunteerId);
+      return Right(details);
+    } on Failture catch (f) {
+      return Left(f);
+    }
+  }
+
+  @override
+  Future<Either<Failture, void>> deleteVolunteer(String volunteerId) async {
+    try {
+      await _datasource.deleteVolunteer(volunteerId);
+      return const Right(null);
+    } on Failture catch (f) {
+      return Left(f);
     }
   }
 }

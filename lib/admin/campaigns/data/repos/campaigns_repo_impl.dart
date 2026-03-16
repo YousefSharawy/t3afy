@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/failture.dart';
 import '../../domain/entities/campaign_entity.dart';
 import '../../domain/entities/campaign_detail_entity.dart';
@@ -8,8 +9,22 @@ import '../datasources/campaigns_remote_datasource.dart';
 
 class CampaignsRepoImpl implements CampaignsRepo {
   final CampaignsRemoteDatasource _datasource;
+  RealtimeChannel? _channel;
 
   CampaignsRepoImpl(this._datasource);
+
+  @override
+  void subscribeRealtime(void Function() onChanged) {
+    _channel = _datasource.subscribeCampaignsChanges(onChanged);
+  }
+
+  @override
+  void disposeRealtime() {
+    if (_channel != null) {
+      Supabase.instance.client.removeChannel(_channel!);
+      _channel = null;
+    }
+  }
 
   @override
   Future<Either<Failture, List<CampaignEntity>>> getCampaigns() async {

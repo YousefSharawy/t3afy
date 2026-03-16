@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/campaign_entity.dart';
 import '../../domain/entities/campaign_detail_entity.dart';
 import '../../domain/entities/volunteer_entity.dart';
@@ -23,4 +24,5 @@ abstract class CampaignsRemoteDatasource {
     required List<String> volunteerIds,
   });
   Future<List<VolunteerEntity>> getUnassignedVolunteers(String taskId);
+  RealtimeChannel subscribeCampaignsChanges(void Function() onChanged);
 }

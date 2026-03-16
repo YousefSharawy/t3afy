@@ -2,28 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
+import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_cubit.dart';
+import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_state.dart';
+import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_data_tab.dart';
+import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_details_header.dart';
+import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_manage_tab.dart';
+import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_tasks_tab.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
-import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
-import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
-import 'widgets/campaign_hero_card.dart';
-import 'widgets/overview_tab.dart';
-import 'widgets/team_tab.dart';
-import 'widgets/actions_tab.dart';
+import 'package:t3afy/base/widgets/loading_indicator.dart';
 
-class CampaignDetailView extends StatefulWidget {
-  const CampaignDetailView({super.key, required this.taskId});
+class VolunteerDetailsView extends StatefulWidget {
+  const VolunteerDetailsView({super.key, required this.volunteerId});
 
-  final String taskId;
+  final String volunteerId;
 
   @override
-  State<CampaignDetailView> createState() => _CampaignDetailViewState();
+  State<VolunteerDetailsView> createState() => _VolunteerDetailsViewState();
 }
 
-class _CampaignDetailViewState extends State<CampaignDetailView>
+class _VolunteerDetailsViewState extends State<VolunteerDetailsView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
@@ -31,7 +33,7 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    context.read<CampaignDetailCubit>().load(widget.taskId);
+    context.read<VolunteerDetailsCubit>().load(widget.volunteerId);
   }
 
   @override
@@ -45,82 +47,66 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: ColorManager.blueOne900,
+        backgroundColor: ColorManager.background,
         appBar: AppBar(
-          backgroundColor: ColorManager.blueOne900,
+          backgroundColor: ColorManager.background,
           elevation: 0,
+          automaticallyImplyLeading: false,
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: Colors.white,
-              size: 20.r,
+              color: ColorManager.blueOne900,
+              size: 20.sp,
             ),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
           ),
-          title: Text(
-            'تفاصيل الحملة',
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s16,
-              color: Colors.white,
-            ),
-          ),
-          centerTitle: true,
         ),
-        body: BlocConsumer<CampaignDetailCubit, CampaignDetailState>(
+        body: BlocConsumer<VolunteerDetailsCubit, VolunteerDetailsState>(
           listener: (context, state) {
-            if (state is CampaignDetailDeleted) {
-              final messenger = ScaffoldMessenger.of(context);
-              messenger.showSnackBar(
-                const SnackBar(
-                  content: Text('تم حذف الحملة بنجاح'),
-                  backgroundColor: Color(0xFF10B981),
-                ),
-              );
-              if (context.mounted) context.go('/campaigns');
-            } else if (state is CampaignDetailActionError) {
+            if (state is VolunteerDetailsDeleted) {
+              context.pop(true);
+            } else if (state is VolunteerDetailsActionError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),
                   backgroundColor: Colors.redAccent,
                 ),
               );
-            } else if (state is CampaignDetailAlertSent) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم إرسال التنبيه بنجاح'),
-                  backgroundColor: Color(0xFF10B981),
-                ),
-              );
             }
           },
-          buildWhen: (previous, current) =>
-              current is! CampaignDetailSaving &&
-              current is! CampaignDetailDeleted &&
-              current is! CampaignDetailAlertSent &&
-              current is! CampaignDetailActionError,
           builder: (context, state) {
-            if (state is CampaignDetailLoading || state is CampaignDetailInitial) {
+            if (state is VolunteerDetailsLoading ||
+                state is VolunteerDetailsInitial) {
               return const LoadingIndicator();
             }
-            if (state is CampaignDetailError) {
+            if (state is VolunteerDetailsError) {
               return ErrorState(
                 message: state.message,
-                onRetry: () =>
-                    context.read<CampaignDetailCubit>().load(widget.taskId),
+                onRetry: () => context
+                    .read<VolunteerDetailsCubit>()
+                    .load(widget.volunteerId),
               );
             }
 
-            final detail = state is CampaignDetailLoaded
-                ? state.detail
-                : null;
-            if (detail == null) return const LoadingIndicator();
+            VolunteerDetailsEntity? details;
+            if (state is VolunteerDetailsLoaded) {
+              details = state.details;
+            } else if (state is VolunteerDetailsDeleting) {
+              details = state.details;
+            } else if (state is VolunteerDetailsActionError) {
+              details = state.details;
+            }
+
+            if (details == null) return const LoadingIndicator();
 
             return Column(
               children: [
                 SizedBox(height: AppHeight.s8),
-                CampaignHeroCard(detail: detail),
-                SizedBox(height: AppHeight.s16),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
+                  child: VolunteerDetailsHeader(details: details),
+                ),
+                SizedBox(height: AppHeight.s12),
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: AppWidth.s16),
                   decoration: BoxDecoration(
@@ -140,9 +126,9 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
                       fontSize: FontSize.s12,
                     ),
                     tabs: const [
-                      Tab(text: 'نظرة عامة'),
-                      Tab(text: 'الفريق'),
-                      Tab(text: 'الاجراءات'),
+                      Tab(text: 'البيانات'),
+                      Tab(text: 'المهام'),
+                      Tab(text: 'الإجراءات'),
                     ],
                   ),
                 ),
@@ -151,9 +137,9 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      OverviewTab(detail: detail),
-                      TeamTab(detail: detail),
-                      ActionsTab(detail: detail),
+                      VolunteerDataTab(details: details),
+                      VolunteerTasksTab(details: details),
+                      VolunteerManageTab(details: details),
                     ],
                   ),
                 ),

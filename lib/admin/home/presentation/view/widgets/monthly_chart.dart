@@ -38,7 +38,9 @@ class MonthlyChartWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (data.isEmpty) return const SizedBox.shrink();
 
-    final maxY = data.map((e) => e.count).reduce((a, b) => a > b ? a : b).toDouble();
+    final reversedData = data.reversed.toList();
+    final maxY =
+        data.map((e) => e.count).reduce((a, b) => a > b ? a : b).toDouble();
     final pct = _percentageChange;
 
     return Container(
@@ -51,11 +53,10 @@ class MonthlyChartWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row (RTL: title on right, badge on left)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-               Text(
+              Text(
                 'المهام المنجزة شهرياً',
                 style: getBoldStyle(
                   fontFamily: FontConstants.fontFamily,
@@ -85,8 +86,6 @@ class MonthlyChartWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              // Title
-             
             ],
           ),
           SizedBox(height: AppHeight.s20),
@@ -113,10 +112,10 @@ class MonthlyChartWidget extends StatelessWidget {
                       reservedSize: 28,
                       getTitlesWidget: (value, meta) {
                         final idx = value.toInt();
-                        if (idx < 0 || idx >= data.length) {
+                        if (idx < 0 || idx >= reversedData.length) {
                           return const SizedBox.shrink();
                         }
-                        final monthIndex = data[idx].month.month - 1;
+                        final monthIndex = reversedData[idx].month.month - 1;
                         return Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
@@ -132,18 +131,18 @@ class MonthlyChartWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-                barGroups: List.generate(data.length, (i) {
+                barGroups: List.generate(reversedData.length, (i) {
                   return BarChartGroupData(
                     x: i,
                     barRods: [
                       BarChartRodData(
-                        toY: data[i].count.toDouble(),
+                        toY: reversedData[i].count.toDouble(),
                         gradient: const LinearGradient(
                           colors: [Color(0xFF0D47A1), Color(0xFF00BCD4)],
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
                         ),
-                        width: 10,
+                        width: 22,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ],
