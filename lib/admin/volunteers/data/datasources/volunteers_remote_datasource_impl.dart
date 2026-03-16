@@ -20,6 +20,28 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
   }
 
   @override
+  Future<void> addVolunteer({
+    required String name,
+    required String email,
+    String? phone,
+    String? region,
+    String? qualification,
+  }) async {
+    try {
+      await _client.from('users').insert({
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'region': region,
+        'qualification': qualification,
+        'role': 'volunteer',
+      });
+    } catch (e) {
+      throw ErrorHandler.handle(e).failture;
+    }
+  }
+
+  @override
   Future<List<AdminVolunteerEntity>> getVolunteers() async {
     try {
       final data = await _client

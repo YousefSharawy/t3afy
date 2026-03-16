@@ -12,6 +12,7 @@ class ImageAssets {
 class IconAssets {
   static const String logo = '$ICON_PATH/applogo.png';
   static const String email = '$ICON_PATH/email.png';
+  static const String email2 = '$ICON_PATH/email2.png';
   static const String password = '$ICON_PATH/password.png';
   static const String person = '$ICON_PATH/person.png';
   static const String google = '$ICON_PATH/google.png';
@@ -39,6 +40,10 @@ class IconAssets {
   static const String reports = '$ICON_PATH/reports.png';
   static const String boy = '$ICON_PATH/boy.png';
   static const String fast = '$ICON_PATH/fast.png';
+  static const String add = '$ICON_PATH/add.png';
+  static const String search = '$ICON_PATH/search.png';
+  static const String phone = '$ICON_PATH/phone.png';
+  static const String target = '$ICON_PATH/target.png';
   static const String announcement = '$ICON_PATH/announcement.png';
 }
 

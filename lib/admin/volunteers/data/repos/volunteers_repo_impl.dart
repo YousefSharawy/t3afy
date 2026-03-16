@@ -12,6 +12,28 @@ class VolunteersRepoImpl implements VolunteersRepo {
   VolunteersRepoImpl(this._datasource);
 
   @override
+  Future<Either<Failture, void>> addVolunteer({
+    required String name,
+    required String email,
+    String? phone,
+    String? region,
+    String? qualification,
+  }) async {
+    try {
+      await _datasource.addVolunteer(
+        name: name,
+        email: email,
+        phone: phone,
+        region: region,
+        qualification: qualification,
+      );
+      return const Right(null);
+    } on Failture catch (f) {
+      return Left(f);
+    }
+  }
+
+  @override
   Future<Either<Failture, List<AdminVolunteerEntity>>> getVolunteers() async {
     try {
       final list = await _datasource.getVolunteers();

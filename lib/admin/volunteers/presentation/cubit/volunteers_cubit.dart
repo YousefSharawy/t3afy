@@ -4,13 +4,14 @@ import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/admin_volunteer_entity.dart';
 import 'package:t3afy/admin/volunteers/domain/repos/volunteers_repo.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/add_volunteer_usecase.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/get_volunteers_usecase.dart';
 
 part 'volunteers_state.dart';
 part 'volunteers_cubit.freezed.dart';
 
 class VolunteersCubit extends Cubit<VolunteersState> {
-  VolunteersCubit(this._getVolunteersUsecase, this._repo)
+  VolunteersCubit(this._getVolunteersUsecase, this._repo, this._addVolunteerUsecase)
       : super(const VolunteersState.initial()) {
     loadVolunteers();
     _repo.subscribeRealtime(loadVolunteers);
@@ -19,6 +20,7 @@ class VolunteersCubit extends Cubit<VolunteersState> {
 
   final GetVolunteersUsecase _getVolunteersUsecase;
   final VolunteersRepo _repo;
+  final AddVolunteerUsecase _addVolunteerUsecase;
   List<AdminVolunteerEntity> _allVolunteers = [];
   Timer? _stalenessTimer;
 
@@ -31,6 +33,27 @@ class VolunteersCubit extends Cubit<VolunteersState> {
         _allVolunteers = list;
         emit(VolunteersState.loaded(list));
       },
+    );
+  }
+
+  Future<void> addVolunteer({
+    required String name,
+    required String email,
+    String? phone,
+    String? region,
+    String? qualification,
+  }) async {
+    emit(const VolunteersState.loading());
+    final result = await _addVolunteerUsecase(
+      name: name,
+      email: email,
+      phone: phone,
+      region: region,
+      qualification: qualification,
+    );
+    result.fold(
+      (f) => emit(VolunteersState.error(f.message)),
+      (_) => loadVolunteers(),
     );
   }
 

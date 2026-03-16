@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteers_cubit.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
@@ -23,47 +25,41 @@ class _VolunteerSearchBarState extends State<VolunteerSearchBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s16,
-        vertical: AppHeight.s8,
+    return TextField(
+      controller: _controller,
+      textDirection: TextDirection.rtl,
+      onChanged: (value) =>
+          context.read<VolunteersCubit>().setSearchQuery(value),
+      style: getMediumStyle(
+        fontFamily: FontConstants.fontFamily,
+        fontSize: FontSize.s13,
+        color: Colors.white,
       ),
-      child: TextField(
-        controller: _controller,
-        textDirection: TextDirection.rtl,
-        onChanged: (value) =>
-            context.read<VolunteersCubit>().setSearchQuery(value),
-        style: getMediumStyle(
+      decoration: InputDecoration(
+        hintText: 'ابحث باسم المتطوع أو المنطقة....',
+        hintStyle: getSemiBoldStyle(
           fontFamily: FontConstants.fontFamily,
-          fontSize: FontSize.s13,
-          color: Colors.white,
+          fontSize: FontSize.s12,
+          color: ColorManager.blueOne100,
         ),
-        decoration: InputDecoration(
-          hintText: 'ابحث باسم المتطوع أو المنطقة....',
-          hintStyle: getMediumStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s13,
-            color: Colors.white38,
-          ),
-          prefixIcon: const Icon(Icons.search, color: Colors.white38, size: 20),
-          filled: true,
-          fillColor: const Color(0xFF0C203B),
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: AppWidth.s16,
-            vertical: AppHeight.s12,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.s12),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.s12),
-            borderSide: const BorderSide(color: Color(0xFF1E3A5F)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.s12),
-            borderSide: const BorderSide(color: Color(0xFF00ABD2)),
-          ),
+        prefixIcon: Image.asset(IconAssets.search),
+        filled: true,
+        fillColor: const Color(0xFF0C203B),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: AppWidth.s16,
+          vertical: AppHeight.s12,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.s12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.s12),
+          borderSide: const BorderSide(color: Color(0xFF1E3A5F)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.s12),
+          borderSide: const BorderSide(color: Color(0xFF00ABD2)),
         ),
       ),
     );

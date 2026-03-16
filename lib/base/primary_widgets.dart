@@ -24,7 +24,6 @@ class PrimaryElevatedButton extends StatelessWidget {
     this.buttonRadius,
     required this.textStyle,
     this.borderColor,
-    this.iconColor,
   });
   final String title;
   final double? height;
@@ -37,7 +36,6 @@ class PrimaryElevatedButton extends StatelessWidget {
   final dynamic value;
   final String? iconPath;
   final Color? borderColor;
-  final Color? iconColor;
 
   final TextStyle textStyle;
   final double? buttonRadius;
@@ -72,7 +70,6 @@ class PrimaryElevatedButton extends StatelessWidget {
                         iconPath!,
                         width: AppWidth.s16,
                         height: AppHeight.s16,
-                        color: iconColor ?? ColorManager.white,
                       ),
                     ],
                     SizedBox(width: AppWidth.s8),

@@ -6,4 +6,11 @@ abstract class VolunteersRepo {
   Future<Either<Failture, List<AdminVolunteerEntity>>> getVolunteers();
   void subscribeRealtime(void Function() onChanged);
   void disposeRealtime();
+  Future<Either<Failture, void>> addVolunteer({
+    required String name,
+    required String email,
+    String? phone,
+    String? region,
+    String? qualification,
+  });
 }

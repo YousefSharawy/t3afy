@@ -89,6 +89,7 @@ import 'package:t3afy/admin/volunteers/data/datasources/volunteers_remote_dataso
 import 'package:t3afy/admin/volunteers/data/datasources/volunteers_remote_datasource_impl.dart';
 import 'package:t3afy/admin/volunteers/data/repos/volunteers_repo_impl.dart';
 import 'package:t3afy/admin/volunteers/domain/repos/volunteers_repo.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/add_volunteer_usecase.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/get_volunteers_usecase.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteers_cubit.dart';
 import 'package:t3afy/app/services/online_status_cubit.dart';
@@ -351,7 +352,14 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton(
     () => GetVolunteersUsecase(getIt<VolunteersRepo>()),
   );
+  getIt.registerLazySingleton(
+    () => AddVolunteerUsecase(getIt<VolunteersRepo>()),
+  );
   getIt.registerFactory(
-    () => VolunteersCubit(getIt<GetVolunteersUsecase>(), getIt<VolunteersRepo>()),
+    () => VolunteersCubit(
+      getIt<GetVolunteersUsecase>(),
+      getIt<VolunteersRepo>(),
+      getIt<AddVolunteerUsecase>(),
+    ),
   );
 }

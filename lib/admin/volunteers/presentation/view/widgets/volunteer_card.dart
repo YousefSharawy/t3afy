@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/admin_volunteer_entity.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
@@ -13,32 +16,31 @@ class VolunteerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = volunteer.status;
     final (statusColor, statusBg) = _statusColors(status);
-
     return Container(
-      margin: EdgeInsets.only(bottom: AppHeight.s12),
+      margin: EdgeInsets.only(bottom: AppHeight.s8),
       decoration: BoxDecoration(
-        color: const Color(0xFF0C203B),
+        color: ColorManager.blueOne900,
         borderRadius: BorderRadius.circular(AppRadius.s12),
-        border: Border.all(color: const Color(0xFF1E3A5F)),
       ),
       child: Padding(
-        padding: EdgeInsets.all(AppSize.s14),
+        padding: EdgeInsets.all(12.sp),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Avatar (rightmost in RTL)
-            _Avatar(
-              avatarUrl: volunteer.avatarUrl,
-              name: volunteer.name,
-              isActive: volunteer.isActiveNow,
+            Container(
+              width: AppWidth.s34,
+              height: AppHeight.s34,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(AppRadius.s8)),
+                color: Color(0xff1F2E4F),
+              ),
+              child: Image.asset(IconAssets.volHome),
             ),
             SizedBox(width: AppWidth.s12),
-            // Info column
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Name
                   Text(
                     volunteer.name,
                     style: getBoldStyle(
@@ -47,30 +49,33 @@ class VolunteerCard extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: AppHeight.s4),
-                  // Region + Rating row
+                  SizedBox(height: AppHeight.s2),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        color: Colors.white54,
-                        size: 13,
+                      Image.asset(
+                        width: AppWidth.s16,
+                        height: AppHeight.s16,
+                        IconAssets.location,
                       ),
-                      SizedBox(width: AppWidth.s3),
+                      SizedBox(width: AppWidth.s4),
                       Flexible(
                         child: Text(
                           volunteer.region ?? 'غير محدد',
                           style: getRegularStyle(
                             fontFamily: FontConstants.fontFamily,
-                            fontSize: FontSize.s11,
-                            color: Colors.white54,
+                            fontSize: FontSize.s10,
+                            color: ColorManager.blueOne300,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      SizedBox(width: AppWidth.s10),
-                      const Icon(Icons.star, color: Color(0xFFFFC107), size: 13),
-                      SizedBox(width: AppWidth.s3),
+                      SizedBox(width: AppWidth.s16),
+                      Image.asset(
+                        width: AppWidth.s16,
+                        height: AppHeight.s16,
+                        IconAssets.star,
+                      ),
+                      SizedBox(width: AppWidth.s6),
                       Text(
                         volunteer.rating.toStringAsFixed(1),
                         style: getRegularStyle(
@@ -81,8 +86,7 @@ class VolunteerCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppHeight.s8),
-                  // Badges row
+                  SizedBox(height: AppHeight.s4),
                   Row(
                     children: [
                       _Badge(
@@ -103,8 +107,6 @@ class VolunteerCard extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(width: AppWidth.s8),
-            // Status badge (top-left corner in LTR / top-right visually becomes opposite in RTL)
             Container(
               padding: EdgeInsets.symmetric(
                 horizontal: AppWidth.s8,
@@ -112,7 +114,7 @@ class VolunteerCard extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 color: statusBg,
-                borderRadius: BorderRadius.circular(AppRadius.s20),
+                borderRadius: BorderRadius.circular(AppRadius.s6),
               ),
               child: Text(
                 status,
@@ -136,55 +138,8 @@ class VolunteerCard extends StatelessWidget {
       case 'قيد المراجعة':
         return (const Color(0xFFFBBF24), const Color(0xFF451A03));
       default:
-        return (const Color(0xFF9CA3AF), const Color(0xFF1F2937));
+        return (const Color(0xFFB2B2B2), const Color(0xFF1F2937));
     }
-  }
-}
-
-class _Avatar extends StatelessWidget {
-  const _Avatar({
-    required this.avatarUrl,
-    required this.name,
-    required this.isActive,
-  });
-
-  final String? avatarUrl;
-  final String name;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    final avatar = (avatarUrl != null && avatarUrl!.isNotEmpty)
-        ? CircleAvatar(
-            radius: AppSize.s24,
-            backgroundImage: NetworkImage(avatarUrl!),
-            backgroundColor: const Color(0xFF1E3A5F),
-          )
-        : CircleAvatar(
-            radius: AppSize.s24,
-            backgroundColor: const Color(0xFF1E3A5F),
-            child: const Icon(Icons.person, color: Colors.white70, size: 24),
-          );
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        avatar,
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: isActive ? const Color(0xFF22C55E) : const Color(0xFF6B7280),
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF0C203B), width: 2),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }
 
