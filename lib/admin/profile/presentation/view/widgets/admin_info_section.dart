@@ -3,7 +3,6 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AdminInfoSection extends StatelessWidget {
   const AdminInfoSection({
@@ -69,7 +68,15 @@ class AdminInfoSection extends StatelessWidget {
               ),
             ),
             if (i < items.length - 1)
-              Divider(color: ColorManager.white, thickness: 1.sp),
+              Center(
+                child: SizedBox(
+                  width: 108,
+                  child: Divider(
+                    color: Colors.white,
+                    thickness: 1,
+                  ),
+                ),
+              ),
           ],
         ],
       ),

@@ -14,6 +14,7 @@ import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
+import 'package:t3afy/base/primary_widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AdminProfileView extends StatefulWidget {
@@ -186,25 +187,15 @@ class _AdminProfileViewState extends State<AdminProfileView> {
           ),
           SizedBox(height: AppHeight.s16),
           // Edit button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => _showEditSheet(profile),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00ABD2),
-                padding: EdgeInsets.symmetric(vertical: AppHeight.s14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.s12),
-                ),
-              ),
-              child: Text(
-                'تعديل الملف الشخصي',
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: ColorManager.white,
-                ),
-              ),
+          PrimaryElevatedButton(
+            width: AppWidth.s339,
+            height: AppHeight.s50,
+            title: 'تعديل الملف الشخصي',
+            onPress: () => _showEditSheet(profile),
+            textStyle: getBoldStyle(
+              fontFamily: FontConstants.fontFamily,
+              fontSize: FontSize.s14,
+              color: ColorManager.white,
             ),
           ),
           SizedBox(height: AppHeight.s8),
