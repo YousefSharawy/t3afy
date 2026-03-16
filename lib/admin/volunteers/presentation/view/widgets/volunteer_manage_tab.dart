@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_cubit.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
@@ -22,37 +23,38 @@ class VolunteerManageTab extends StatelessWidget {
       ),
       children: [
         _ActionRow(
-          icon: Icons.assignment_outlined,
+          icon:IconAssets.reports,
           label: 'تعيين مهمة جديدة',
           onTap: () => _showTodo(context),
         ),
         _ActionRow(
-          icon: Icons.message_outlined,
+          icon:IconAssets.message,
           label: 'إرسال رسالة مباشرة',
           onTap: () => _showTodo(context),
         ),
         _ActionRow(
-          icon: Icons.star_outline,
+          icon:IconAssets.star,
           label: 'تعديل التقييم',
           onTap: () => _showTodo(context),
         ),
         _ActionRow(
-          icon: Icons.military_tech_outlined,
+          icon:IconAssets.promotion,
           label: 'ترقية المستوى',
           onTap: () => _showTodo(context),
         ),
         _ActionRow(
-          icon: Icons.edit_outlined,
+          icon:IconAssets.edit,
           label: 'تعديل البيانات',
           onTap: () => _showTodo(context),
         ),
         _ActionRow(
-          icon: Icons.block_outlined,
+          icon:IconAssets.settings,
           label: 'تعليق الحساب',
           onTap: () => _showTodo(context),
         ),
-        SizedBox(height: AppHeight.s16),
+        SizedBox(height: AppHeight.s8),
         _DeleteButton(volunteerId: details.id),
+                SizedBox(height: AppHeight.s50),
       ],
     );
   }
@@ -82,7 +84,7 @@ class _ActionRow extends StatelessWidget {
     required this.onTap,
   });
 
-  final IconData icon;
+  final String icon;
   final String label;
   final VoidCallback onTap;
 
@@ -97,26 +99,35 @@ class _ActionRow extends StatelessWidget {
           vertical: AppHeight.s14,
         ),
         decoration: BoxDecoration(
-          color: ColorManager.blueOne900,
-          borderRadius: BorderRadius.circular(AppRadius.s12),
+         gradient: LinearGradient(
+          
+          begin: .centerLeft,
+          end: .centerRight,
+          colors: [
+          ColorManager.blueOne900,
+          ColorManager.blueOne800,
+         ]),
+          borderRadius: BorderRadius.circular(AppRadius.s8),
         ),
         child: Row(
           children: [
-            Icon(icon, color: ColorManager.blueOne300, size: 20.r),
-            SizedBox(width: AppWidth.s12),
+            Container(
+              width: AppWidth.s32,
+              height: AppHeight.s32,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadius.s8),
+                color: Color(0xff1F2E4F)
+              ),
+              
+              child: Image.asset(icon)),
+            SizedBox(width: AppWidth.s8),
             Text(
               label,
-              style: getMediumStyle(
+              style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s13,
-                color: Colors.white,
+                fontSize: FontSize.s12,
+                color: ColorManager.blueOne50,
               ),
-            ),
-            const Spacer(),
-            Icon(
-              Icons.arrow_back_ios_new,
-              color: ColorManager.blueOne300,
-              size: 14.r,
             ),
           ],
         ),
@@ -136,23 +147,20 @@ class _DeleteButton extends StatelessWidget {
       onTap: () => _confirmDelete(context),
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: AppWidth.s16,
-          vertical: AppHeight.s14,
+          vertical: AppHeight.s8,
         ),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.redAccent, width: 1),
+          border: Border.all(color: Colors.redAccent, width: AppWidth.s2),
           borderRadius: BorderRadius.circular(AppRadius.s12),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.delete_outline, color: Colors.redAccent, size: 20.r),
-            SizedBox(width: AppWidth.s8),
             Text(
               'حذف المتطوع',
-              style: getMediumStyle(
+              style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s13,
+                fontSize: FontSize.s14,
                 color: Colors.redAccent,
               ),
             ),
@@ -200,9 +208,9 @@ class _DeleteButton extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
-                context
-                    .read<VolunteerDetailsCubit>()
-                    .deleteVolunteer(volunteerId);
+                context.read<VolunteerDetailsCubit>().deleteVolunteer(
+                  volunteerId,
+                );
               },
               child: Text(
                 'حذف',

@@ -80,7 +80,16 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
             ),
           )
           .toList();
-      return VolunteerDetailsEntity.fromJson(userRaw, tasks);
+      final areasRaw = await _client
+          .from('task_assignments')
+          .select('tasks!inner(type)')
+          .eq('user_id', volunteerId);
+      final volunteerAreas = (areasRaw as List)
+          .map((e) => (e['tasks'] as Map<String, dynamic>)['type'] as String?)
+          .whereType<String>()
+          .toSet()
+          .toList();
+      return VolunteerDetailsEntity.fromJson(userRaw, tasks, volunteerAreas);
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

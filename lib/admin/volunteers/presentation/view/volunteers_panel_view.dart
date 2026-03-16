@@ -86,12 +86,12 @@ class VolunteersPanelView extends StatelessWidget {
                   child: Column(
                     children: [
                       const VolunteerSearchBar(),
-                      SizedBox(height: AppHeight.s16,),
+                      SizedBox(height: AppHeight.s16),
                       VolunteerFilterChips(
                         volunteers: volunteers,
                         selectedFilter: filter,
                       ),
-                         SizedBox(height: AppHeight.s8,),
+                      SizedBox(height: AppHeight.s8),
                       Expanded(
                         child: displayed.isEmpty
                             ? Center(
@@ -110,7 +110,6 @@ class VolunteersPanelView extends StatelessWidget {
                                     .loadVolunteers(),
                                 color: const Color(0xFF00ABD2),
                                 child: ListView.builder(
-                               
                                   itemCount: displayed.length,
                                   itemBuilder: (context, i) =>
                                       VolunteerCard(volunteer: displayed[i]),

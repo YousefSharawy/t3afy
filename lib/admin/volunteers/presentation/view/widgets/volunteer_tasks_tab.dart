@@ -24,37 +24,26 @@ class VolunteerTasksTab extends StatelessWidget {
             children: [
               Expanded(
                 child: _StatsBox(
-                  label: 'تقييم',
-                  value: details.rating.toStringAsFixed(1),
-                  icon: Icons.star_outlined,
-                  color: const Color(0xFFFBBF24),
+                  label: 'منجزة',
+                  value: '${details.completedTasksCount}',
+                  color: const Color(0xFF22C55E),
                 ),
               ),
+
               SizedBox(width: AppWidth.s8),
               Expanded(
                 child: _StatsBox(
                   label: 'ساعة',
                   value: '${details.totalHours}',
-                  icon: Icons.access_time,
                   color: const Color(0xFF60A5FA),
                 ),
               ),
               SizedBox(width: AppWidth.s8),
               Expanded(
                 child: _StatsBox(
-                  label: 'منجزة',
-                  value: '${details.completedTasksCount}',
-                  icon: Icons.check_circle_outline,
-                  color: const Color(0xFF22C55E),
-                ),
-              ),
-              SizedBox(width: AppWidth.s8),
-              Expanded(
-                child: _StatsBox(
-                  label: 'إجمالي',
-                  value: '${details.tasks.length}',
-                  icon: Icons.list_alt_outlined,
-                  color: ColorManager.blueOne300,
+                  label: 'تقييم',
+                  value: details.rating.toStringAsFixed(1),
+                  color: const Color(0xFFFF9D2C),
                 ),
               ),
             ],
@@ -88,13 +77,11 @@ class _StatsBox extends StatelessWidget {
   const _StatsBox({
     required this.label,
     required this.value,
-    required this.icon,
     required this.color,
   });
 
   final String label;
   final String value;
-  final IconData icon;
   final Color color;
 
   @override
@@ -110,22 +97,21 @@ class _StatsBox extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 14.r),
           SizedBox(height: AppHeight.s4),
           Text(
             value,
-            style: getBoldStyle(
+            style: getExtraBoldStyle(
               fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: Colors.white,
+              fontSize: FontSize.s16,
+              color: color,
             ),
           ),
           Text(
             label,
             style: getRegularStyle(
               fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s9,
-              color: ColorManager.blueOne300,
+              fontSize: FontSize.s12,
+              color: ColorManager.blueOne100,
             ),
           ),
         ],
@@ -142,10 +128,12 @@ class _TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCompleted = task.status == 'completed';
-    final statusColor =
-        isCompleted ? const Color(0xFF22C55E) : const Color(0xFF60A5FA);
-    final statusBg =
-        isCompleted ? const Color(0xFF14532D) : const Color(0xFF1E3A5F);
+    final statusColor = isCompleted
+        ? const Color(0xFF22C55E)
+        : const Color(0xFF60A5FA);
+    final statusBg = isCompleted
+        ? const Color(0xFF14532D)
+        : const Color(0xFF1E3A5F);
     final statusLabel = isCompleted ? 'مكتملة' : 'نشيطة';
 
     return Container(
@@ -179,10 +167,10 @@ class _TaskCard extends StatelessWidget {
               children: [
                 Text(
                   task.title.isNotEmpty ? task.title : 'مهمة',
-                  style: getMediumStyle(
+                  style: getBoldStyle(
                     fontFamily: FontConstants.fontFamily,
                     fontSize: FontSize.s12,
-                    color: Colors.white,
+                    color: ColorManager.blueOne50,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),

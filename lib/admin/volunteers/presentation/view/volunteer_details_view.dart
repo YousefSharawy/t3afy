@@ -82,9 +82,9 @@ class _VolunteerDetailsViewState extends State<VolunteerDetailsView>
             if (state is VolunteerDetailsError) {
               return ErrorState(
                 message: state.message,
-                onRetry: () => context
-                    .read<VolunteerDetailsCubit>()
-                    .load(widget.volunteerId),
+                onRetry: () => context.read<VolunteerDetailsCubit>().load(
+                  widget.volunteerId,
+                ),
               );
             }
 
@@ -101,7 +101,6 @@ class _VolunteerDetailsViewState extends State<VolunteerDetailsView>
 
             return Column(
               children: [
-                SizedBox(height: AppHeight.s8),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
                   child: VolunteerDetailsHeader(details: details),
@@ -109,21 +108,26 @@ class _VolunteerDetailsViewState extends State<VolunteerDetailsView>
                 SizedBox(height: AppHeight.s12),
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: AppWidth.s16),
+                  padding: EdgeInsets.all(AppWidth.s4),
                   decoration: BoxDecoration(
-                    color: ColorManager.blueOne800,
+                    color: ColorManager.blueOne900,
                     borderRadius: BorderRadius.circular(AppRadius.s12),
-                    border: Border.all(color: ColorManager.blueOne700),
                   ),
                   child: TabBar(
+                    padding: EdgeInsets.all(8.sp),
                     controller: _tabController,
-                    indicatorColor: const Color(0xFF00ABD2),
+                    indicator: BoxDecoration(
+                      color: const Color(0xFF7C3AED),
+                      borderRadius: BorderRadius.circular(AppRadius.s8),
+                    ),
                     indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: const Color(0xFF00ABD2),
-                    unselectedLabelColor: Colors.white.withValues(alpha: 0.4),
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
                     dividerColor: Colors.transparent,
-                    labelStyle: getMediumStyle(
+                    labelStyle: getBoldStyle(
                       fontFamily: FontConstants.fontFamily,
                       fontSize: FontSize.s12,
+                      color: ColorManager.blueOne50
                     ),
                     tabs: const [
                       Tab(text: 'البيانات'),

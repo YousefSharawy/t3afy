@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
@@ -20,38 +21,36 @@ class VolunteerDataTab extends StatelessWidget {
       ),
       children: [
         _InfoRow(
-          icon: Icons.phone_outlined,
+          icon: IconAssets.phone,
           label: 'رقم الهاتف',
           value: details.phone ?? '—',
         ),
         _InfoRow(
-          icon: Icons.email_outlined,
+          icon: IconAssets.email2,
           label: 'البريد',
           value: details.email ?? '—',
         ),
         _InfoRow(
-          icon: Icons.location_on_outlined,
+          icon: IconAssets.location,
           label: 'المنطقة',
           value: details.region ?? '—',
         ),
         _InfoRow(
-          icon: Icons.calendar_today_outlined,
+          icon: IconAssets.calendar,
           label: 'تاريخ الانضمام',
           value: details.joinedAt != null
               ? _formatArabicMonth(details.joinedAt!)
               : '—',
         ),
         _InfoRow(
-          icon: Icons.access_time_outlined,
+          icon: IconAssets.hours,
           label: 'آخر ظهور',
           value: details.lastSeenAt != null
               ? _timeAgo(details.lastSeenAt!)
               : '—',
         ),
-        _InfoRow(
-          icon: Icons.school_outlined,
-          label: 'مجالات التطوع',
-          value: details.qualification ?? '—',
+        _QualificationRow(
+          values: details.volunteerAreas,
         ),
       ],
     );
@@ -92,7 +91,7 @@ class _InfoRow extends StatelessWidget {
     required this.value,
   });
 
-  final IconData icon;
+  final String icon;
   final String label;
   final String value;
 
@@ -105,32 +104,122 @@ class _InfoRow extends StatelessWidget {
         vertical: AppHeight.s12,
       ),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne900,
+        color: ColorManager.blueOne800,
         borderRadius: BorderRadius.circular(AppRadius.s12),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, color: ColorManager.blueOne300, size: 18.r),
-          SizedBox(width: AppWidth.s12),
-          Text(
-            label,
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color: ColorManager.blueOne300,
+          Container(
+            width: 36.r,
+            height: 36.r,
+            decoration: BoxDecoration(
+              color: Color(0xff1F2E4F),
+              borderRadius: BorderRadius.circular(8.r),
             ),
+            child: Image.asset(icon),
           ),
-          const Spacer(),
-          Flexible(
-            child: Text(
-              value,
-              style: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s12,
-                color: Colors.white,
+          SizedBox(width: AppWidth.s12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: getRegularStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s10,
+                  color: ColorManager.blueOne100,
+                ),
               ),
-              textAlign: TextAlign.end,
-              overflow: TextOverflow.ellipsis,
+              SizedBox(height: 2.h),
+              Text(
+                value,
+                style: getBoldStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s12,
+                  color:  ColorManager.blueOne50,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QualificationRow extends StatelessWidget {
+  const _QualificationRow({required this.values});
+
+  final List<String> values;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: AppHeight.s8),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppWidth.s12,
+        vertical: AppHeight.s12,
+      ),
+      decoration: BoxDecoration(
+        color: ColorManager.blueOne800,
+        borderRadius: BorderRadius.circular(AppRadius.s12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'مجالات التطوع',
+                  style: getRegularStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    fontSize: FontSize.s11,
+                    color: Colors.white70,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                values.isEmpty
+                    ? Text(
+                        '—',
+                        style: getMediumStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          fontSize: FontSize.s13,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: values
+                            .map(
+                              (v) => Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10.w,
+                                  vertical: 3.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: const Color(0xFF0D9488),
+                                  ),
+                                  borderRadius: BorderRadius.circular(6.r),
+                                ),
+                                child: Text(
+                                  v,
+                                  style: getRegularStyle(
+                                    fontFamily: FontConstants.fontFamily,
+                                    fontSize: FontSize.s11,
+                                    color: const Color(0xFF2DD4BF),
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+              ],
             ),
           ),
         ],

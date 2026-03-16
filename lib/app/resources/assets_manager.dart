@@ -46,6 +46,11 @@ class IconAssets {
   static const String target = '$ICON_PATH/target.png';
   static const String warning = '$ICON_PATH/warning.png';
   static const String announcement = '$ICON_PATH/announcement.png';
+  static const String calendar = '$ICON_PATH/calendar.png';
+  static const String message= '$ICON_PATH/message.png';
+  static const String promotion= '$ICON_PATH/promotion.png';
+  static const String edit= '$ICON_PATH/edit.png';
+  static const String settings= '$ICON_PATH/settings.png';
 }
 
 class DemoAssets {}

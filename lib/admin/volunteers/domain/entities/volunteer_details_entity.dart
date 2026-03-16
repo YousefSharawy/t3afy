@@ -42,6 +42,7 @@ class VolunteerDetailsEntity {
   final bool isOnline;
   final DateTime? lastSeenAt;
   final List<VolunteerTaskAssignmentEntity> tasks;
+  final List<String> volunteerAreas;
 
   const VolunteerDetailsEntity({
     required this.id,
@@ -62,6 +63,7 @@ class VolunteerDetailsEntity {
     required this.isOnline,
     this.lastSeenAt,
     required this.tasks,
+    this.volunteerAreas = const [],
   });
 
   bool get isActiveNow =>
@@ -77,6 +79,7 @@ class VolunteerDetailsEntity {
   factory VolunteerDetailsEntity.fromJson(
     Map<String, dynamic> json,
     List<VolunteerTaskAssignmentEntity> tasks,
+    List<String> volunteerAreas,
   ) {
     final lastSeenStr = json['last_seen_at'] as String?;
     final joinedStr = json['joined_at'] as String?;
@@ -101,6 +104,7 @@ class VolunteerDetailsEntity {
       lastSeenAt:
           lastSeenStr != null ? DateTime.tryParse(lastSeenStr) : null,
       tasks: tasks,
+      volunteerAreas: volunteerAreas,
     );
   }
 
