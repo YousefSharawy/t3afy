@@ -5,9 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/nav_bar_item.dart';
 import 'package:t3afy/translation/locale_keys.g.dart';
 
 class PrimaryScaffold extends StatefulWidget {
@@ -238,31 +237,31 @@ class _VolunteerScaffoldWithNavBarState
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _NavBarItem(
+            NavBarItem(
               iconPath: IconAssets.home,
               label: LocaleKeys.home.tr(),
               isSelected: widget.navigationShell.currentIndex == 0,
               onTap: () => _onTap(context, 0),
             ),
-            _NavBarItem(
+            NavBarItem(
               iconPath: IconAssets.tasks,
               label: LocaleKeys.tasks.tr(),
               isSelected: widget.navigationShell.currentIndex == 1,
               onTap: () => _onTap(context, 1),
             ),
-            _NavBarItem(
+            NavBarItem(
               iconPath: IconAssets.map,
               label: LocaleKeys.map.tr(),
               isSelected: widget.navigationShell.currentIndex == 2,
               onTap: () => _onTap(context, 2),
             ),
-            _NavBarItem(
+            NavBarItem(
               iconPath: IconAssets.performance,
               label: LocaleKeys.performance.tr(),
               isSelected: widget.navigationShell.currentIndex == 3,
               onTap: () => _onTap(context, 3),
             ),
-            _NavBarItem(
+            NavBarItem(
               iconPath: IconAssets.bot,
               label: LocaleKeys.bot.tr(),
               isSelected: widget.navigationShell.currentIndex == 4,
@@ -279,101 +278,6 @@ class _VolunteerScaffoldWithNavBarState
     widget.navigationShell.goBranch(
       index,
       initialLocation: index == widget.navigationShell.currentIndex,
-    );
-  }
-}
-
-class _NavBarItem extends StatefulWidget {
-  final String iconPath;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _NavBarItem({
-    required this.iconPath,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  State<_NavBarItem> createState() => _NavBarItemState();
-}
-
-class _NavBarItemState extends State<_NavBarItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  // late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-  }
-
-  @override
-  void didUpdateWidget(covariant _NavBarItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isSelected && !oldWidget.isSelected) {
-      _controller.forward(from: 0.0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                child: Image.asset(
-                  widget.iconPath,
-                  width: AppWidth.s24,
-                  height: AppHeight.s24,
-                ),
-              ),
-              SizedBox(height: AppHeight.s4),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 200),
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s10,
-                  color: widget.isSelected
-                      ? ColorManager.blueThree500
-                      : ColorManager.white,
-                ),
-                child: Text(widget.label),
-              ),
-              SizedBox(height: 3.sp),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                width: widget.isSelected ? AppWidth.s24 : 0,
-                height: AppHeight.s2,
-                decoration: BoxDecoration(
-                  color: ColorManager.blueThree500,
-                  borderRadius: BorderRadius.circular(AppRadius.s1),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
     );
   }
 }
@@ -450,31 +354,31 @@ class _AdminScaffoldWithNavBarState extends State<AdminScaffoldWithNavBar> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _NavBarItem(
+            NavBarItem(
               iconPath: IconAssets.home,
               label: "الرئيسية",
               isSelected: widget.navigationShell.currentIndex == 0,
               onTap: () => _onTap(context, 0),
             ),
-            _NavBarItem(
+            NavBarItem(
               iconPath: IconAssets.group,
               label: "المتطوعين",
               isSelected: widget.navigationShell.currentIndex == 1,
               onTap: () => _onTap(context, 1),
             ),
-            _NavBarItem(
+            NavBarItem(
               iconPath: IconAssets.campaigns,
               label:"الحملات",
               isSelected: widget.navigationShell.currentIndex == 2,
               onTap: () => _onTap(context, 2),
             ),
-            _NavBarItem(
+            NavBarItem(
               iconPath: IconAssets.reports,
               label: "التقارير",
               isSelected: widget.navigationShell.currentIndex == 3,
               onTap: () => _onTap(context, 3),
             ),
-            _NavBarItem(
+            NavBarItem(
               iconPath: IconAssets.performance,
               label: "الاحصاء",
               isSelected: widget.navigationShell.currentIndex == 4,

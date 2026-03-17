@@ -82,4 +82,36 @@ class ColorManager {
   static const Color success = Color(0xff0D943C);
   static const Color warning = Color(0xffFD9A56);
   static const Color chevronRight = Color(0xff99A1AF);
+
+  // Cyan / Teal — primary CTA & accent colour used throughout the app
+  static const Color cyanPrimary = Color(0xFF00ABD2);
+  static const Color cyanDark = Color(0xFF0C8BA8);
+  static const Color cyanAccent = Color(0xFF00FFDA);
+  static const Color mintGreen = Color(0xFF00C9A7);
+
+  // Greens
+  static const Color successLight = Color(0xFF4ADE80);
+  static const Color emeraldGreen = Color(0xFF10B981);
+  static const Color neonGreen = Color(0xFF66F839);
+
+  // Ambers
+  static const Color amber400 = Color(0xFFFBBF24);
+  static const Color amber500 = Color(0xFFF59E0B);
+
+  // Purples / Violets — used for active tab indicators
+  static const Color violet300 = Color(0xFFA78BFA);
+  static const Color violet600 = Color(0xFF703DEB);
+  static const Color violet700 = Color(0xFF7C3AED);
+
+  // Navy fill colours used on cards & overlays
+  static const Color navyCard = Color(0xFF1F2E4F);
+  static const Color navyLight = Color(0xFF1E3A5F);
+
+  // Reds
+  static const Color darkRed = Color(0xFF970909);
+  static const Color red = Color(0xFFFF2424);
+
+  // Form fields (light theme)
+  static const Color fieldBackground = Color(0xFFF3F4F6);
+  static const Color fieldBorder = Color(0xFFE5E7EB);
 }

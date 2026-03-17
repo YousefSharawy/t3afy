@@ -12,6 +12,7 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/base/primary_widgets.dart';
+import 'package:t3afy/base/widgets/empty_state_text.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
 
@@ -94,16 +95,7 @@ class VolunteersPanelView extends StatelessWidget {
                       SizedBox(height: AppHeight.s8),
                       Expanded(
                         child: displayed.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'لا يوجد متطوعون',
-                                  style: getMediumStyle(
-                                    fontFamily: FontConstants.fontFamily,
-                                    fontSize: FontSize.s14,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              )
+                            ? const EmptyStateText(message: 'لا يوجد متطوعون')
                             : RefreshIndicator(
                                 onRefresh: () => context
                                     .read<VolunteersCubit>()

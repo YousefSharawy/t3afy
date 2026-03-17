@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/performance/domain/entities/admin_performance_entity.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'admin_stat_box.dart';
 
 class PerformanceStatsRow extends StatelessWidget {
   const PerformanceStatsRow({super.key, required this.data});
@@ -17,7 +15,7 @@ class PerformanceStatsRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _StatBox(
+          child: AdminStatBox(
             icon: IconAssets.group,
             value: '${data.totalVolunteers}',
             label: 'متطوع',
@@ -25,7 +23,7 @@ class PerformanceStatsRow extends StatelessWidget {
         ),
         SizedBox(width: AppWidth.s8),
         Expanded(
-          child: _StatBox(
+          child: AdminStatBox(
             icon: IconAssets.hours,
             value: '${data.totalHours}',
             label: 'ساعة',
@@ -33,65 +31,14 @@ class PerformanceStatsRow extends StatelessWidget {
         ),
         SizedBox(width: AppWidth.s8),
         Expanded(
-          child: _StatBox(
+          child: AdminStatBox(
             icon: IconAssets.star,
             value: data.avgRating.toStringAsFixed(1),
             label: 'متوسط التقييم',
-            valueColor: const Color(0xFFFBBF24),
+            valueColor: ColorManager.amber400,
           ),
         ),
       ],
-    );
-  }
-}
-
-class _StatBox extends StatelessWidget {
-  const _StatBox({
-    required this.icon,
-    required this.value,
-    required this.label,
-    this.valueColor = const Color(0xFF00ABD2),
-  });
-
-  final String icon;
-  final String value;
-  final String label;
-  final Color valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        vertical: AppHeight.s16,
-        horizontal: AppWidth.s8,
-      ),
-      decoration: BoxDecoration(
-        color: ColorManager.blueOne900,
-        borderRadius: BorderRadius.circular(AppRadius.s12),
-      ),
-      child: Column(
-        children: [
-          Image.asset(icon, width: AppWidth.s24, height: AppHeight.s24),
-          SizedBox(height: AppHeight.s2),
-          Text(
-            value,
-            style: getExtraBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s16,
-              color: Color(0xff00C9A7),
-            ),
-          ),
-          Text(
-            label,
-            style: getRegularStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s10,
-              color: ColorManager.blueOne100,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
     );
   }
 }

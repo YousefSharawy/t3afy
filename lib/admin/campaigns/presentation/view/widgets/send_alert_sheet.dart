@@ -8,6 +8,7 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/campaign_detail_entity.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
+import 'alert_field.dart';
 
 class SendAlertSheet extends StatefulWidget {
   const SendAlertSheet({
@@ -97,13 +98,13 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
               ),
             ),
             SizedBox(height: AppHeight.s20),
-            _Field(
+            AlertField(
               controller: _titleCtrl,
               hint: 'عنوان التنبيه',
               maxLines: 1,
             ),
             SizedBox(height: AppHeight.s12),
-            _Field(
+            AlertField(
               controller: _bodyCtrl,
               hint: 'نص التنبيه',
               maxLines: 4,
@@ -114,7 +115,7 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
               child: ElevatedButton(
                 onPressed: _sending ? null : _send,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00ABD2),
+                  backgroundColor: ColorManager.cyanPrimary,
                   padding: EdgeInsets.symmetric(vertical: AppHeight.s14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.s12),
@@ -140,54 +141,6 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Field extends StatelessWidget {
-  const _Field({
-    required this.controller,
-    required this.hint,
-    required this.maxLines,
-  });
-
-  final TextEditingController controller;
-  final String hint;
-  final int maxLines;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      textDirection: TextDirection.rtl,
-      style: getMediumStyle(
-        fontFamily: FontConstants.fontFamily,
-        fontSize: FontSize.s13,
-        color: Colors.white,
-      ),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: getRegularStyle(
-          fontFamily: FontConstants.fontFamily,
-          fontSize: FontSize.s13,
-          color: Colors.white.withValues(alpha: 0.3),
-        ),
-        filled: true,
-        fillColor: ColorManager.blueOne800,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s12),
-          borderSide: BorderSide(color: ColorManager.blueOne700),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s12),
-          borderSide: BorderSide(color: ColorManager.blueOne700),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s12),
-          borderSide: const BorderSide(color: Color(0xFF00ABD2)),
         ),
       ),
     );

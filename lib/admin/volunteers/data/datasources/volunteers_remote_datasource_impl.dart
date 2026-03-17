@@ -103,4 +103,15 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
       throw ErrorHandler.handle(e).failture;
     }
   }
+
+  @override
+  Future<void> approveVolunteer(String volunteerId) async {
+    try {
+      await _client
+          .from('users')
+          .update({'role': 'volunteer'}).eq('id', volunteerId);
+    } catch (e) {
+      throw ErrorHandler.handle(e).failture;
+    }
+  }
 }

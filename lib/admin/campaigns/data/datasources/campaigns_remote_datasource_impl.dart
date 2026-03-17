@@ -132,7 +132,7 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
       // Members via task_assignments joined with users
      final assignmentsRaw = await _client
     .from('task_assignments')
-    .select('user_id, status, users!task_assignments_user_id_fkey(id, name, avatar_url, rating, region, is_online, last_seen_at)')
+    .select('user_id, status, users!task_assignments_user_id_fkey(id, name, avatar_url, rating, region, is_online, last_seen_at, role)')
     .eq('task_id', id);
 
       final members = <CampaignMemberEntity>[];
@@ -149,6 +149,7 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
             region: u['region'] as String?,
             isOnline: (u['is_online'] as bool?) ?? false,
             lastSeenAt: lastSeenStr != null ? DateTime.tryParse(lastSeenStr) : null,
+            role: u['role'] as String? ?? 'user',
           ),
         );
       }
@@ -450,6 +451,29 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
           )
           .toList();
       return all;
+    } catch (e) {
+      throw ErrorHandler.handle(e).failture;
+    }
+  }
+
+  @override
+  Future<List<VolunteerEntity>> getAllVolunteers() async {
+    try {
+      final res = await _client
+          .from('users')
+          .select('id, name, avatar_url, rating, region')
+          .inFilter('role', ['volunteer', 'user']);
+      return (res as List)
+          .map(
+            (u) => VolunteerEntity(
+              id: u['id'] as String,
+              name: u['name'] as String? ?? '',
+              avatarUrl: u['avatar_url'] as String?,
+              rating: ((u['rating'] as num?) ?? 0).toDouble(),
+              region: u['region'] as String?,
+            ),
+          )
+          .toList();
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

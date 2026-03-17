@@ -6,6 +6,7 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/campaign_detail_entity.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
+import 'package:t3afy/base/primary_widgets.dart';
 import 'team_member_card.dart';
 import 'add_volunteer_sheet.dart';
 
@@ -24,10 +25,7 @@ class TeamTab extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => BlocProvider.value(
         value: cubit,
-        child: AddVolunteerSheet(
-          taskId: detail.id,
-          volunteers: volunteers,
-        ),
+        child: AddVolunteerSheet(taskId: detail.id, volunteers: volunteers),
       ),
     );
   }
@@ -91,9 +89,9 @@ class TeamTab extends StatelessWidget {
 
     if (confirmed == true && context.mounted) {
       context.read<CampaignDetailCubit>().removeVolunteer(
-            taskId: detail.id,
-            userId: userId,
-          );
+        taskId: detail.id,
+        userId: userId,
+      );
     }
   }
 
@@ -102,23 +100,14 @@ class TeamTab extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.all(AppSize.s16),
       children: [
-        ElevatedButton.icon(
-          onPressed: () => _showAddVolunteer(context),
-          icon: const Icon(Icons.person_add_outlined, color: Colors.white),
-          label: Text(
-            'إضافة متطوع',
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: Colors.white,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF00ABD2),
-            padding: EdgeInsets.symmetric(vertical: AppHeight.s12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.s12),
-            ),
+        PrimaryElevatedButton(
+          title: "اضافه متطوع",
+
+          onPress: () => _showAddVolunteer(context),
+          textStyle: getBoldStyle(
+            fontFamily: FontConstants.fontFamily,
+            color: ColorManager.white,
+            fontSize: FontSize.s15
           ),
         ),
         SizedBox(height: AppHeight.s16),

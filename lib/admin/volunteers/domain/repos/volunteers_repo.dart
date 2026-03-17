@@ -18,4 +18,5 @@ abstract class VolunteersRepo {
     String volunteerId,
   );
   Future<Either<Failture, void>> deleteVolunteer(String volunteerId);
+  Future<Either<Failture, void>> approveVolunteer(String volunteerId);
 }

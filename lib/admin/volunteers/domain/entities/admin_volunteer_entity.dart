@@ -30,13 +30,10 @@ class AdminVolunteerEntity {
 
   /// 'نشط' | 'قيد المراجعة' | 'غير نشط'
   String get status {
-  if (isOnline &&
-      lastSeenAt != null &&
-      DateTime.now().toUtc().difference(lastSeenAt!.toUtc()).inSeconds < 90) {
-    return 'نشط';
+    if (role != 'volunteer') return 'قيد المراجعة';
+    if (isActiveNow) return 'نشط';
+    return 'غير نشط';
   }
-  return 'غير نشط';
-}
 
   factory AdminVolunteerEntity.fromJson(Map<String, dynamic> json) {
     final lastSeenStr = json['last_seen_at'] as String?;

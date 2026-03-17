@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
@@ -8,10 +9,12 @@ class CampaignFilterChips extends StatelessWidget {
     super.key,
     required this.selected,
     required this.onSelect,
+    this.counts = const {},
   });
 
   final String selected;
   final void Function(String) onSelect;
+  final Map<String, int> counts;
 
   static const _filters = [
     ('all', 'الكل'),
@@ -23,40 +26,37 @@ class CampaignFilterChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: AppHeight.s40,
+      height: AppHeight.s29,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
         itemCount: _filters.length,
-        separatorBuilder: (_, _) => SizedBox(width: AppWidth.s8),
+        separatorBuilder: (_, __) => SizedBox(width: AppWidth.s6),
         itemBuilder: (context, index) {
           final (value, label) = _filters[index];
           final isSelected = selected == value;
+          final count = counts[value] ?? 0;
           return GestureDetector(
             onTap: () => onSelect(value),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppWidth.s10,
+                vertical: AppHeight.s5,
+              ),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF00ABD2)
-                    : const Color(0xFF0C203B),
-                borderRadius: BorderRadius.circular(AppRadius.s20),
-                border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF00ABD2)
-                      : const Color(0xFF1E3A5F),
-                ),
+                color: ColorManager.blueOne800,
+                borderRadius: BorderRadius.circular(AppRadius.s8),
               ),
               child: Center(
                 child: Text(
-                  label,
-                  style: getMediumStyle(
+                  '$label($count)',
+                  style: getBoldStyle(
                     fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s12,
+                    fontSize: FontSize.s10,
                     color: isSelected
-                        ? Colors.white
-                        : Colors.white.withValues(alpha: 0.6),
+                        ? ColorManager.white
+                        : ColorManager.blueOne100,
                   ),
                 ),
               ),

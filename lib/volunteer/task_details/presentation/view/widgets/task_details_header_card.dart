@@ -5,6 +5,9 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 import '../../../domain/entities/task_details_entity.dart';
+import 'task_info_row.dart';
+import 'task_status_badge.dart';
+import 'task_type_badge.dart';
 
 class TaskDetailsHeaderCard extends StatelessWidget {
   const TaskDetailsHeaderCard({super.key, required this.task});
@@ -43,9 +46,9 @@ class TaskDetailsHeaderCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              _StatusBadge(status: task.status),
+              TaskStatusBadge(status: task.status),
               SizedBox(width: AppWidth.s8),
-              _TypeBadge(type: task.type),
+              TaskTypeBadge(type: task.type),
             ],
           ),
           SizedBox(height: AppHeight.s14),
@@ -58,25 +61,25 @@ class TaskDetailsHeaderCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: AppHeight.s14),
-          _InfoRow(
+          TaskInfoRow(
             icon: Icons.calendar_today_outlined,
             label: _formatArabicDate(task.date),
           ),
           SizedBox(height: AppHeight.s8),
-          _InfoRow(
+          TaskInfoRow(
             icon: Icons.access_time_outlined,
             label: '${_formatTime(task.timeEnd)} - ${_formatTime(task.timeStart)}',
           ),
           SizedBox(height: AppHeight.s8),
           Row(
             children: [
-              _InfoRow(
+              TaskInfoRow(
                 icon: Icons.star_outline_rounded,
                 label: '+${task.points} نقطة',
               ),
               if (task.durationHours != null) ...[
                 SizedBox(width: AppWidth.s20),
-                _InfoRow(
+                TaskInfoRow(
                   icon: Icons.hourglass_empty_outlined,
                   label:
                       '${task.durationHours!.toStringAsFixed(task.durationHours! == task.durationHours!.roundToDouble() ? 0 : 1)} ساعة',
@@ -133,121 +136,5 @@ class TaskDetailsHeaderCard extends StatelessWidget {
     } catch (_) {
       return time;
     }
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: const Color(0xFF2DD4BF), size: 16.r),
-        SizedBox(width: AppWidth.s6),
-        Text(
-          label,
-          style: getMediumStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s13,
-            color: Colors.white.withValues(alpha: 0.9),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status});
-
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _statusColor(status);
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s10,
-        vertical: AppHeight.s4,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(AppRadius.s20),
-        border: Border.all(color: color),
-      ),
-      child: Text(
-        _statusLabel(status),
-        style: getSemiBoldStyle(
-          fontFamily: FontConstants.fontFamily,
-          fontSize: FontSize.s11,
-          color: color,
-        ),
-      ),
-    );
-  }
-
-  Color _statusColor(String s) {
-    switch (s) {
-      case 'active':
-      case 'ongoing':
-        return const Color(0xFF16A34A);
-      case 'upcoming':
-        return const Color(0xFF7C3AED);
-      case 'done':
-        return Colors.grey;
-      case 'paused':
-        return Colors.orange;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _statusLabel(String s) {
-    switch (s) {
-      case 'active':
-      case 'ongoing':
-        return 'جارية';
-      case 'upcoming':
-        return 'قادمة';
-      case 'done':
-        return 'مكتملة';
-      case 'paused':
-        return 'موقوفة';
-      default:
-        return s;
-    }
-  }
-}
-
-class _TypeBadge extends StatelessWidget {
-  const _TypeBadge({required this.type});
-
-  final String type;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s10,
-        vertical: AppHeight.s4,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppRadius.s20),
-      ),
-      child: Text(
-        type,
-        style: getMediumStyle(
-          fontFamily: FontConstants.fontFamily,
-          fontSize: FontSize.s11,
-          color: Colors.white,
-        ),
-      ),
-    );
   }
 }

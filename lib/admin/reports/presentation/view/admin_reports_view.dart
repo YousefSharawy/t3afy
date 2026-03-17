@@ -4,11 +4,13 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/empty_state_text.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
 import 'package:t3afy/admin/reports/presentation/view/widgets/admin_report_card.dart';
 import 'package:t3afy/admin/reports/presentation/view/widgets/admin_review_sheet.dart';
+import 'package:t3afy/admin/reports/presentation/view/widgets/report_filter_chip.dart';
 
 class AdminReportsView extends StatelessWidget {
   const AdminReportsView({super.key});
@@ -55,25 +57,25 @@ class AdminReportsView extends StatelessWidget {
                         vertical: AppHeight.s8,
                       ),
                       children: [
-                        _FilterChip(
+                        ReportFilterChip(
                           label: 'الكل',
                           selected: filter == 'all',
                           onTap: () => cubit.setFilter('all'),
                         ),
                         SizedBox(width: AppWidth.s8),
-                        _FilterChip(
+                        ReportFilterChip(
                           label: 'قيد المراجعة',
                           selected: filter == 'pending',
                           onTap: () => cubit.setFilter('pending'),
                         ),
                         SizedBox(width: AppWidth.s8),
-                        _FilterChip(
+                        ReportFilterChip(
                           label: 'موافق عليه',
                           selected: filter == 'approved',
                           onTap: () => cubit.setFilter('approved'),
                         ),
                         SizedBox(width: AppWidth.s8),
-                        _FilterChip(
+                        ReportFilterChip(
                           label: 'مرفوض',
                           selected: filter == 'rejected',
                           onTap: () => cubit.setFilter('rejected'),
@@ -83,16 +85,7 @@ class AdminReportsView extends StatelessWidget {
                   ),
                   Expanded(
                     child: list.isEmpty
-                        ? Center(
-                            child: Text(
-                              'لا توجد تقارير',
-                              style: getMediumStyle(
-                                fontFamily: FontConstants.fontFamily,
-                                fontSize: FontSize.s14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          )
+                        ? const EmptyStateText(message: 'لا توجد تقارير')
                         : RefreshIndicator(
                             onRefresh: () =>
                                 context.read<AdminReportsCubit>().loadReports(),
@@ -135,48 +128,6 @@ class AdminReportsView extends StatelessWidget {
             reviewed: () => const LoadingIndicator(),
           );
         },
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFF00ABD2) : const Color(0xFF0C203B),
-          borderRadius: BorderRadius.circular(AppRadius.s20),
-          border: Border.all(
-            color: selected ? const Color(0xFF00ABD2) : const Color(0xFF1E3A5F),
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color: selected
-                  ? Colors.white
-                  : Colors.white.withValues(alpha: 0.6),
-            ),
-          ),
-        ),
       ),
     );
   }

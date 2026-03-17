@@ -6,6 +6,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'volunteer_detail_stat_box.dart';
 
 class VolunteerDetailsHeader extends StatelessWidget {
   const VolunteerDetailsHeader({super.key, required this.details});
@@ -46,7 +47,7 @@ class VolunteerDetailsHeader extends StatelessWidget {
               SizedBox(width: AppWidth.s8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: .start,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
                     details.name,
@@ -85,7 +86,7 @@ class VolunteerDetailsHeader extends StatelessWidget {
                           vertical: AppHeight.s3,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E3A5F),
+                          color: ColorManager.navyLight,
                           borderRadius: BorderRadius.circular(AppRadius.s6),
                         ),
                         child: Text(
@@ -116,41 +117,37 @@ class VolunteerDetailsHeader extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: AppHeight.s8),
-               
                 ],
               ),
-              
-          
-              // Stats row
             ],
           ),
-             Row(
-                children: [
-                  Expanded(
-                    child: _StatBox(
-                      value: '${details.totalTasks}',
-                      label: 'مهمة',
-                      icon: IconAssets.done,
-                    ),
-                  ),
-                  SizedBox(width: AppWidth.s8),
-                  Expanded(
-                    child: _StatBox(
-                      value: '${details.totalHours}',
-                      label: 'ساعة',
-                      icon: IconAssets.hours,
-                    ),
-                  ),
-                  SizedBox(width: AppWidth.s8),
-                  Expanded(
-                    child: _StatBox(
-                      value: '${details.level}',
-                      label: 'مستوى',
-                      icon: IconAssets.trophy,
-                    ),
-                  ),
-                ],
+          Row(
+            children: [
+              Expanded(
+                child: VolunteerDetailStatBox(
+                  value: '${details.totalTasks}',
+                  label: 'مهمة',
+                  icon: IconAssets.done,
+                ),
               ),
+              SizedBox(width: AppWidth.s8),
+              Expanded(
+                child: VolunteerDetailStatBox(
+                  value: '${details.totalHours}',
+                  label: 'ساعة',
+                  icon: IconAssets.hours,
+                ),
+              ),
+              SizedBox(width: AppWidth.s8),
+              Expanded(
+                child: VolunteerDetailStatBox(
+                  value: '${details.level}',
+                  label: 'مستوى',
+                  icon: IconAssets.trophy,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -163,54 +160,3 @@ class VolunteerDetailsHeader extends StatelessWidget {
     return (const Color(0xFFB2B2B2), const Color(0xFF1F2937));
   }
 }
-
-class _StatBox extends StatelessWidget {
-  const _StatBox({
-    required this.value,
-    required this.label,
-    required this.icon,
-  });
-
-  final String value;
-  final String label;
-  final String icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: AppWidth.s99,
-      padding: EdgeInsets.symmetric(
-        vertical: AppHeight.s8,
-        horizontal: AppWidth.s32,
-      ),
-      decoration: BoxDecoration(
-        color: ColorManager.blueOne700,
-        borderRadius: BorderRadius.circular(AppRadius.s8),
-      ),
-      child: Column(
-        children: [
-          Image.asset(icon,width: AppWidth.s24,height: AppHeight.s24,),
-          SizedBox(height: AppHeight.s4),
-          Text(
-            value,
-            style: getExtraBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s16,
-              color: ColorManager.blueOne50,
-            ),
-          ),
-          Text(
-            label,
-            style: getSemiBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s10,
-              color: ColorManager.blueOne100,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
- 

@@ -139,4 +139,13 @@ class CampaignsRepoImpl implements CampaignsRepo {
       return Left(f);
     }
   }
+
+  @override
+  Future<Either<Failture, List<VolunteerEntity>>> getAllVolunteers() async {
+    try {
+      return Right(await _datasource.getAllVolunteers());
+    } on Failture catch (f) {
+      return Left(f);
+    }
+  }
 }

@@ -50,7 +50,9 @@ class IconAssets {
   static const String message= '$ICON_PATH/message.png';
   static const String promotion= '$ICON_PATH/promotion.png';
   static const String edit= '$ICON_PATH/edit.png';
-  static const String settings= '$ICON_PATH/settings.png';
+  static const String settings = '$ICON_PATH/settings.png';
+  static const String camp = '$ICON_PATH/camp.png';
+  static const String pause = '$ICON_PATH/pause.png';
 }
 
 class DemoAssets {}

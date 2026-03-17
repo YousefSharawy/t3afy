@@ -4,6 +4,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'profile_badge.dart';
 
 class ProfileHeaderCard extends StatelessWidget {
   const ProfileHeaderCard({
@@ -52,7 +53,6 @@ class ProfileHeaderCard extends StatelessWidget {
                 : null,
           ),
           SizedBox(height: AppHeight.s4),
-          // Name
           Text(
             name,
             style: getBoldStyle(
@@ -71,44 +71,15 @@ class ProfileHeaderCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: AppHeight.s8),
-          // Badges
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-               _Badge(label: levelTitle),
+              ProfileBadge(label: levelTitle),
               SizedBox(width: AppWidth.s8),
-              _Badge(label: 'المستوى $level'),
-             
+              ProfileBadge(label: 'المستوى $level'),
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s12,
-        vertical: AppHeight.s2,
-      ),
-      decoration: BoxDecoration(
-        color: ColorManager.blueThree500,
-        borderRadius: BorderRadius.circular(AppRadius.s25),
-      ),
-      child: Text(
-        label,
-        style: getBoldStyle(
-          fontFamily: FontConstants.fontFamily,
-          color: ColorManager.white,
-          fontSize: FontSize.s10,
-        ),
       ),
     );
   }

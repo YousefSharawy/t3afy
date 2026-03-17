@@ -83,13 +83,16 @@ import 'package:t3afy/admin/campaigns/domain/usecases/assign_volunteer_usecase.d
 import 'package:t3afy/admin/campaigns/domain/usecases/remove_volunteer_usecase.dart';
 import 'package:t3afy/admin/campaigns/domain/usecases/send_team_alert_usecase.dart';
 import 'package:t3afy/admin/campaigns/domain/usecases/get_unassigned_volunteers_usecase.dart';
+import 'package:t3afy/admin/campaigns/domain/usecases/get_all_volunteers_usecase.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/campaigns_cubit.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 import 'package:t3afy/admin/volunteers/data/datasources/volunteers_remote_datasource.dart';
 import 'package:t3afy/admin/volunteers/data/datasources/volunteers_remote_datasource_impl.dart';
 import 'package:t3afy/admin/volunteers/data/repos/volunteers_repo_impl.dart';
 import 'package:t3afy/admin/volunteers/domain/repos/volunteers_repo.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/add_volunteer_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/approve_volunteer_usecase.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/delete_volunteer_usecase.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/get_volunteer_details_usecase.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/get_volunteers_usecase.dart';
@@ -313,6 +316,15 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton(() => RemoveVolunteerUsecase(getIt<CampaignsRepo>()));
   getIt.registerLazySingleton(() => SendTeamAlertUsecase(getIt<CampaignsRepo>()));
   getIt.registerLazySingleton(() => GetUnassignedVolunteersUsecase(getIt<CampaignsRepo>()));
+  getIt.registerLazySingleton(() => GetAllVolunteersUsecase(getIt<CampaignsRepo>()));
+  getIt.registerFactory(
+    () => CreateCampaignCubit(
+      getIt<GetAllVolunteersUsecase>(),
+      getIt<GetCampaignDetailUsecase>(),
+      getIt<CreateCampaignUsecase>(),
+      getIt<UpdateCampaignUsecase>(),
+    ),
+  );
   getIt.registerLazySingleton(
     () => CampaignsCubit(
       getIt<GetCampaignsUsecase>(),
@@ -371,6 +383,9 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton(
     () => DeleteVolunteerUsecase(getIt<VolunteersRepo>()),
   );
+  getIt.registerLazySingleton(
+    () => ApproveVolunteerUsecase(getIt<VolunteersRepo>()),
+  );
   getIt.registerFactory(
     () => VolunteersCubit(
       getIt<GetVolunteersUsecase>(),
@@ -382,6 +397,7 @@ getIt.registerFactory(() => TasksCubit(
     () => VolunteerDetailsCubit(
       getIt<GetVolunteerDetailsUsecase>(),
       getIt<DeleteVolunteerUsecase>(),
+      getIt<ApproveVolunteerUsecase>(),
     ),
   );
 

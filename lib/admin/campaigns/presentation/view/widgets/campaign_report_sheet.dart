@@ -5,6 +5,8 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/campaign_detail_entity.dart';
+import 'report_info_row.dart';
+import 'report_divider.dart';
 
 class CampaignReportSheet extends StatelessWidget {
   const CampaignReportSheet({super.key, required this.detail});
@@ -27,7 +29,7 @@ class CampaignReportSheet extends StatelessWidget {
           AppSize.s24,
         ),
         decoration: BoxDecoration(
-          color: ColorManager.blueOne800,
+          color: ColorManager.blueOne900,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
         ),
         child: Column(
@@ -76,63 +78,47 @@ class CampaignReportSheet extends StatelessWidget {
             ),
             SizedBox(height: AppHeight.s16),
 
-            // Info card
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppSize.s16,
-                vertical: AppSize.s4,
-              ),
-              decoration: BoxDecoration(
-                color: ColorManager.blueOne900,
-                borderRadius: BorderRadius.circular(AppRadius.s12),
-                border: Border.all(color: ColorManager.blueOne700),
-              ),
-              child: Column(
-                children: [
-                  _InfoRow(
-                    icon: Icons.people_outline,
-                    iconColor: const Color(0xFF0EA5E9),
-                    label: 'الهدف المحدد',
-                    value: '${detail.targetBeneficiaries} مستفيد',
-                  ),
-                  _Divider(),
-                  _InfoRow(
-                    icon: Icons.check_circle_outline,
-                    iconColor: const Color(0xFF10B981),
-                    label: 'تم الوصول اليهم',
-                    value: '${detail.reachedBeneficiaries} مستفيد',
-                    valueColor: const Color(0xFF10B981),
-                  ),
-                  _Divider(),
-                  _InfoRow(
-                    icon: Icons.calendar_today_outlined,
-                    iconColor: const Color(0xFFF59E0B),
-                    label: 'تاريخ الحملة',
-                    value: detail.date,
-                  ),
-                  _Divider(),
-                  _InfoRow(
-                    icon: Icons.access_time_outlined,
-                    iconColor: const Color(0xFF0EA5E9),
-                    label: 'الوقت',
-                    value: timeValue,
-                  ),
-                  _Divider(),
-                  _InfoRow(
-                    icon: Icons.location_on_outlined,
-                    iconColor: const Color(0xFFEF4444),
-                    label: 'المنطقة',
-                    value: detail.locationName ?? '—',
-                  ),
-                  _Divider(),
-                  _InfoRow(
-                    icon: Icons.group_outlined,
-                    iconColor: const Color(0xFF8B5CF6),
-                    label: 'فريق العمل',
-                    value: '${detail.members.length} متطوع',
-                  ),
-                ],
-              ),
+            ReportInfoRow(
+              icon: Icons.people_outline,
+              iconColor: const Color(0xFF0EA5E9),
+              label: 'الهدف المحدد',
+              value: '${detail.targetBeneficiaries} مستفيد',
+            ),
+            const ReportDivider(),
+            ReportInfoRow(
+              icon: Icons.check_circle_outline,
+              iconColor: ColorManager.emeraldGreen,
+              label: 'تم الوصول اليهم',
+              value: '${detail.reachedBeneficiaries} مستفيد',
+              valueColor: ColorManager.emeraldGreen,
+            ),
+            const ReportDivider(),
+            ReportInfoRow(
+              icon: Icons.calendar_today_outlined,
+              iconColor: ColorManager.amber500,
+              label: 'تاريخ الحملة',
+              value: detail.date,
+            ),
+            const ReportDivider(),
+            ReportInfoRow(
+              icon: Icons.access_time_outlined,
+              iconColor: const Color(0xFF0EA5E9),
+              label: 'الوقت',
+              value: timeValue,
+            ),
+            const ReportDivider(),
+            ReportInfoRow(
+              icon: Icons.location_on_outlined,
+              iconColor: const Color(0xFFEF4444),
+              label: 'المنطقة',
+              value: detail.locationName ?? '—',
+            ),
+            const ReportDivider(),
+            ReportInfoRow(
+              icon: Icons.group_outlined,
+              iconColor: const Color(0xFF8B5CF6),
+              label: 'فريق العمل',
+              value: '${detail.members.length} متطوع',
             ),
 
             if (detail.objectives.isNotEmpty) ...[
@@ -168,7 +154,7 @@ class CampaignReportSheet extends StatelessWidget {
                           children: [
                             Icon(
                               Icons.check_circle,
-                              color: const Color(0xFF10B981),
+                              color: ColorManager.emeraldGreen,
                               size: 18.r,
                             ),
                             SizedBox(width: AppWidth.s10),
@@ -185,7 +171,7 @@ class CampaignReportSheet extends StatelessWidget {
                           ],
                         ),
                       ),
-                      if (i < detail.objectives.length - 1) _Divider(),
+                      if (i < detail.objectives.length - 1) const ReportDivider(),
                     ],
                   ],
                 ),
@@ -220,63 +206,6 @@ class CampaignReportSheet extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.iconColor,
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String label;
-  final String value;
-  final Color? valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: AppHeight.s12),
-      child: Row(
-        children: [
-          Icon(icon, color: iconColor, size: 18.r),
-          SizedBox(width: AppWidth.s8),
-          Text(
-            label,
-            style: getRegularStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: Colors.white.withValues(alpha: 0.6),
-            ),
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: valueColor ?? Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      color: ColorManager.blueOne700,
     );
   }
 }

@@ -78,4 +78,14 @@ class VolunteersRepoImpl implements VolunteersRepo {
       return Left(f);
     }
   }
+
+  @override
+  Future<Either<Failture, void>> approveVolunteer(String volunteerId) async {
+    try {
+      await _datasource.approveVolunteer(volunteerId);
+      return const Right(null);
+    } on Failture catch (f) {
+      return Left(f);
+    }
+  }
 }

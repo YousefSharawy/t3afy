@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/campaign_entity.dart';
+import 'badge_chip.dart';
 
 class CampaignListCard extends StatelessWidget {
   const CampaignListCard({
@@ -19,30 +21,30 @@ class CampaignListCard extends StatelessWidget {
   static ({Color bg, Color text, String label}) _statusInfo(String status) {
     return switch (status) {
       'active' || 'ongoing' => (
-          bg: const Color(0xFF16A34A).withValues(alpha: 0.15),
-          text: const Color(0xFF4ADE80),
-          label: 'جارية',
-        ),
+        bg: const Color(0xFF16A34A).withValues(alpha: 0.15),
+        text: ColorManager.successLight,
+        label: 'جارية',
+      ),
       'upcoming' => (
-          bg: const Color(0xFF7C3AED).withValues(alpha: 0.15),
-          text: const Color(0xFFA78BFA),
-          label: 'قادمة',
-        ),
+        bg: ColorManager.violet700.withValues(alpha: 0.15),
+        text: ColorManager.violet300,
+        label: 'قادمة',
+      ),
       'done' => (
-          bg: Colors.grey.withValues(alpha: 0.15),
-          text: Colors.grey,
-          label: 'مكتملة',
-        ),
+        bg: Colors.grey.withValues(alpha: 0.15),
+        text: Colors.grey,
+        label: 'مكتملة',
+      ),
       'paused' => (
-          bg: Colors.orange.withValues(alpha: 0.15),
-          text: Colors.orange,
-          label: 'موقوفة',
-        ),
+        bg: Colors.orange.withValues(alpha: 0.15),
+        text: Colors.orange,
+        label: 'موقوفة',
+      ),
       _ => (
-          bg: ColorManager.blueOne700,
-          text: ColorManager.blueTwo200,
-          label: status,
-        ),
+        bg: ColorManager.blueOne700,
+        text: ColorManager.blueTwo200,
+        label: status,
+      ),
     };
   }
 
@@ -52,18 +54,36 @@ class CampaignListCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: EdgeInsets.only(bottom: AppHeight.s12),
-        padding: EdgeInsets.all(AppSize.s14),
+        margin: EdgeInsets.only(bottom: AppHeight.s8),
+        padding: EdgeInsets.all(12.sp),
         decoration: BoxDecoration(
           color: ColorManager.blueOne800,
           borderRadius: BorderRadius.circular(AppRadius.s12),
-          border: Border.all(color: ColorManager.blueOne700),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                Container(
+                  padding: EdgeInsets.all(6.sp),
+                  decoration: BoxDecoration(
+                    color: ColorManager.blueOne700,
+                    borderRadius: BorderRadius.circular(AppRadius.s8),
+                  ),
+                  child: Image.asset(IconAssets.camp),
+                ),
+                SizedBox(width: AppWidth.s17),
+                Text(
+                  campaign.title,
+                  style: getBoldStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    fontSize: FontSize.s13,
+                    color: Colors.white,
+                  ),
+                ),
+                const Spacer(),
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: AppWidth.s8,
@@ -71,136 +91,65 @@ class CampaignListCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: status.bg,
-                    borderRadius: BorderRadius.circular(AppRadius.s20),
+                    borderRadius: BorderRadius.circular(AppRadius.s6),
                   ),
                   child: Text(
                     status.label,
-                    style: getMediumStyle(
+                    style: getBoldStyle(
                       fontFamily: FontConstants.fontFamily,
                       fontSize: FontSize.s10,
                       color: status.text,
                     ),
                   ),
                 ),
-                const Spacer(),
+              ],
+            ),
+            SizedBox(height: AppHeight.s4),
+            SizedBox(height: AppHeight.s6),
+            Row(
+              children: [
+                Image.asset(IconAssets.calendar),
+                SizedBox(width: AppWidth.s4),
                 Text(
                   campaign.date,
                   style: getRegularStyle(
                     fontFamily: FontConstants.fontFamily,
                     fontSize: FontSize.s10,
-                    color: Colors.white.withValues(alpha: 0.4),
+                    color: ColorManager.blueOne300,
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: AppHeight.s10),
-            Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(8.r),
-                  decoration: BoxDecoration(
-                    color: ColorManager.blueOne700,
-                    borderRadius: BorderRadius.circular(AppRadius.s8),
-                  ),
-                  child: Icon(
-                    Icons.home_work_rounded,
-                    color: ColorManager.blueTwo200,
-                    size: 20.r,
-                  ),
-                ),
-                SizedBox(width: AppWidth.s10),
-                Expanded(
-                  child: Text(
-                    campaign.title,
-                    style: getBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s14,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: AppHeight.s10),
-            Row(
-              children: [
-                Icon(
-                  Icons.location_on_outlined,
-                  size: 13.r,
-                  color: Colors.pink.shade300,
-                ),
+                SizedBox(width: AppWidth.s4),
+                Image.asset(IconAssets.location),
                 SizedBox(width: AppWidth.s4),
                 Expanded(
                   child: Text(
                     campaign.locationName ?? '—',
                     style: getRegularStyle(
                       fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s11,
-                      color: ColorManager.blueTwo100,
+                      fontSize: FontSize.s10,
+                      color: ColorManager.blueOne300,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: AppHeight.s10),
+            SizedBox(height: AppHeight.s8),
             Row(
               children: [
-                _BadgeChip(
-                  icon: Icons.group_outlined,
+                BadgeChip(
+                  icon: IconAssets.group,
                   label: '${campaign.volunteerCount} متطوع',
                 ),
-                SizedBox(width: AppWidth.s8),
-                _BadgeChip(
-                  icon: Icons.flag_outlined,
+                SizedBox(width: AppWidth.s6),
+                BadgeChip(
+                  icon: IconAssets.target,
                   label: '${campaign.targetBeneficiaries} هدف',
-                  iconColor: const Color(0xFF2DD4BF),
                 ),
               ],
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _BadgeChip extends StatelessWidget {
-  const _BadgeChip({required this.icon, required this.label, this.iconColor});
-
-  final IconData icon;
-  final String label;
-  final Color? iconColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s8,
-        vertical: AppHeight.s4,
-      ),
-      decoration: BoxDecoration(
-        color: ColorManager.blueOne700,
-        borderRadius: BorderRadius.circular(AppRadius.s20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 11.r,
-            color: iconColor ?? ColorManager.blueTwo200,
-          ),
-          SizedBox(width: AppWidth.s4),
-          Text(
-            label,
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s10,
-              color: ColorManager.blueTwo100,
-            ),
-          ),
-        ],
       ),
     );
   }

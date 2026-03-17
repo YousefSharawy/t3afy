@@ -45,14 +45,14 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: ColorManager.blueOne900,
+            backgroundColor: ColorManager.background,
         appBar: AppBar(
-          backgroundColor: ColorManager.blueOne900,
+            backgroundColor: ColorManager.background,
           elevation: 0,
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: Colors.white,
+              color: ColorManager.blueOne900,
               size: 20.r,
             ),
             onPressed: () => Navigator.of(context).pop(),
@@ -62,7 +62,7 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
             style: getBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s16,
-              color: Colors.white,
+              color: ColorManager.blueOne900,
             ),
           ),
           centerTitle: true,
@@ -122,19 +122,24 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
                 CampaignHeroCard(detail: detail),
                 SizedBox(height: AppHeight.s16),
                 Container(
+                  padding: EdgeInsets.all(4.sp),
                   margin: EdgeInsets.symmetric(horizontal: AppWidth.s16),
                   decoration: BoxDecoration(
                     color: ColorManager.blueOne800,
                     borderRadius: BorderRadius.circular(AppRadius.s12),
-                    border: Border.all(color: ColorManager.blueOne700),
                   ),
                   child: TabBar(
                     controller: _tabController,
-                    indicatorColor: const Color(0xFF00ABD2),
+                    indicator: BoxDecoration(
+                      
+                      color: const Color(0xFF703DEB),
+                      borderRadius: BorderRadius.circular(AppRadius.s8),
+                    ),
                     indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: const Color(0xFF00ABD2),
+                    labelColor: Colors.white,
                     unselectedLabelColor: Colors.white.withValues(alpha: 0.4),
                     dividerColor: Colors.transparent,
+                    padding: EdgeInsets.all(AppSize.s4),
                     labelStyle: getMediumStyle(
                       fontFamily: FontConstants.fontFamily,
                       fontSize: FontSize.s12,

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/reports/domain/entities/admin_report_entity.dart';
 import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
+import 'review_info_row.dart';
+import 'review_detail_card.dart';
 
 class AdminReviewSheet extends StatefulWidget {
   const AdminReviewSheet({super.key, required this.report});
@@ -61,7 +64,7 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
           minChildSize: 0.5,
           builder: (context, scrollCtrl) => Container(
             decoration: const BoxDecoration(
-              color: Color(0xFF0C203B),
+              color: ColorManager.blueOne900,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
@@ -105,15 +108,15 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                     ],
                   ),
                 ),
-                const Divider(color: Color(0xFF1E3A5F), height: 1),
+                const Divider(color: ColorManager.navyLight, height: 1),
                 Expanded(
                   child: ListView(
                     controller: scrollCtrl,
                     padding: EdgeInsets.all(AppSize.s20),
                     children: [
-                      _InfoRow(label: 'المهمة', value: report.taskTitle),
+                      ReviewInfoRow(label: 'المهمة', value: report.taskTitle),
                       SizedBox(height: AppHeight.s10),
-                      _InfoRow(label: 'المتطوع', value: report.volunteerName),
+                      ReviewInfoRow(label: 'المتطوع', value: report.volunteerName),
                       SizedBox(height: AppHeight.s10),
                       Row(
                         children: [
@@ -135,7 +138,7 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                                     ? Icons.star_rounded
                                     : Icons.star_outline_rounded,
                                 color: i < report.rating
-                                    ? const Color(0xFFFBBF24)
+                                    ? ColorManager.amber400
                                     : Colors.white.withValues(alpha: 0.2),
                                 size: 16.r,
                               ),
@@ -144,28 +147,28 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                         ],
                       ),
                       SizedBox(height: AppHeight.s16),
-                      const Divider(color: Color(0xFF1E3A5F)),
+                      const Divider(color: ColorManager.navyLight),
                       SizedBox(height: AppHeight.s16),
-                      _DetailCard(title: 'ملخص المهمة', content: report.summary),
+                      ReviewDetailCard(title: 'ملخص المهمة', content: report.summary),
                       if (report.challenges != null) ...[
                         SizedBox(height: AppHeight.s12),
-                        _DetailCard(
+                        ReviewDetailCard(
                             title: 'التحديات', content: report.challenges!),
                       ],
                       if (report.attendeesCount != null) ...[
                         SizedBox(height: AppHeight.s12),
-                        _InfoRow(
+                        ReviewInfoRow(
                           label: 'عدد الحضور',
                           value: '${report.attendeesCount}',
                         ),
                       ],
                       SizedBox(height: AppHeight.s12),
-                      _InfoRow(
+                      ReviewInfoRow(
                         label: 'توزيع المواد',
                         value: report.materialsDistributed ? 'نعم' : 'لا',
                       ),
                       SizedBox(height: AppHeight.s12),
-                      _InfoRow(
+                      ReviewInfoRow(
                         label: 'تحقيق الأهداف',
                         value: report.objectivesMet ? 'نعم' : 'لا',
                         valueColor: report.objectivesMet
@@ -174,22 +177,22 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                       ),
                       if (report.additionalNotes != null) ...[
                         SizedBox(height: AppHeight.s12),
-                        _DetailCard(
+                        ReviewDetailCard(
                           title: 'ملاحظات إضافية',
                           content: report.additionalNotes!,
                         ),
                       ],
                       if (report.adminFeedback != null) ...[
                         SizedBox(height: AppHeight.s12),
-                        _DetailCard(
+                        ReviewDetailCard(
                           title: 'ملاحظات المشرف',
                           content: report.adminFeedback!,
-                          titleColor: const Color(0xFF00ABD2),
+                          titleColor: ColorManager.cyanPrimary,
                         ),
                       ],
                       if (isPending) ...[
                         SizedBox(height: AppHeight.s24),
-                        const Divider(color: Color(0xFF1E3A5F)),
+                        const Divider(color: ColorManager.navyLight),
                         SizedBox(height: AppHeight.s16),
                         Text(
                           'ملاحظات المراجعة (اختياري)',
@@ -218,24 +221,21 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                               color: Colors.white.withValues(alpha: 0.3),
                             ),
                             filled: true,
-                            fillColor: const Color(0xFF143764),
+                            fillColor: ColorManager.blueOne700,
                             border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.s12),
+                              borderRadius: BorderRadius.circular(AppRadius.s12),
                               borderSide: BorderSide.none,
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.s12),
+                              borderRadius: BorderRadius.circular(AppRadius.s12),
                               borderSide: const BorderSide(
-                                color: Color(0xFF1E3A5F),
+                                color: ColorManager.navyLight,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.s12),
+                              borderRadius: BorderRadius.circular(AppRadius.s12),
                               borderSide: const BorderSide(
-                                color: Color(0xFF00ABD2),
+                                color: ColorManager.cyanPrimary,
                               ),
                             ),
                             contentPadding: EdgeInsets.symmetric(
@@ -252,8 +252,8 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                               curr.maybeWhen(
                                   reviewed: () => true, orElse: () => false),
                           builder: (context, state) {
-                            final isProcessing =
-                                state.maybeWhen(reviewing: () => true, orElse: () => false);
+                            final isProcessing = state.maybeWhen(
+                                reviewing: () => true, orElse: () => false);
                             return Row(
                               children: [
                                 Expanded(
@@ -268,11 +268,10 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                                                 reportId: report.id,
                                                 status: 'rejected',
                                                 feedback: _feedbackCtrl.text
-                                                    .trim()
-                                                    .isEmpty
+                                                        .trim()
+                                                        .isEmpty
                                                     ? null
-                                                    : _feedbackCtrl.text
-                                                        .trim(),
+                                                    : _feedbackCtrl.text.trim(),
                                               ),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.red,
@@ -307,11 +306,10 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                                                 reportId: report.id,
                                                 status: 'approved',
                                                 feedback: _feedbackCtrl.text
-                                                    .trim()
-                                                    .isEmpty
+                                                        .trim()
+                                                        .isEmpty
                                                     ? null
-                                                    : _feedbackCtrl.text
-                                                        .trim(),
+                                                    : _feedbackCtrl.text.trim(),
                                               ),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color(0xFF4CAF50),
@@ -352,87 +350,6 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow(
-      {required this.label, required this.value, this.valueColor});
-
-  final String label;
-  final String value;
-  final Color? valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          value,
-          style: getSemiBoldStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s13,
-            color: valueColor ?? Colors.white,
-          ),
-        ),
-        const Spacer(),
-        Text(
-          label,
-          style: getRegularStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s12,
-            color: Colors.white.withValues(alpha: 0.5),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _DetailCard extends StatelessWidget {
-  const _DetailCard({
-    required this.title,
-    required this.content,
-    this.titleColor,
-  });
-
-  final String title;
-  final String content;
-  final Color? titleColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(AppSize.s14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF143764),
-        borderRadius: BorderRadius.circular(AppRadius.s12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            title,
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color: titleColor ?? const Color(0xFF00ABD2),
-            ),
-          ),
-          SizedBox(height: AppHeight.s6),
-          Text(
-            content,
-            textAlign: TextAlign.right,
-            style: getRegularStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: Colors.white.withValues(alpha: 0.8),
-            ),
-          ),
-        ],
       ),
     );
   }

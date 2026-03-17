@@ -3,9 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:t3afy/admin/campaigns/campaigns_view.dart';
+import 'package:t3afy/admin/campaigns/presentation/view/campaigns_view.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/campaigns_cubit.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 import 'package:t3afy/admin/campaigns/presentation/view/campaign_detail_view.dart';
 import 'package:t3afy/admin/campaigns/presentation/view/create_campaign_view.dart';
 import 'package:t3afy/admin/home/presentation/cubit/admin_home_cubit.dart';
@@ -20,7 +21,6 @@ import 'package:t3afy/admin/volunteers/presentation/view/volunteer_details_view.
 import 'package:t3afy/admin/volunteers/presentation/view/volunteers_panel_view.dart';
 import 'package:t3afy/app/di.dart';
 import 'package:t3afy/app/local_storage.dart';
-import 'package:t3afy/app/services/online_status_cubit.dart';
 import 'package:t3afy/auth/presentation/view/login_view.dart';
 import 'package:t3afy/auth/presentation/view/register_view.dart';
 import 'package:t3afy/onBoarding/presentation/first_onboarding.dart';
@@ -280,7 +280,10 @@ class AppNavigation {
         path: '/createCampaign',
         pageBuilder: (context, state) => CustomTransitionPage2(
           key: state.pageKey,
-          child: const CreateCampaignView(),
+          child: BlocProvider(
+            create: (_) => getIt<CreateCampaignCubit>(),
+            child: const CreateCampaignView(),
+          ),
         ),
       ),
       GoRoute(
@@ -289,7 +292,10 @@ class AppNavigation {
           final taskId = state.pathParameters['id']!;
           return CustomTransitionPage2(
             key: state.pageKey,
-            child: CreateCampaignView(taskId: taskId),
+            child: BlocProvider(
+              create: (_) => getIt<CreateCampaignCubit>(),
+              child: CreateCampaignView(taskId: taskId),
+            ),
           );
         },
       ),

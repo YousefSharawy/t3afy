@@ -13,6 +13,7 @@ import 'widgets/task_details_header_card.dart';
 import 'widgets/task_details_tab.dart';
 import 'widgets/task_details_tab_switcher.dart';
 import 'widgets/task_supplies_tab.dart';
+import 'widgets/task_error_body.dart';
 
 class TaskDetailsView extends StatefulWidget {
   const TaskDetailsView({super.key, required this.taskId});
@@ -65,7 +66,7 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
             loading: () => const Center(
               child: CircularProgressIndicator(color: Color(0xFF00ABD2)),
             ),
-            error: (message) => _ErrorBody(
+            error: (message) => TaskErrorBody(
               message: message,
               onRetry: () => context
                   .read<TaskDetailsCubit>()
@@ -102,60 +103,6 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppWidth.s32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 48.r,
-              color: ColorManager.error,
-            ),
-            SizedBox(height: AppHeight.s16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s14,
-                color: ColorManager.error,
-              ),
-            ),
-            SizedBox(height: AppHeight.s20),
-            ElevatedButton(
-              onPressed: onRetry,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00ABD2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.s8),
-                ),
-              ),
-              child: Text(
-                'إعادة المحاولة',
-                style: getSemiBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

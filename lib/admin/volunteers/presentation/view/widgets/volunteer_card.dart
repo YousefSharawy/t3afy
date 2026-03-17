@@ -7,6 +7,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'volunteer_badge.dart';
 
 class VolunteerCard extends StatelessWidget {
   const VolunteerCard({super.key, required this.volunteer});
@@ -34,9 +35,8 @@ class VolunteerCard extends StatelessWidget {
                 width: AppWidth.s34,
                 height: AppHeight.s34,
                 decoration: BoxDecoration(
-                  borderRadius:
-                      BorderRadius.all(Radius.circular(AppRadius.s8)),
-                  color: const Color(0xff1F2E4F),
+                  borderRadius: BorderRadius.all(Radius.circular(AppRadius.s8)),
+                  color: ColorManager.navyCard,
                 ),
                 child: Image.asset(IconAssets.volHome),
               ),
@@ -93,18 +93,18 @@ class VolunteerCard extends StatelessWidget {
                     SizedBox(height: AppHeight.s4),
                     Row(
                       children: [
-                        _Badge(
+                        VolunteerBadge(
                           icon: Icons.check_circle_outline,
                           label: '${volunteer.totalTasks} مهمة',
                           color: const Color(0xFF22C55E),
                           bg: const Color(0xFF14532D),
                         ),
                         SizedBox(width: AppWidth.s8),
-                        _Badge(
+                        VolunteerBadge(
                           icon: Icons.access_time,
                           label: '${volunteer.totalHours} ساعة',
                           color: const Color(0xFF60A5FA),
-                          bg: const Color(0xFF1E3A5F),
+                          bg: ColorManager.navyLight,
                         ),
                       ],
                     ),
@@ -141,52 +141,9 @@ class VolunteerCard extends StatelessWidget {
       case 'نشط':
         return (const Color(0xFF22C55E), const Color(0xFF14532D));
       case 'قيد المراجعة':
-        return (const Color(0xFFFBBF24), const Color(0xFF451A03));
+        return (ColorManager.amber400, const Color(0xFF451A03));
       default:
         return (const Color(0xFFB2B2B2), const Color(0xFF1F2937));
     }
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.bg,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color color;
-  final Color bg;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s8,
-        vertical: AppHeight.s3,
-      ),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppRadius.s20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 11),
-          SizedBox(width: AppWidth.s4),
-          Text(
-            label,
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s10,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

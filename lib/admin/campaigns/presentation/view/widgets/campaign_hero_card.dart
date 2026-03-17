@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
@@ -14,30 +15,30 @@ class CampaignHeroCard extends StatelessWidget {
   static ({Color bg, Color text, String label}) _statusInfo(String status) {
     return switch (status) {
       'active' || 'ongoing' => (
-          bg: const Color(0xFF16A34A).withValues(alpha: 0.15),
-          text: const Color(0xFF4ADE80),
-          label: 'جارية',
-        ),
+        bg: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+        text: const Color(0xFFFBBF24),
+        label: 'جارية',
+      ),
       'upcoming' => (
-          bg: const Color(0xFF7C3AED).withValues(alpha: 0.15),
-          text: const Color(0xFFA78BFA),
-          label: 'قادمة',
-        ),
+        bg: const Color(0xFF7C3AED).withValues(alpha: 0.15),
+        text: const Color(0xFFA78BFA),
+        label: 'قادمة',
+      ),
       'done' => (
-          bg: Colors.grey.withValues(alpha: 0.15),
-          text: Colors.grey,
-          label: 'مكتملة',
-        ),
+        bg: Colors.grey.withValues(alpha: 0.15),
+        text: Colors.grey,
+        label: 'مكتملة',
+      ),
       'paused' => (
-          bg: Colors.orange.withValues(alpha: 0.15),
-          text: Colors.orange,
-          label: 'موقوفة',
-        ),
+        bg: Colors.orange.withValues(alpha: 0.15),
+        text: Colors.orange,
+        label: 'موقوفة',
+      ),
       _ => (
-          bg: ColorManager.blueOne700,
-          text: ColorManager.blueTwo200,
-          label: status,
-        ),
+        bg: ColorManager.blueOne700,
+        text: ColorManager.blueTwo200,
+        label: status,
+      ),
     };
   }
 
@@ -49,23 +50,22 @@ class CampaignHeroCard extends StatelessWidget {
       padding: EdgeInsets.all(AppSize.s16),
       decoration: BoxDecoration(
         color: ColorManager.blueOne800,
-        borderRadius: BorderRadius.circular(AppRadius.s16),
-        border: Border.all(color: ColorManager.blueOne700),
+        borderRadius: BorderRadius.circular(AppRadius.s12),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 52.r,
-            height: 52.r,
+            width: AppWidth.s48,
+            height: AppHeight.s48,
             decoration: BoxDecoration(
-              color: ColorManager.blueOne700,
-              borderRadius: BorderRadius.circular(AppRadius.s12),
+              color: Color(0xff306CFE).withValues(alpha: 0.33),
+              borderRadius: BorderRadius.circular(AppRadius.s8),
             ),
-            child: Icon(
-              Icons.home_work_rounded,
-              color: const Color(0xFF00ABD2),
-              size: 28.r,
+            child: Image.asset(
+              IconAssets.camp,
+              width: AppWidth.s36,
+              height: AppHeight.s36,
             ),
           ),
           SizedBox(width: AppWidth.s12),
@@ -80,20 +80,26 @@ class CampaignHeroCard extends StatelessWidget {
                         detail.title,
                         style: getBoldStyle(
                           fontFamily: FontConstants.fontFamily,
-                          fontSize: FontSize.s15,
-                          color: Colors.white,
+                          fontSize: FontSize.s16,
+                          color: ColorManager.blueOne50,
                         ),
                       ),
                     ),
                     SizedBox(width: AppWidth.s8),
-                    Container(
+                   
+                  ],
+                ),
+                SizedBox(height: AppHeight.s6),
+                Row(
+                  children: [
+                     Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: AppWidth.s8,
                         vertical: AppHeight.s3,
                       ),
                       decoration: BoxDecoration(
                         color: status.bg,
-                        borderRadius: BorderRadius.circular(AppRadius.s20),
+                        borderRadius: BorderRadius.circular(AppRadius.s6),
                       ),
                       child: Text(
                         status.label,
@@ -104,42 +110,34 @@ class CampaignHeroCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ],
-                ),
-                SizedBox(height: AppHeight.s6),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 12.r,
-                      color: Colors.white.withValues(alpha: 0.5),
-                    ),
+                    SizedBox(width: AppWidth.s8,),
+                   Image.asset(IconAssets.calendar),
                     SizedBox(width: AppWidth.s4),
                     Text(
                       detail.date,
-                      style: getRegularStyle(
+                      style: getLightStyle(
                         fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s11,
-                        color: Colors.white.withValues(alpha: 0.5),
+                        fontSize: FontSize.s10,
+                        color: ColorManager.white,
                       ),
                     ),
-                    if (detail.timeStart != null) ...[
-                      SizedBox(width: AppWidth.s8),
-                      Icon(
-                        Icons.schedule_rounded,
-                        size: 12.r,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                      SizedBox(width: AppWidth.s4),
-                      Text(
-                        '${detail.timeStart} - ${detail.timeEnd ?? ''}',
-                        style: getRegularStyle(
-                          fontFamily: FontConstants.fontFamily,
-                          fontSize: FontSize.s11,
-                          color: Colors.white.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ],
+                    // if (detail.timeStart != null) ...[
+                    //   SizedBox(width: AppWidth.s8),
+                    //   // Icon(
+                    //   //   Icons.schedule_rounded,
+                    //   //   size: 12.r,
+                    //   //   color: Colors.white.withValues(alpha: 0.5),
+                    //   // ),
+                    //   // SizedBox(width: AppWidth.s4),
+                    //   // Text(
+                    //   //   '${detail.timeStart} - ${detail.timeEnd ?? ''}',
+                    //   //   style: getRegularStyle(
+                    //   //     fontFamily: FontConstants.fontFamily,
+                    //   //     fontSize: FontSize.s11,
+                    //   //     color: Colors.white.withValues(alpha: 0.5),
+                    //   //   ),
+                    //   // ),
+                    // ],
                   ],
                 ),
               ],

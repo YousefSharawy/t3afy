@@ -30,4 +30,5 @@ abstract class CampaignsRepo {
     required List<String> volunteerIds,
   });
   Future<Either<Failture, List<VolunteerEntity>>> getUnassignedVolunteers(String taskId);
+  Future<Either<Failture, List<VolunteerEntity>>> getAllVolunteers();
 }

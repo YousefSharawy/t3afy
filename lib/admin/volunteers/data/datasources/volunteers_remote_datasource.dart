@@ -14,4 +14,5 @@ abstract class VolunteersRemoteDatasource {
   });
   Future<VolunteerDetailsEntity> getVolunteerDetails(String volunteerId);
   Future<void> deleteVolunteer(String volunteerId);
+  Future<void> approveVolunteer(String volunteerId);
 }

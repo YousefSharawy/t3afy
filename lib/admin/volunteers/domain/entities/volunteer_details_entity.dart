@@ -41,6 +41,7 @@ class VolunteerDetailsEntity {
   final DateTime? joinedAt;
   final bool isOnline;
   final DateTime? lastSeenAt;
+  final String role;
   final List<VolunteerTaskAssignmentEntity> tasks;
   final List<String> volunteerAreas;
 
@@ -62,6 +63,7 @@ class VolunteerDetailsEntity {
     this.joinedAt,
     required this.isOnline,
     this.lastSeenAt,
+    required this.role,
     required this.tasks,
     this.volunteerAreas = const [],
   });
@@ -71,7 +73,11 @@ class VolunteerDetailsEntity {
       lastSeenAt != null &&
       DateTime.now().toUtc().difference(lastSeenAt!.toUtc()).inSeconds < 90;
 
-  String get status => isActiveNow ? 'نشط' : 'غير نشط';
+  String get status {
+    if (role != 'volunteer') return 'قيد المراجعة';
+    if (isActiveNow) return 'نشط';
+    return 'غير نشط';
+  }
 
   int get completedTasksCount =>
       tasks.where((t) => t.status == 'completed').length;
@@ -103,6 +109,7 @@ class VolunteerDetailsEntity {
       isOnline: (json['is_online'] as bool?) ?? false,
       lastSeenAt:
           lastSeenStr != null ? DateTime.tryParse(lastSeenStr) : null,
+      role: json['role'] as String? ?? 'user',
       tasks: tasks,
       volunteerAreas: volunteerAreas,
     );
