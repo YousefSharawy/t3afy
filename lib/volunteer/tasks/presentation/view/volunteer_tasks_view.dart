@@ -71,34 +71,52 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
                       SizedBox(height: 16.h),
                       // Task list
                       Expanded(
-                        child: tasks.isEmpty
-                            ? Center(
-                                child: Text(
-                                  selectedTab == 0
-                                      ? 'لا توجد مهام اليوم'
-                                      : 'لا توجد مهام منجزة',
-                                  style: getRegularStyle(
-                                    fontSize: FontSize.s14,
-                                    fontFamily: FontConstants.fontFamily,
-                                    color: Colors.white54,
-                                  ),
+                        child: RefreshIndicator(
+                          onRefresh: () =>
+                              context.read<TasksCubit>().loadTasks(),
+                          color: const Color(0xFF00ABD2),
+                          child: tasks.isEmpty
+                              ? ListView(
+                                  physics:
+                                      const AlwaysScrollableScrollPhysics(),
+                                  children: [
+                                    SizedBox(
+                                      height: MediaQuery.of(context).size.height *
+                                          0.5,
+                                      child: Center(
+                                        child: Text(
+                                          selectedTab == 0
+                                              ? 'لا توجد مهام اليوم'
+                                              : 'لا توجد مهام منجزة',
+                                          style: getRegularStyle(
+                                            fontSize: FontSize.s14,
+                                            fontFamily:
+                                                FontConstants.fontFamily,
+                                            color: Colors.white54,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : ListView.builder(
+                                  physics:
+                                      const AlwaysScrollableScrollPhysics(),
+                                  itemCount: tasks.length,
+                                  itemBuilder: (context, index) {
+                                    final taskItem = tasks[index];
+                                    return TaskCard(
+                                      task: taskItem,
+                                      onTap: () {
+                                        context.push(
+                                          Routes.taskDetails,
+                                          extra: taskItem.id,
+                                        );
+                                      },
+                                    );
+                                  },
                                 ),
-                              )
-                            : ListView.builder(
-                                itemCount: tasks.length,
-                                itemBuilder: (context, index) {
-                                  final taskItem = tasks[index];
-                                  return TaskCard(
-                                    task: taskItem,
-                                    onTap: () {
-                                      context.push(
-                                        Routes.taskDetails,
-                                        extra: taskItem.id,
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
+                        ),
                       ),
                     ],
                   ),

@@ -67,29 +67,51 @@ class _NotificationsViewState extends State<NotificationsView> {
                   }
 
                   if (state is NotificationsStateLoaded) {
-                    if (state.notes.isEmpty) {
-                      return const NotificationsEmptyState();
+                    final volunteerId = LocalAppStorage.getUserId();
+                    Future<void> onRefresh() {
+                      if (volunteerId != null) {
+                        return context
+                            .read<NotificationsCubit>()
+                            .loadNotifications(volunteerId);
+                      }
+                      return Future.value();
                     }
 
-                    return ListView.separated(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 16.w, vertical: 16.h),
-                      itemCount: state.notes.length,
-                      separatorBuilder: (_, _) => SizedBox(height: 12.h),
-                      itemBuilder: (context, index) {
-                        final n = state.notes[index];
-                        return NotificationBubble(
-                          notification: n,
-                          timeAgo: _timeAgo(n.createdAt),
-                          onTap: () {
-                            if (!n.isRead) {
-                              context
-                                  .read<NotificationsCubit>()
-                                  .markAsRead(n.id);
-                            }
-                          },
-                        );
-                      },
+                    if (state.notes.isEmpty) {
+                      return RefreshIndicator(
+                        onRefresh: onRefresh,
+                        color: const Color(0xFF00ABD2),
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: const [NotificationsEmptyState()],
+                        ),
+                      );
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: onRefresh,
+                      color: const Color(0xFF00ABD2),
+                      child: ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 16.h),
+                        itemCount: state.notes.length,
+                        separatorBuilder: (_, _) => SizedBox(height: 12.h),
+                        itemBuilder: (context, index) {
+                          final n = state.notes[index];
+                          return NotificationBubble(
+                            notification: n,
+                            timeAgo: _timeAgo(n.createdAt),
+                            onTap: () {
+                              if (!n.isRead) {
+                                context
+                                    .read<NotificationsCubit>()
+                                    .markAsRead(n.id);
+                              }
+                            },
+                          );
+                        },
+                      ),
                     );
                   }
 

@@ -51,48 +51,54 @@ class AdminHomeView extends StatelessWidget {
             ),
             loaded: (data) => Directionality(
               textDirection: TextDirection.rtl,
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
-                  child: Column(
-                    crossAxisAlignment: .start,
-                    children: [
-                      SizedBox(height: AppHeight.s71),
-                      AdminAppBar(
-                        adminName: data.adminName,
-                        avatarUrl: data.adminAvatar,
-                      ),
-                      StatusBanner(
-                        activeVolunteersCount: data.activeTodayCount,
-                      ),
-                      SizedBox(height: AppHeight.s16),
-                      StatsGrid(
-                        activeTodayCount: data.activeTodayCount,
-                        totalVolunteers: data.totalVolunteers,
-                        completedCampaigns: data.completedCampaigns,
-                        totalHours: data.totalHours,
-                        volunteersThisMonth: data.volunteersThisMonth,
-                        activeDiffFromYesterday: data.activeDiffFromYesterday,
-                        hoursPercentChange: data.hoursPercentChange,
-                      ),
-                      SizedBox(height: AppHeight.s24),
-                      MonthlyChartWidget(data: data.monthlyCompletedTasks),
-                      SizedBox(height: AppHeight.s16),
-                      QuickActionsSection(
-                        onNewCampaign: () {},
-                        onFullReport: () {},
-                        onSendAnnouncement: () =>
-                            _showAnnouncementSheet(context),
-                      ),
-                      SizedBox(height: AppHeight.s16),
-                      TodayCampaignsSection(
-                        campaigns: data.todayCampaigns,
-                        onViewAll: () => context.go(Routes.campaigns),
-                        onCampaignTap: (campaign) =>
-                            context.push('/campaignDetails/${campaign.id}'),
-                      ),
-                      SizedBox(height: AppHeight.s100),
-                    ],
+              child: RefreshIndicator(
+                onRefresh: () =>
+                    context.read<AdminHomeCubit>().loadDashboard(),
+                color: const Color(0xFF00ABD2),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: AppHeight.s71),
+                        AdminAppBar(
+                          adminName: data.adminName,
+                          avatarUrl: data.adminAvatar,
+                        ),
+                        StatusBanner(
+                          activeVolunteersCount: data.activeTodayCount,
+                        ),
+                        SizedBox(height: AppHeight.s16),
+                        StatsGrid(
+                          activeTodayCount: data.activeTodayCount,
+                          totalVolunteers: data.totalVolunteers,
+                          completedCampaigns: data.completedCampaigns,
+                          totalHours: data.totalHours,
+                          volunteersThisMonth: data.volunteersThisMonth,
+                          activeDiffFromYesterday: data.activeDiffFromYesterday,
+                          hoursPercentChange: data.hoursPercentChange,
+                        ),
+                        SizedBox(height: AppHeight.s24),
+                        MonthlyChartWidget(data: data.monthlyCompletedTasks),
+                        SizedBox(height: AppHeight.s16),
+                        QuickActionsSection(
+                          onNewCampaign: () {},
+                          onFullReport: () {},
+                          onSendAnnouncement: () =>
+                              _showAnnouncementSheet(context),
+                        ),
+                        SizedBox(height: AppHeight.s16),
+                        TodayCampaignsSection(
+                          campaigns: data.todayCampaigns,
+                          onViewAll: () => context.go(Routes.campaigns),
+                          onCampaignTap: (campaign) =>
+                              context.push('/campaignDetails/${campaign.id}'),
+                        ),
+                        SizedBox(height: AppHeight.s100),
+                      ],
+                    ),
                   ),
                 ),
               ),

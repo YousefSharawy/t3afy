@@ -114,6 +114,12 @@ class _AdminProfileViewState extends State<AdminProfileView> {
     );
   }
 
+  Future<void> _refresh() {
+    final userId = LocalAppStorage.getUserId();
+    if (userId != null) return context.read<AdminProfileCubit>().loadProfile(userId);
+    return Future.value();
+  }
+
   Widget _buildContent(AdminProfileEntity profile) {
     String joinedDate = '';
     if (profile.joinedAt != null) {
@@ -136,7 +142,11 @@ class _AdminProfileViewState extends State<AdminProfileView> {
       joinedDate = '${months[date.month]} ${date.year}';
     }
 
-    return SingleChildScrollView(
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      color: const Color(0xFF00ABD2),
+      child: SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
       child: Column(
         children: [
@@ -234,6 +244,7 @@ class _AdminProfileViewState extends State<AdminProfileView> {
           SizedBox(height: AppHeight.s32),
         ],
       ),
+    ),
     );
   }
 }

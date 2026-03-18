@@ -57,13 +57,25 @@ class _VolunteerPerformanceViewState extends State<VolunteerPerformanceView> {
     );
   }
 
+  Future<void> _refresh() {
+    final userId = LocalAppStorage.getUserId();
+    if (userId != null) {
+      return context.read<PerformanceCubit>().loadPerformance(userId);
+    }
+    return Future.value();
+  }
+
   Widget _buildContent(
     PerformanceStatsEntity stats,
     List<MonthlyHoursEntity> monthlyHours,
     List<LeaderboardEntryEntity> leaderboard,
     String currentUserId,
   ) {
-    return SingleChildScrollView(
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      color: const Color(0xFF00ABD2),
+      child: SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -90,6 +102,7 @@ class _VolunteerPerformanceViewState extends State<VolunteerPerformanceView> {
           ),
         ],
       ),
+    ),
     );
   }
 }

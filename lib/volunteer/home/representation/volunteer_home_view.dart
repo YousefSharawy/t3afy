@@ -73,7 +73,17 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                 }
               },
             ),
-            loaded: (stats, todayTasks) => SingleChildScrollView(
+            loaded: (stats, todayTasks) => RefreshIndicator(
+              onRefresh: () async {
+                final userId = LocalAppStorage.getUserId();
+                if (userId != null) {
+                  await context.read<HomeCubit>().loadHome(userId);
+                  await _fetchUnreadCount(userId);
+                }
+              },
+              color: const Color(0xFF00ABD2),
+              child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.only(left: AppWidth.s18, right: AppWidth.s18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,6 +135,7 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                 ],
               ),
             ),
+          ),
           );
         },
       ),

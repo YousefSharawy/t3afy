@@ -323,37 +323,30 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
               ),
               centerTitle: true,
               actions: [
-                if (isSaving)
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
-                    child: const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: ColorManager.cyanPrimary,
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  )
-                else
-                  TextButton(
-                    onPressed: _save,
-                    child: Text(
-                      'حفظ',
-                      style: getBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s14,
-                        color: ColorManager.cyanPrimary,
-                      ),
+                TextButton(
+                  onPressed: isSaving ? null : _save,
+                  child: Text(
+                    'حفظ',
+                    style: getBoldStyle(
+                      fontFamily: FontConstants.fontFamily,
+                      fontSize: FontSize.s14,
+                      color: isSaving
+                          ? ColorManager.blueOne400
+                          : ColorManager.cyanPrimary,
                     ),
                   ),
+                ),
               ],
             ),
-            body: isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: ColorManager.cyanPrimary),
+            body: Stack(
+              children: [
+                if (isLoading)
+                  const Center(
+                    child: CircularProgressIndicator(
+                        color: ColorManager.cyanPrimary),
                   )
-                : Form(
+                else
+                  Form(
                     key: _formKey,
                     child: ListView(
                       padding: EdgeInsets.all(AppSize.s16),
@@ -594,6 +587,19 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
                       ],
                     ),
                   ),
+                if (isSaving)
+                  IgnorePointer(
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: ColorManager.cyanPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
       },

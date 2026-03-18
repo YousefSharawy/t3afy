@@ -32,6 +32,12 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
     }
   }
 
+  Future<void> _refresh() {
+    final userId = LocalAppStorage.getUserId();
+    if (userId != null) return context.read<ProfileCubit>().loadProfile(userId);
+    return Future.value();
+  }
+
   void _logout() async {
     await context.read<AuthCubit>().logout();
     if (mounted) {
@@ -92,7 +98,11 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
       }
     }
 
-    return SingleChildScrollView(
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      color: const Color(0xFF00ABD2),
+      child: SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.only(left: AppWidth.s18, right: AppWidth.s18),
       child: Column(
         children: [
@@ -147,6 +157,7 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
           ProfileLogoutButton(onPress: _logout),
         ],
       ),
+    ),
     );
   }
 }

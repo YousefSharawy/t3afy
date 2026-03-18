@@ -180,6 +180,20 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
     }
   }
 
+  /// Parses "HH:MM" strings and returns the duration in decimal hours.
+  /// Returns 0 if either string is invalid or end is not after start.
+  double _durationHours(String timeStart, String timeEnd) {
+    final sParts = timeStart.split(':');
+    final eParts = timeEnd.split(':');
+    if (sParts.length < 2 || eParts.length < 2) return 0;
+    final startMins =
+        (int.tryParse(sParts[0]) ?? 0) * 60 + (int.tryParse(sParts[1]) ?? 0);
+    final endMins =
+        (int.tryParse(eParts[0]) ?? 0) * 60 + (int.tryParse(eParts[1]) ?? 0);
+    final diff = endMins - startMins;
+    return diff > 0 ? diff / 60.0 : 0;
+  }
+
   @override
   Future<String> createCampaign(Map<String, dynamic> data) async {
     try {
@@ -188,6 +202,8 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
       if (timeStart == null || timeStart.isEmpty || timeEnd == null || timeEnd.isEmpty) {
         throw Failture(400, 'يجب تحديد وقت البداية والنهاية');
       }
+
+      data['duration_hours'] = _durationHours(timeStart, timeEnd);
 
       final volunteerIds = data.remove('volunteer_ids') as List<String>? ?? [];
       final objectiveTitles = data.remove('objective_titles') as List<String>? ?? [];
@@ -264,6 +280,13 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
       final volunteerIds = data.remove('volunteer_ids') as List<String>?;
       final objectiveTitles = data.remove('objective_titles') as List<String>?;
       final suppliesData = data.remove('supplies_data') as List<Map<String, dynamic>>?;
+
+      final timeStart = data['time_start'] as String?;
+      final timeEnd = data['time_end'] as String?;
+      if (timeStart != null && timeStart.isNotEmpty &&
+          timeEnd != null && timeEnd.isNotEmpty) {
+        data['duration_hours'] = _durationHours(timeStart, timeEnd);
+      }
 
       await _client.from('tasks').update(data).eq('id', id);
 

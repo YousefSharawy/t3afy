@@ -54,23 +54,29 @@ class AdminPerformanceView extends StatelessWidget {
               return const SizedBox.shrink();
             }
             final data = state.data;
-            return SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: AppHeight.s24),
-                  const PerformanceTimeFilter(),
-                  SizedBox(height: AppHeight.s16),
-                  PerformanceStatsRow(data: data),
-                  SizedBox(height: AppHeight.s8),
-                  PerformanceBarChart(data: data.monthlyCompletedTasks),
-                  SizedBox(height: AppHeight.s8),
-                  RegionRankingSection(regions: data.topRegions),
-                  SizedBox(height: AppHeight.s8),
-                  CampaignCompletionCard(data: data),
-                  SizedBox(height: AppHeight.s100),
-                ],
+            return RefreshIndicator(
+              onRefresh: () =>
+                  context.read<AdminPerformanceCubit>().loadPerformance(),
+              color: const Color(0xFF00ABD2),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: AppHeight.s24),
+                    const PerformanceTimeFilter(),
+                    SizedBox(height: AppHeight.s16),
+                    PerformanceStatsRow(data: data),
+                    SizedBox(height: AppHeight.s8),
+                    PerformanceBarChart(data: data.monthlyCompletedTasks),
+                    SizedBox(height: AppHeight.s8),
+                    RegionRankingSection(regions: data.topRegions),
+                    SizedBox(height: AppHeight.s8),
+                    CampaignCompletionCard(data: data),
+                    SizedBox(height: AppHeight.s100),
+                  ],
+                ),
               ),
             );
           },
