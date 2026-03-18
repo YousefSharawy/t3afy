@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:t3afy/admin/profile/domain/entities/admin_profile_entity.dart';
 import 'package:t3afy/admin/profile/presentation/cubit/admin_profile_cubit.dart';
 import 'package:t3afy/admin/profile/presentation/view/widgets/admin_edit_sheet.dart';
-import 'package:t3afy/admin/profile/presentation/view/widgets/admin_info_section.dart';
-import 'package:t3afy/admin/profile/presentation/view/widgets/admin_profile_header.dart';
+import 'package:t3afy/base/widgets/profile_info_section.dart';
+import 'package:t3afy/base/widgets/profile_header_card.dart';
+import 'package:t3afy/base/widgets/profile_badge.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -175,22 +176,29 @@ class _AdminProfileViewState extends State<AdminProfileView> {
             ],
           ),
           SizedBox(height: AppHeight.s24),
-          AdminProfileHeader(
+          ProfileHeaderCard(
             name: profile.name,
-            email: profile.email,
+            subtitle: profile.email,
             avatarUrl: profile.avatarUrl,
+            showCameraIcon: true,
+            badges: [
+              ProfileBadge(
+                label: 'مدير النظام',
+                color: const Color(0xFF00ABD2),
+              ),
+            ],
           ),
           SizedBox(height: AppHeight.s4),
-          AdminInfoSection(
+          ProfileInfoSection(
             title: 'معلومات الحساب',
             items: [
-              AdminInfoItem(label: 'الاسم', value: profile.name),
-              AdminInfoItem(label: 'البريد الإلكتروني', value: profile.email),
-              AdminInfoItem(
+              ProfileInfoItem(label: 'الاسم', value: profile.name),
+              ProfileInfoItem(label: 'البريد الإلكتروني', value: profile.email),
+              ProfileInfoItem(
                 label: 'رقم الهاتف',
                 value: profile.phone?.isNotEmpty == true ? profile.phone! : '—',
               ),
-              AdminInfoItem(
+              ProfileInfoItem(
                 label: 'تاريخ الانضمام',
                 value: joinedDate.isNotEmpty ? joinedDate : '—',
               ),

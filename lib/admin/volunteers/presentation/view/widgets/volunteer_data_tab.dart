@@ -3,7 +3,7 @@ import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'qualification_row.dart';
-import 'volunteer_info_row.dart';
+import 'package:t3afy/base/widgets/info_row.dart';
 
 class VolunteerDataTab extends StatelessWidget {
   const VolunteerDataTab({super.key, required this.details});
@@ -18,29 +18,29 @@ class VolunteerDataTab extends StatelessWidget {
         vertical: AppHeight.s8,
       ),
       children: [
-        VolunteerInfoRow(
+        InfoRow(
           icon: IconAssets.phone,
           label: 'رقم الهاتف',
           value: details.phone ?? '—',
         ),
-        VolunteerInfoRow(
+        InfoRow(
           icon: IconAssets.email2,
           label: 'البريد',
           value: details.email ?? '—',
         ),
-        VolunteerInfoRow(
+        InfoRow(
           icon: IconAssets.location,
           label: 'المنطقة',
           value: details.region ?? '—',
         ),
-        VolunteerInfoRow(
+        InfoRow(
           icon: IconAssets.calendar,
           label: 'تاريخ الانضمام',
           value: details.joinedAt != null
               ? _formatArabicMonth(details.joinedAt!)
               : '—',
         ),
-        VolunteerInfoRow(
+        InfoRow(
           icon: IconAssets.hours,
           label: 'آخر ظهور',
           value: details.lastSeenAt != null

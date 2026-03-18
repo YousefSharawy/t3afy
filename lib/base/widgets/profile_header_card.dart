@@ -10,19 +10,17 @@ class ProfileHeaderCard extends StatelessWidget {
   const ProfileHeaderCard({
     super.key,
     required this.name,
-    required this.email,
-    required this.phone,
-    required this.levelTitle,
-    required this.level,
+    required this.subtitle,
     this.avatarUrl,
+    this.badges = const [],
+    this.showCameraIcon = false,
   });
 
   final String name;
-  final String email;
-  final String phone;
-  final String levelTitle;
-  final int level;
+  final String subtitle;
   final String? avatarUrl;
+  final List<ProfileBadge> badges;
+  final bool showCameraIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -42,16 +40,7 @@ class ProfileHeaderCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 40.sp,
-            backgroundColor: ColorManager.blueTwo200,
-            backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
-                ? NetworkImage(avatarUrl!)
-                : null,
-            child: avatarUrl == null || avatarUrl!.isEmpty
-                ? Icon(Icons.person, size: 40.sp, color: ColorManager.white)
-                : null,
-          ),
+          _buildAvatar(),
           SizedBox(height: AppHeight.s4),
           Text(
             name,
@@ -63,24 +52,64 @@ class ProfileHeaderCard extends StatelessWidget {
           ),
           SizedBox(height: AppHeight.s4),
           Text(
-            '$email | $phone',
+            subtitle,
             style: getRegularStyle(
               fontFamily: FontConstants.fontFamily,
               color: ColorManager.white,
               fontSize: FontSize.s14,
             ),
           ),
-          SizedBox(height: AppHeight.s8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ProfileBadge(label: levelTitle),
-              SizedBox(width: AppWidth.s8),
-              ProfileBadge(label: 'المستوى $level'),
-            ],
-          ),
+          if (badges.isNotEmpty) ...[
+            SizedBox(height: AppHeight.s8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (int i = 0; i < badges.length; i++) ...[
+                  badges[i],
+                  if (i < badges.length - 1) SizedBox(width: AppWidth.s8),
+                ],
+              ],
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    final avatar = CircleAvatar(
+      radius: 40.sp,
+      backgroundColor: ColorManager.blueTwo200,
+      backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
+          ? NetworkImage(avatarUrl!)
+          : null,
+      child: avatarUrl == null || avatarUrl!.isEmpty
+          ? Icon(Icons.person, size: 40.sp, color: ColorManager.white)
+          : null,
+    );
+
+    if (!showCameraIcon) return avatar;
+
+    return Stack(
+      children: [
+        avatar,
+        Positioned(
+          bottom: 0,
+          left: 0,
+          child: Container(
+            padding: EdgeInsets.all(4.r),
+            decoration: const BoxDecoration(
+              color: Color(0xFF00ABD2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.camera_alt_outlined,
+              size: 14.sp,
+              color: ColorManager.white,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

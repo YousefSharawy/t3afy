@@ -5,8 +5,14 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 class ProfileBadge extends StatelessWidget {
-  const ProfileBadge({super.key, required this.label});
+  const ProfileBadge({
+    super.key,
+    required this.label,
+    this.color = ColorManager.blueThree500,
+  });
+
   final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +22,7 @@ class ProfileBadge extends StatelessWidget {
         vertical: AppHeight.s2,
       ),
       decoration: BoxDecoration(
-        color: ColorManager.blueThree500,
+        color: color,
         borderRadius: BorderRadius.circular(AppRadius.s25),
       ),
       child: Text(

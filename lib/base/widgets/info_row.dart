@@ -5,17 +5,21 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
-class VolunteerInfoRow extends StatelessWidget {
-  const VolunteerInfoRow({
+class InfoRow extends StatelessWidget {
+  const InfoRow({
     super.key,
     required this.icon,
     required this.label,
     required this.value,
+    this.labelColor = ColorManager.blueOne100,
+    this.valueColor = ColorManager.blueOne50,
   });
 
   final String icon;
   final String label;
   final String value;
+  final Color labelColor;
+  final Color valueColor;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +54,7 @@ class VolunteerInfoRow extends StatelessWidget {
                 style: getRegularStyle(
                   fontFamily: FontConstants.fontFamily,
                   fontSize: FontSize.s10,
-                  color: ColorManager.blueOne100,
+                  color: labelColor,
                 ),
               ),
               SizedBox(height: 2.h),
@@ -59,7 +63,7 @@ class VolunteerInfoRow extends StatelessWidget {
                 style: getBoldStyle(
                   fontFamily: FontConstants.fontFamily,
                   fontSize: FontSize.s12,
-                  color: ColorManager.blueOne50,
+                  color: valueColor,
                 ),
               ),
             ],

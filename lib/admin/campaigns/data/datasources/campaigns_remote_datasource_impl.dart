@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/app/failture.dart';
+import 'package:t3afy/app/local_storage.dart';
 import '../../domain/entities/campaign_entity.dart';
 import '../../domain/entities/campaign_detail_entity.dart';
 import '../../domain/entities/campaign_member_entity.dart';
@@ -15,12 +16,37 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
   @override
   Future<List<CampaignEntity>> getCampaigns() async {
     try {
+      const cacheKey = 'campaigns_list';
+      final cached = LocalAppStorage.getCache(cacheKey);
+      if (cached != null) {
+        return (cached as List).map<CampaignEntity>((m) {
+          final e = Map<String, dynamic>.from(m as Map);
+          return CampaignEntity(
+            id: e['id'] as String,
+            title: e['title'] as String? ?? '',
+            type: e['type'] as String? ?? '',
+            status: e['status'] as String? ?? 'upcoming',
+            date: e['date'] as String? ?? '',
+            timeStart: e['time_start'] as String?,
+            timeEnd: e['time_end'] as String?,
+            locationName: e['location_name'] as String?,
+            locationAddress: e['location_address'] as String?,
+            supervisorName: e['supervisor_name'] as String?,
+            volunteerCount: e['volunteer_count'] as int? ?? 0,
+            targetBeneficiaries: e['target_beneficiaries'] as int? ?? 0,
+            reachedBeneficiaries: e['reached_beneficiaries'] as int? ?? 0,
+            points: e['points'] as int? ?? 0,
+          );
+        }).toList();
+      }
+
       final tasksRaw = await _client
           .from('tasks')
           .select()
           .order('date', ascending: false);
 
       final campaigns = <CampaignEntity>[];
+      final cacheData = <Map<String, dynamic>>[];
       for (final t in tasksRaw as List) {
         final taskMap = t as Map<String, dynamic>;
         final taskId = taskMap['id'] as String;
@@ -49,7 +75,25 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
             points: (taskMap['points'] as int?) ?? 0,
           ),
         );
+        cacheData.add({
+          'id': taskId,
+          'title': taskMap['title'],
+          'type': taskMap['type'],
+          'status': taskMap['status'],
+          'date': taskMap['date'],
+          'time_start': taskMap['time_start'],
+          'time_end': taskMap['time_end'],
+          'location_name': taskMap['location_name'],
+          'location_address': taskMap['location_address'],
+          'supervisor_name': taskMap['supervisor_name'],
+          'volunteer_count': volunteerCount,
+          'target_beneficiaries': taskMap['target_beneficiaries'],
+          'reached_beneficiaries': taskMap['reached_beneficiaries'],
+          'points': taskMap['points'],
+        });
       }
+      await LocalAppStorage.setCache(cacheKey, cacheData,
+          ttl: const Duration(minutes: 5));
       return campaigns;
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
@@ -59,6 +103,13 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
   @override
   Future<Map<String, int>> getCampaignStats() async {
     try {
+      const cacheKey = 'campaigns_stats';
+      final cached = LocalAppStorage.getCache(cacheKey);
+      if (cached != null) {
+        final m = Map<String, dynamic>.from(cached as Map);
+        return m.map((k, v) => MapEntry(k, v as int));
+      }
+
       final unreadRes = await _client
           .from('admin_notes')
           .select('id')
@@ -77,11 +128,14 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
           .eq('status', 'done');
       final doneCount = (doneRes as List).length;
 
-      return {
+      final result = {
         'notifications': unreadCount,
         'upcoming': upcomingCount,
         'done': doneCount,
       };
+      await LocalAppStorage.setCache(cacheKey, result,
+          ttl: const Duration(minutes: 5));
+      return result;
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -268,6 +322,8 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
         await _client.from('task_supplies').insert(supplies);
       }
 
+      await LocalAppStorage.invalidateCache('campaigns_list');
+      await LocalAppStorage.invalidateCache('campaigns_stats');
       return taskId;
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
@@ -331,6 +387,9 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
           await _client.from('task_supplies').insert(supplies);
         }
       }
+
+      await LocalAppStorage.invalidateCache('campaigns_list');
+      await LocalAppStorage.invalidateCache('campaigns_stats');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -344,6 +403,8 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
       await _client.from('task_supplies').delete().eq('task_id', id);
       await _client.from('admin_notes').delete().eq('task_id', id);
       await _client.from('tasks').delete().eq('id', id);
+      await LocalAppStorage.invalidateCache('campaigns_list');
+      await LocalAppStorage.invalidateCache('campaigns_stats');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -482,10 +543,27 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
   @override
   Future<List<VolunteerEntity>> getAllVolunteers() async {
     try {
+      const cacheKey = 'all_volunteers';
+      final cached = LocalAppStorage.getCache(cacheKey);
+      if (cached != null) {
+        return (cached as List).map<VolunteerEntity>((u) {
+          final m = Map<String, dynamic>.from(u as Map);
+          return VolunteerEntity(
+            id: m['id'] as String,
+            name: m['name'] as String? ?? '',
+            avatarUrl: m['avatar_url'] as String?,
+            rating: ((m['rating'] as num?) ?? 0).toDouble(),
+            region: m['region'] as String?,
+          );
+        }).toList();
+      }
+
       final res = await _client
           .from('users')
           .select('id, name, avatar_url, rating, region')
           .inFilter('role', ['volunteer', 'user']);
+      await LocalAppStorage.setCache(cacheKey, res,
+          ttl: const Duration(minutes: 5));
       return (res as List)
           .map(
             (u) => VolunteerEntity(

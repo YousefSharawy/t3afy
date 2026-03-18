@@ -7,7 +7,7 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/campaign_detail_entity.dart';
 import 'overview_info_card.dart';
-import 'overview_info_row.dart';
+import 'package:t3afy/base/widgets/info_row.dart';
 import 'overview_info_row_with_check.dart';
 import 'overview_divider.dart';
 import 'overview_section_card.dart';
@@ -25,33 +25,33 @@ class OverviewTab extends StatelessWidget {
       children: [
         OverviewInfoCard(
           children: [
-            OverviewInfoRow(
+            InfoRow(
               icon: IconAssets.location,
               label: 'المنطقة',
               value: detail.locationName ?? '—',
             ),
             const OverviewDivider(),
-            OverviewInfoRow(
+            InfoRow(
               icon: IconAssets.calendar,
               label: 'التاريخ',
               value: detail.date,
             ),
             const OverviewDivider(),
-            OverviewInfoRow(
+            InfoRow(
               icon: IconAssets.target,
               label: 'النوع',
               value: detail.type,
             ),
             if (detail.supervisorName != null) ...[
               const OverviewDivider(),
-              OverviewInfoRow(
+              InfoRow(
                 icon: IconAssets.volHome,
                 label: 'المشرف',
                 value: detail.supervisorName!,
               ),
             ],
             if (detail.supervisorPhone != null) ...[
-              OverviewInfoRow(
+              InfoRow(
                 icon: IconAssets.phone,
                 label: 'هاتف المشرف',
                 value: detail.supervisorPhone!,
@@ -62,13 +62,13 @@ class OverviewTab extends StatelessWidget {
         SizedBox(height: AppHeight.s16),
         OverviewInfoCard(
           children: [
-            OverviewInfoRow(
+            InfoRow(
               icon: IconAssets.group,
               label: 'المتطوعون',
               value:
                   '${detail.members.length} من ${detail.targetBeneficiaries > 0 ? detail.targetBeneficiaries : '—'}',
             ),
-            OverviewInfoRow(
+            InfoRow(
               icon: IconAssets.target,
               label: 'الهدف',
               value: '${detail.targetBeneficiaries} مستفيد',

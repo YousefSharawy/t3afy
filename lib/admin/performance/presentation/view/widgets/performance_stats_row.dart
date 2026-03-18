@@ -3,7 +3,7 @@ import 'package:t3afy/admin/performance/domain/entities/admin_performance_entity
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
-import 'admin_stat_box.dart';
+import 'package:t3afy/base/widgets/perf_stat_box.dart';
 
 class PerformanceStatsRow extends StatelessWidget {
   const PerformanceStatsRow({super.key, required this.data});
@@ -15,27 +15,39 @@ class PerformanceStatsRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: AdminStatBox(
-            icon: IconAssets.group,
+          child: PerfStatBox(
+            iconAsset: IconAssets.group,
             value: '${data.totalVolunteers}',
             label: 'متطوع',
+            decoration: BoxDecoration(
+              color: ColorManager.blueOne900,
+              borderRadius: BorderRadius.circular(AppRadius.s12),
+            ),
           ),
         ),
         SizedBox(width: AppWidth.s8),
         Expanded(
-          child: AdminStatBox(
-            icon: IconAssets.hours,
+          child: PerfStatBox(
+            iconAsset: IconAssets.hours,
             value: '${data.totalHours}',
             label: 'ساعة',
+            decoration: BoxDecoration(
+              color: ColorManager.blueOne900,
+              borderRadius: BorderRadius.circular(AppRadius.s12),
+            ),
           ),
         ),
         SizedBox(width: AppWidth.s8),
         Expanded(
-          child: AdminStatBox(
-            icon: IconAssets.star,
+          child: PerfStatBox(
+            iconAsset: IconAssets.star,
             value: data.avgRating.toStringAsFixed(1),
             label: 'متوسط التقييم',
             valueColor: ColorManager.amber400,
+            decoration: BoxDecoration(
+              color: ColorManager.blueOne900,
+              borderRadius: BorderRadius.circular(AppRadius.s12),
+            ),
           ),
         ),
       ],

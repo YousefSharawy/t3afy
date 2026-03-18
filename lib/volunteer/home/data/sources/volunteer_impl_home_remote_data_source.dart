@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/volunteer/home/data/sources/volunteer_home_remote_data_source.dart';
 import 'package:t3afy/volunteer/models/volunteer_stats_model.dart';
 import 'package:t3afy/volunteer/tasks/data/models/task_models.dart';
@@ -10,6 +11,14 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
   @override
   Future<VolunteerStatsModel> getVolunteerStats(String userId) async {
     try {
+      const ttl = Duration(minutes: 5);
+      final cacheKey = 'vol_stats_$userId';
+      final cached = LocalAppStorage.getCache(cacheKey);
+      if (cached != null) {
+        return VolunteerStatsModel.fromJson(
+            Map<String, dynamic>.from(cached as Map));
+      }
+
       final response = await _client
           .from('users')
           .select(
@@ -17,6 +26,7 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
           )
           .eq('id', userId)
           .single();
+      await LocalAppStorage.setCache(cacheKey, response, ttl: ttl);
       return VolunteerStatsModel.fromJson(response);
     } catch (error) {
       throw ErrorHandler.handle(error).failture;
@@ -26,7 +36,16 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
   @override
   Future<List<TaskModel>> getTodayTasks(String userId) async {
     try {
+      const ttl = Duration(minutes: 2);
       final today = DateTime.now().toIso8601String().split('T').first;
+      final cacheKey = 'today_tasks_${userId}_$today';
+      final cached = LocalAppStorage.getCache(cacheKey);
+      if (cached != null) {
+        return (cached as List)
+            .map<TaskModel>((e) =>
+                TaskModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
 
       final response = await _client
           .from('task_assignments')
@@ -42,13 +61,18 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
           .eq('user_id', userId)
           .eq('tasks.date', today);
 
-      return (response as List).map<TaskModel>((row) {
+      final tasks = (response as List).map<TaskModel>((row) {
         final task = row['tasks'] as Map<String, dynamic>;
         return TaskModel.fromJson({
           ...task,
           'assignment_status': row['status'] ?? 'assigned',
         });
       }).toList();
+
+      await LocalAppStorage.setCache(
+          cacheKey, tasks.map((t) => t.toJson()).toList(),
+          ttl: ttl);
+      return tasks;
     } catch (error) {
       throw ErrorHandler.handle(error).failture;
     }

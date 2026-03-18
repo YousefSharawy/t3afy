@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/volunteer/performance/data/models/performance_models.dart';
 import 'package:t3afy/volunteer/performance/data/sources/performance_remote_data_source.dart';
 
@@ -11,7 +12,16 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
     String userId,
   ) async {
     try {
-      // Fetch user stats (without total_points — column may not exist)
+      final cacheKey = 'perf_stats_$userId';
+      final cached = LocalAppStorage.getCache(cacheKey);
+      if (cached != null) {
+        final m = Map<String, dynamic>.from(cached as Map);
+        final stats = PerformanceStatsModel.fromJson(
+            Map<String, dynamic>.from(m['stats'] as Map));
+        final commitment = (m['commitment'] as num).toDouble();
+        return (stats, commitment);
+      }
+
       final response = await _client
           .from('users')
           .select(
@@ -20,7 +30,6 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
           .eq('id', userId)
           .single();
 
-      // Compute commitment % and total points from assignments
       final assignments = await _client
           .from('task_assignments')
           .select('status, tasks(points)')
@@ -41,9 +50,14 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
         }
       }
 
-      // Inject totalPoints into the response map
       response['total_points'] = totalPoints;
       final stats = PerformanceStatsModel.fromJson(response);
+
+      await LocalAppStorage.setCache(
+        cacheKey,
+        {'stats': stats.toJson(), 'commitment': commitmentPct},
+        ttl: const Duration(minutes: 5),
+      );
 
       return (stats, commitmentPct);
     } catch (error) {
@@ -54,42 +68,40 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
   @override
   Future<List<MonthlyHoursModel>> getMonthlyHours(String userId) async {
     try {
-      // Get completed assignments for this user with task data
+      final cacheKey = 'monthly_hours_$userId';
+      final cached = LocalAppStorage.getCache(cacheKey);
+      if (cached != null) {
+        return (cached as List)
+            .map<MonthlyHoursModel>((e) =>
+                MonthlyHoursModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
+
       final response = await _client
           .from('task_assignments')
           .select('task_id, tasks(date, duration_hours)')
           .eq('user_id', userId)
           .eq('status', 'completed');
 
-      // Group by month manually
       final Map<String, double> monthlyMap = {};
-
       for (final row in (response as List)) {
         final task = row['tasks'];
         if (task == null) continue;
-
         final dateStr = task['date'] as String?;
         final duration = (task['duration_hours'] as num?)?.toDouble() ?? 0;
-
         if (dateStr == null) continue;
-
         final date = DateTime.tryParse(dateStr);
         if (date == null) continue;
-
         final key = '${date.year}-${date.month}';
         monthlyMap[key] = (monthlyMap[key] ?? 0) + duration;
       }
 
-      // Convert to models, sorted by date
       final entries = monthlyMap.entries.toList()
         ..sort((a, b) => a.key.compareTo(b.key));
+      final last3 =
+          entries.length > 3 ? entries.sublist(entries.length - 3) : entries;
 
-      // Return last 3 months
-      final last3 = entries.length > 3
-          ? entries.sublist(entries.length - 3)
-          : entries;
-
-      return last3.map((e) {
+      final result = last3.map((e) {
         final parts = e.key.split('-');
         return MonthlyHoursModel(
           year: int.parse(parts[0]),
@@ -97,6 +109,11 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
           hours: e.value,
         );
       }).toList();
+
+      await LocalAppStorage.setCache(
+          cacheKey, result.map((m) => m.toJson()).toList(),
+          ttl: const Duration(minutes: 10));
+      return result;
     } catch (error) {
       throw ErrorHandler.handle(error).failture;
     }
@@ -105,18 +122,23 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
   @override
   Future<List<LeaderboardEntryModel>> getLeaderboard() async {
     try {
-      // Get all volunteers
+      const cacheKey = 'leaderboard';
+      final cached = LocalAppStorage.getCache(cacheKey);
+      if (cached != null) {
+        return (cached as List)
+            .map<LeaderboardEntryModel>((e) => LeaderboardEntryModel.fromJson(
+                Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
+
       final users = await _client
           .from('users')
           .select('id, name, avatar_url, total_hours')
           .eq('role', 'volunteer');
 
-      // For each volunteer, compute points from completed assignments
       final List<LeaderboardEntryModel> entries = [];
-
       for (final user in (users as List)) {
         final userId = user['id'] as String;
-
         final assignments = await _client
             .from('task_assignments')
             .select('tasks(points)')
@@ -140,10 +162,8 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
         ));
       }
 
-      // Sort by points descending
       entries.sort((a, b) => b.pts.compareTo(a.pts));
 
-      // If fewer than 3 entries, pad with dummy data
       if (entries.length < 3) {
         final dummyNames = ['سارة احمد', 'أحمد محمد', 'محمد علي'];
         final dummyHours = [160, 145, 130];
@@ -166,8 +186,11 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
         entries.sort((a, b) => b.pts.compareTo(a.pts));
       }
 
-      // Return top 10
-      return entries.take(10).toList();
+      final result = entries.take(10).toList();
+      await LocalAppStorage.setCache(
+          cacheKey, result.map((e) => e.toJson()).toList(),
+          ttl: const Duration(minutes: 10));
+      return result;
     } catch (error) {
       throw ErrorHandler.handle(error).failture;
     }

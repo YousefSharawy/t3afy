@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/volunteer/performance/domain/entities/performance_entities.dart';
-import 'perf_stat_box.dart';
+import 'package:t3afy/base/widgets/perf_stat_box.dart';
 
 class PerformanceStatsRow extends StatelessWidget {
   const PerformanceStatsRow({super.key, required this.stats});

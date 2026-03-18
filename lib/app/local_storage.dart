@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:hive_flutter/hive_flutter.dart';
 // import 'package:transly/domain/models.dart';
 
@@ -92,5 +94,59 @@ static String? getUserId() {
     } catch (_) {
       return false;
     }
+  }
+
+  // =========================================================================
+  // CACHE
+  // =========================================================================
+
+  static const String _cachePrefix = 'cache_';
+
+  static Future<void> setCache(
+    String key,
+    dynamic data, {
+    Duration ttl = const Duration(minutes: 10),
+  }) async {
+    try {
+      final expiry =
+          DateTime.now().add(ttl).millisecondsSinceEpoch;
+      final encoded = json.encode({'d': data, 'e': expiry});
+      await _appSettingsBoxInstance.put('$_cachePrefix$key', encoded);
+    } catch (_) {}
+  }
+
+  static dynamic getCache(String key) {
+    try {
+      final raw =
+          _appSettingsBoxInstance.get('$_cachePrefix$key') as String?;
+      if (raw == null) return null;
+      final map = json.decode(raw) as Map<String, dynamic>;
+      final expiry = map['e'] as int;
+      if (DateTime.now().millisecondsSinceEpoch > expiry) {
+        _appSettingsBoxInstance.delete('$_cachePrefix$key');
+        return null;
+      }
+      return map['d'];
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> invalidateCache(String key) async {
+    try {
+      await _appSettingsBoxInstance.delete('$_cachePrefix$key');
+    } catch (_) {}
+  }
+
+  static Future<void> invalidateCacheByPrefix(String prefix) async {
+    try {
+      final keys = _appSettingsBoxInstance.keys
+          .where((k) =>
+              k is String && k.startsWith('$_cachePrefix$prefix'))
+          .toList();
+      for (final k in keys) {
+        await _appSettingsBoxInstance.delete(k);
+      }
+    } catch (_) {}
   }
 }

@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/admin/volunteers/data/datasources/volunteers_remote_datasource.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/admin_volunteer_entity.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
@@ -37,6 +38,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
         'qualification': qualification,
         'role': 'volunteer',
       });
+      await LocalAppStorage.invalidateCache('admin_volunteers');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -45,6 +47,15 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
   @override
   Future<List<AdminVolunteerEntity>> getVolunteers() async {
     try {
+      const cacheKey = 'admin_volunteers';
+      final cached = LocalAppStorage.getCache(cacheKey);
+      if (cached != null) {
+        return (cached as List)
+            .map<AdminVolunteerEntity>((e) =>
+                AdminVolunteerEntity.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
+
       final data = await _client
           .from('users')
           .select(
@@ -52,9 +63,13 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
           )
           .inFilter('role', ['volunteer', 'user'])
           .order('name');
-      return (data as List)
+      final volunteers = (data as List)
           .map((e) => AdminVolunteerEntity.fromJson(e as Map<String, dynamic>))
           .toList();
+
+      await LocalAppStorage.setCache(
+          cacheKey, data, ttl: const Duration(minutes: 5));
+      return volunteers;
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -99,6 +114,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
   Future<void> deleteVolunteer(String volunteerId) async {
     try {
       await _client.from('users').delete().eq('id', volunteerId);
+      await LocalAppStorage.invalidateCache('admin_volunteers');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -110,6 +126,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
       await _client
           .from('users')
           .update({'role': 'volunteer'}).eq('id', volunteerId);
+      await LocalAppStorage.invalidateCache('admin_volunteers');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

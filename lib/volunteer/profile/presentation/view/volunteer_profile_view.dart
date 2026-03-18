@@ -10,8 +10,9 @@ import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/volunteer/profile/domain/entity/profile_entity.dart';
 import 'package:t3afy/volunteer/profile/presentation/cubit/profile_cubit.dart';
 import 'package:t3afy/volunteer/profile/presentation/view/widgets/profile_app_bar.dart';
-import 'package:t3afy/volunteer/profile/presentation/view/widgets/profile_header_card.dart';
-import 'package:t3afy/volunteer/profile/presentation/view/widgets/profile_info_section.dart';
+import 'package:t3afy/base/widgets/profile_header_card.dart';
+import 'package:t3afy/base/widgets/profile_info_section.dart';
+import 'package:t3afy/base/widgets/profile_badge.dart';
 import 'package:t3afy/volunteer/profile/presentation/view/widgets/profile_logout_button.dart';
 import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
 
@@ -111,11 +112,12 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
           SizedBox(height: AppHeight.s24),
           ProfileHeaderCard(
             name: profile.name,
-            email: profile.email,
-            phone: profile.phone,
-            levelTitle: profile.levelTitle,
-            level: profile.level,
+            subtitle: '${profile.email} | ${profile.phone}',
             avatarUrl: profile.avatarUrl,
+            badges: [
+              ProfileBadge(label: profile.levelTitle),
+              ProfileBadge(label: 'المستوى ${profile.level}'),
+            ],
           ),
           SizedBox(height: AppHeight.s4),
           ProfileInfoSection(

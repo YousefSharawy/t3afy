@@ -10,7 +10,7 @@ import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
 import 'package:t3afy/admin/reports/presentation/view/widgets/admin_report_card.dart';
 import 'package:t3afy/admin/reports/presentation/view/widgets/admin_review_sheet.dart';
-import 'package:t3afy/admin/reports/presentation/view/widgets/report_filter_chip.dart';
+import 'package:t3afy/base/widgets/filter_chip_item.dart';
 
 class AdminReportsView extends StatelessWidget {
   const AdminReportsView({super.key});
@@ -57,25 +57,25 @@ class AdminReportsView extends StatelessWidget {
                         vertical: AppHeight.s8,
                       ),
                       children: [
-                        ReportFilterChip(
+                        FilterChipItem(
                           label: 'الكل',
                           selected: filter == 'all',
                           onTap: () => cubit.setFilter('all'),
                         ),
                         SizedBox(width: AppWidth.s8),
-                        ReportFilterChip(
+                        FilterChipItem(
                           label: 'قيد المراجعة',
                           selected: filter == 'pending',
                           onTap: () => cubit.setFilter('pending'),
                         ),
                         SizedBox(width: AppWidth.s8),
-                        ReportFilterChip(
+                        FilterChipItem(
                           label: 'موافق عليه',
                           selected: filter == 'approved',
                           onTap: () => cubit.setFilter('approved'),
                         ),
                         SizedBox(width: AppWidth.s8),
-                        ReportFilterChip(
+                        FilterChipItem(
                           label: 'مرفوض',
                           selected: filter == 'rejected',
                           onTap: () => cubit.setFilter('rejected'),

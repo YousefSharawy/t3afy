@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
-class AdminInfoSection extends StatelessWidget {
-  const AdminInfoSection({
+class ProfileInfoSection extends StatelessWidget {
+  const ProfileInfoSection({
     super.key,
     required this.title,
     required this.items,
   });
 
   final String title;
-  final List<AdminInfoItem> items;
+  final List<ProfileInfoItem> items;
 
   @override
   Widget build(BuildContext context) {
@@ -67,15 +68,10 @@ class AdminInfoSection extends StatelessWidget {
                 ],
               ),
             ),
-            if (i < items.length - 1)
-              Center(
-                child: SizedBox(
-                  width: 108,
-                  child: Divider(
-                    color: Colors.white,
-                    thickness: 1,
-                  ),
-                ),
+            if (items[i].hasDivider)
+              Divider(
+                color: ColorManager.white,
+                thickness: 1.sp,
               ),
           ],
         ],
@@ -84,9 +80,14 @@ class AdminInfoSection extends StatelessWidget {
   }
 }
 
-class AdminInfoItem {
+class ProfileInfoItem {
   final String label;
   final String value;
+  final bool hasDivider;
 
-  AdminInfoItem({required this.label, required this.value});
+  ProfileInfoItem({
+    required this.label,
+    required this.value,
+    this.hasDivider = true,
+  });
 }

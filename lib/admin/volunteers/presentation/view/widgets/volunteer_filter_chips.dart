@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/admin_volunteer_entity.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteers_cubit.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
-import 'filter_chip_item.dart';
+import 'package:t3afy/base/widgets/filter_chip_item.dart';
 
 class VolunteerFilterChips extends StatelessWidget {
   const VolunteerFilterChips({
