@@ -40,7 +40,7 @@ class GenderDropDown extends StatelessWidget {
                       'ذكر',
                       style: getBoldStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blueOne600,
+                        color: ColorManager.natural900,
                         fontSize: FontSize.s14,
                       ),
                     ),
@@ -54,7 +54,7 @@ class GenderDropDown extends StatelessWidget {
                       'أنثى',
                       style: getBoldStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blueOne600,
+                        color: ColorManager.natural900,
                         fontSize: FontSize.s14,
                       ),
                     ),
@@ -62,14 +62,14 @@ class GenderDropDown extends StatelessWidget {
                 ),
               ],
               child: Container(
-                constraints: BoxConstraints(minHeight: AppHeight.s54),
+                constraints: BoxConstraints(minHeight: AppHeight.s42),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    width: 1.5.sp,
-                    color: ColorManager.blueOne700,
+                    width: 1.sp,
+                    color: ColorManager.natural200,
                   ),
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppRadius.s8),
+                  borderRadius: BorderRadius.circular(AppRadius.s12),
                 ),
                 child: Row(
                   children: [
@@ -90,8 +90,8 @@ class GenderDropDown extends StatelessWidget {
                         fontSize: FontSize.s14,
                         fontWeight: FontWeightManager.bold,
                         color: gender != null
-                            ? ColorManager.blueOne600
-                            : ColorManager.blueOne100,
+                            ? ColorManager.natural900
+                            : ColorManager.natural200,
                         fontFamily: FontConstants.fontFamily,
                       ),
                     ),

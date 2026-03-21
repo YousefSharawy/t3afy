@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
-import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/volunteer/bot/presentation/cubit/chatbot_cubit.dart';
-import 'package:t3afy/volunteer/bot/presentation/view/widgets/chat_bubble.dart';
-
-import 'package:t3afy/volunteer/bot/presentation/view/widgets/chat_message.dart';
-import 'package:t3afy/volunteer/bot/presentation/view/widgets/quick_actions_chips.dart';
+import 'package:t3afy/volunteer/bot/presentation/view/widgets/bot_info_row.dart';
+import 'package:t3afy/volunteer/bot/presentation/view/widgets/chat_message_list.dart';
+import 'package:t3afy/volunteer/bot/presentation/view/widgets/chatbot_header.dart';
+import 'package:t3afy/volunteer/bot/presentation/view/widgets/chat_input_bar.dart';
 
 class VolunteerChatbotView extends StatefulWidget {
   const VolunteerChatbotView({super.key});
@@ -21,11 +16,21 @@ class VolunteerChatbotView extends StatefulWidget {
 
 class _VolunteerChatbotViewState extends State<VolunteerChatbotView> {
   final _scrollController = ScrollController();
+  final _textController = TextEditingController();
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _textController.dispose();
     super.dispose();
+  }
+
+  void _sendMessage(BuildContext context) {
+    final text = _textController.text.trim();
+    if (text.isEmpty) return;
+    _textController.clear();
+    context.read<ChatbotCubit>().sendMessage(text);
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -46,119 +51,39 @@ class _VolunteerChatbotViewState extends State<VolunteerChatbotView> {
       child: Column(
         children: [
           SizedBox(height: AppHeight.s10),
-          _buildHeader(),
+          const ChatbotHeader(),
           SizedBox(height: AppHeight.s8),
-          _buildBotInfo(),
+          const BotInfoRow(),
           SizedBox(height: AppHeight.s8),
-          // Messages
           Expanded(
             child: BlocConsumer<ChatbotCubit, ChatbotState>(
-              listener: (context, state) {
-                _scrollToBottom();
-              },
+              listener: (context, state) => _scrollToBottom(),
               builder: (context, state) {
                 return state.maybeWhen(
-                  loaded: (messages) => _buildMessageList(messages),
+                  loaded: (messages) => ChatMessageList(
+                    messages: messages,
+                    scrollController: _scrollController,
+                    onChipTap: (action) {
+                      context.read<ChatbotCubit>().sendMessage(action);
+                      _scrollToBottom();
+                    },
+                  ),
                   orElse: () => const SizedBox.shrink(),
                 );
               },
             ),
           ),
-          // Quick actions
-          BlocBuilder<ChatbotCubit, ChatbotState>(
-            builder: (context, state) {
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-                child: QuickActionChips(
-                  actions: context.read<ChatbotCubit>().quickActions,
-                  onTap: (action) {
-                    context.read<ChatbotCubit>().sendMessage(action);
-                    _scrollToBottom();
-                  },
-                ),
-              );
-            },
-          ),
-          SizedBox(height: 100.sp),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'المساعد الذكى',
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              color: ColorManager.blueOne900,
-              fontSize: FontSize.s16,
+          Padding(
+            padding: EdgeInsets.only(bottom: AppHeight.s80),
+            child: Builder(
+              builder: (context) => ChatInputBar(
+                controller: _textController,
+                onSend: () => _sendMessage(context),
+              ),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBotInfo() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.asset(
-                ImageAssets.botAvatar,
-                width: AppWidth.s40,
-                height: AppHeight.s40,
-              ),
-            ],
-          ),
-          SizedBox(width: 8.sp),
-          Column(
-            crossAxisAlignment: .start,
-            mainAxisAlignment: .start,
-            children: [
-              Text(
-                "مساعد الصندوق",
-                style: getBoldStyle(
-                  fontSize: FontSize.s16,
-                  fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.blueOne900,
-                ),
-              ),
-              Text(
-                " متاح الان",
-                style: getMediumStyle(
-                  fontSize: FontSize.s13,
-                  fontFamily: FontConstants.fontFamily,
-                  color: Color(0xff319F43),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageList(List<ChatMessage> messages) {
-    return ListView.builder(
-      controller: _scrollController,
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s18,
-        vertical: AppHeight.s8,
-      ),
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        return ChatBubble(message: messages[index]);
-      },
     );
   }
 }

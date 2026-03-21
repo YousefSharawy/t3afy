@@ -16,12 +16,12 @@ class TabItem extends StatelessWidget {
   });
 
   final String label;
-  final IconData icon;
+  final String icon;
   final bool isSelected;
   final VoidCallback onTap;
   final bool isFirst;
 
-  static const _grey = Color(0xFF9E9E9E);
+  static const _grey = ColorManager.natural300;
 
   @override
   Widget build(BuildContext context) {
@@ -30,42 +30,26 @@ class TabItem extends StatelessWidget {
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: AppHeight.s14),
+          padding: EdgeInsets.symmetric(vertical: AppHeight.s8),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: isSelected ? ColorManager.cyanPrimary : Colors.transparent,
-                width: 3,
+                color: isSelected ? ColorManager.primary500 : Colors.transparent,
+                width: 2.sp,
               ),
             ),
-            borderRadius: isSelected
-                ? null
-                : BorderRadius.only(
-                    topRight:
-                        isFirst ? Radius.circular(AppRadius.s12) : Radius.zero,
-                    bottomRight:
-                        isFirst ? Radius.circular(AppRadius.s12) : Radius.zero,
-                    topLeft:
-                        isFirst ? Radius.zero : Radius.circular(AppRadius.s12),
-                    bottomLeft:
-                        isFirst ? Radius.zero : Radius.circular(AppRadius.s12),
-                  ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                color: isSelected ? ColorManager.cyanPrimary : _grey,
-                size: 18.r,
-              ),
-              SizedBox(width: AppWidth.s6),
+           Image.asset(icon,width: AppWidth.s24,height: AppHeight.s24,),
+              SizedBox(width: AppWidth.s4),
               Text(
                 label,
-                style: getSemiBoldStyle(
+                style: getBoldStyle(
                   fontFamily: FontConstants.fontFamily,
                   fontSize: FontSize.s14,
-                  color: isSelected ? ColorManager.blueOne900 : _grey,
+                  color: isSelected ? ColorManager.primary500 : _grey,
                 ),
               ),
             ],

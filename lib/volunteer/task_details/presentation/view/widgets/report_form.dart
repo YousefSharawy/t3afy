@@ -3,9 +3,9 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
-import 'package:t3afy/volunteer/task_details/presentation/view/widgets/report_star_rating.dart';
-import 'package:t3afy/volunteer/task_details/presentation/view/widgets/report_submit_button.dart';
-import 'form_field_widget.dart';
+import 'package:t3afy/base/primary_widgets.dart';
+import 'report_labeled_field.dart';
+import 'report_star_rating.dart';
 
 class ReportForm extends StatelessWidget {
   const ReportForm({
@@ -16,12 +16,11 @@ class ReportForm extends StatelessWidget {
     required this.attendeesCtrl,
     required this.materialsCtrl,
     required this.notesCtrl,
-    required this.objectivesMet,
     required this.rating,
     required this.isSubmitting,
-    required this.onObjectivesChanged,
     required this.onRatingChanged,
     required this.onSubmit,
+    required this.onCancel,
   });
 
   final GlobalKey<FormState> formKey;
@@ -30,27 +29,22 @@ class ReportForm extends StatelessWidget {
   final TextEditingController attendeesCtrl;
   final TextEditingController materialsCtrl;
   final TextEditingController notesCtrl;
-  final bool objectivesMet;
   final int rating;
   final bool isSubmitting;
-  final ValueChanged<bool> onObjectivesChanged;
   final ValueChanged<int> onRatingChanged;
   final VoidCallback onSubmit;
+  final VoidCallback onCancel;
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s20,
-        vertical: AppHeight.s16,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
       child: Form(
         key: formKey,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FormFieldWidget(
-              label: 'ملخص المهمة *',
+            ReportLabeledField(
+              label: 'ملخص المهمة',
               controller: summaryCtrl,
               maxLines: 4,
               hint: 'اكتب ملخصاً عما تم إنجازه...',
@@ -58,74 +52,64 @@ class ReportForm extends StatelessWidget {
                   (v == null || v.trim().isEmpty) ? 'هذا الحقل مطلوب' : null,
             ),
             SizedBox(height: AppHeight.s16),
-            FormFieldWidget(
+            ReportLabeledField(
               label: 'التحديات التي واجهتها',
               controller: challengesCtrl,
               maxLines: 3,
               hint: 'اذكر أي تحديات أو عقبات (اختياري)',
             ),
             SizedBox(height: AppHeight.s16),
-            FormFieldWidget(
+            ReportLabeledField(
               label: 'عدد الحضور',
               controller: attendeesCtrl,
               hint: 'عدد المستفيدين أو الحضور',
               keyboardType: TextInputType.number,
             ),
             SizedBox(height: AppHeight.s16),
-            FormFieldWidget(
+            ReportLabeledField(
               label: 'المواد الموزعة',
               controller: materialsCtrl,
               hint: 'المستلزمات التي تم توزيعها (اختياري)',
             ),
             SizedBox(height: AppHeight.s16),
-            // Objectives met toggle
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppWidth.s16,
-                vertical: AppHeight.s12,
-              ),
-              decoration: BoxDecoration(
-                color: ColorManager.blueOne700,
-                borderRadius: BorderRadius.circular(AppRadius.s12),
-              ),
-              child: Row(
-                children: [
-                  Switch(
-                    value: objectivesMet,
-                    onChanged: onObjectivesChanged,
-                    activeThumbColor: ColorManager.cyanPrimary,
-                  ),
-                  SizedBox(width: AppWidth.s8),
-                  Expanded(
-                    child: Text(
-                      'تم تحقيق الأهداف المطلوبة',
-                      textAlign: TextAlign.right,
-                      style: getMediumStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s13,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            ReportStarRating(rating: rating, onRatingChanged: onRatingChanged),
             SizedBox(height: AppHeight.s16),
-            ReportStarRating(
-              rating: rating,
-              onRatingChanged: onRatingChanged,
-            ),
-            SizedBox(height: AppHeight.s16),
-            FormFieldWidget(
+            ReportLabeledField(
               label: 'ملاحظات إضافية',
               controller: notesCtrl,
               maxLines: 3,
               hint: 'أي ملاحظات أخرى (اختياري)',
             ),
             SizedBox(height: AppHeight.s24),
-            ReportSubmitButton(
-              isSubmitting: isSubmitting,
-              onPressed: onSubmit,
+            PrimaryElevatedButton(
+              title: 'إرسال',
+              onPress: isSubmitting ? () {} : onSubmit,
+              textStyle: getBoldStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s16,
+                color: Colors.white,
+              ),
+              titleWidget: isSubmitting
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : null,
+            ),
+            SizedBox(height: AppHeight.s12),
+            PrimaryElevatedButton(
+              title: 'إلغاء',
+              onPress: onCancel,
+              backGroundColor: ColorManager.natural200,
+              textStyle: getMediumStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s16,
+                color: Colors.black87,
+              ),
             ),
             SizedBox(height: AppHeight.s24),
           ],

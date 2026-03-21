@@ -29,8 +29,8 @@ class TodayTasksSection extends StatelessWidget {
               'مهام اليوم',
               style: getSemiBoldStyle(
                 fontFamily: FontConstants.fontFamily,
-                color: ColorManager.blueOne900,
-                fontSize: FontSize.s16,
+                color: ColorManager.natural900,
+                fontSize: FontSize.s19,
               ),
             ),
             GestureDetector(
@@ -39,14 +39,14 @@ class TodayTasksSection extends StatelessWidget {
                 'عرض الكل',
                 style: getMediumStyle(
                   fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.blueThree900,
+                  color: ColorManager.natural600,
                   fontSize: FontSize.s12,
                 ),
               ),
             ),
           ],
         ),
-        SizedBox(height: AppHeight.s12),
+        SizedBox(height: AppHeight.s8),
         if (tasks.isEmpty)
           Padding(
             padding: EdgeInsets.symmetric(vertical: AppHeight.s20),

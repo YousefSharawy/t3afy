@@ -53,6 +53,17 @@ class IconAssets {
   static const String settings = '$ICON_PATH/settings.png';
   static const String camp = '$ICON_PATH/camp.png';
   static const String pause = '$ICON_PATH/pause.png';
+  static const String medal = '$ICON_PATH/medal.png';
+  static const String details = '$ICON_PATH/details.png';
+  static const String requirements = '$ICON_PATH/requirements.png';
+  static const String books = '$ICON_PATH/books.png';
+  static const String flag = '$ICON_PATH/flag.png';
+  static const String gift = '$ICON_PATH/gift.png';
+  static const String laptop = '$ICON_PATH/laptop.png';
+  static const String mentor = '$ICON_PATH/mentor.png';
+  static const String call = '$ICON_PATH/call.png';
+  static const String send = '$ICON_PATH/send.png';
+  static const String unstar = '$ICON_PATH/unstar.png';
 }
 
 class DemoAssets {}

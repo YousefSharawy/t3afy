@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
@@ -13,31 +14,26 @@ class SuppliesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s16,
-        vertical: AppHeight.s20,
+        horizontal: AppWidth.s20,
+        vertical: AppHeight.s16,
       ),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0C203B), Color(0xFF143764)],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
+       color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
       child: Column(
+        crossAxisAlignment: .start,
         children: [
           Text(
             'المواد و المستلزمات المطلوبة لهذه المهمة',
-            textAlign: TextAlign.center,
             style: getSemiBoldStyle(
               fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: FontSize.s12,
+              color: ColorManager.natural600,
             ),
           ),
-          SizedBox(height: AppHeight.s20),
+          SizedBox(height: AppHeight.s12),
           if (supplies.isEmpty)
             Padding(
               padding: EdgeInsets.symmetric(vertical: AppHeight.s16),
@@ -47,7 +43,7 @@ class SuppliesCard extends StatelessWidget {
                 style: getRegularStyle(
                   fontFamily: FontConstants.fontFamily,
                   fontSize: FontSize.s13,
-                  color: Colors.white.withValues(alpha: 0.5),
+                  color: ColorManager.natural500
                 ),
               ),
             )

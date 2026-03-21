@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
@@ -16,28 +17,25 @@ class ReportStarRating extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s16,
-        vertical: AppHeight.s12,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF143764),
-        borderRadius: BorderRadius.circular(AppRadius.s12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            'تقييمك للمهمة',
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: Colors.white.withValues(alpha: 0.7),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'تقييمك للمهمة',
+          style: getBoldStyle(
+            fontFamily: FontConstants.fontFamily,
+            fontSize: FontSize.s14,
+            color: ColorManager.natural600,
           ),
-          SizedBox(height: AppHeight.s8),
-          Row(
+        ),
+        SizedBox(height: AppHeight.s4),
+        Container(
+          padding: EdgeInsets.symmetric(vertical: AppHeight.s8),
+          decoration: BoxDecoration(
+            color: ColorManager.natural100,
+            borderRadius: BorderRadius.circular(AppRadius.s8),
+          ),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(5, (i) {
               final star = i + 1;
@@ -45,21 +43,15 @@ class ReportStarRating extends StatelessWidget {
                 onTap: () => onRatingChanged(star),
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: AppWidth.s4),
-                  child: Icon(
-                    star <= rating
-                        ? Icons.star_rounded
-                        : Icons.star_outline_rounded,
-                    color: star <= rating
-                        ? const Color(0xFFFBBF24)
-                        : Colors.white.withValues(alpha: 0.3),
-                    size: 36.r,
-                  ),
+                  child: star <= rating
+                      ? Image.asset(IconAssets.star)
+                      : Image.asset(IconAssets.unstar),
                 ),
               );
             }),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -7,6 +7,7 @@ class HomeState with _$HomeState {
   const factory HomeState.loaded({
     required VolunteerStatsEntity stats,
     required List<TaskEntity> todayTasks,
+    required int unreadCount,
   }) = _Loaded;
   const factory HomeState.error(String message) = _Error;
 }

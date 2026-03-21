@@ -11,43 +11,62 @@ class TaskStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _statusColor(status);
+    final containerFillColor = _statusFillColor(status);
+    final borderTextColor = _textBorderFillColor(status);
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: AppWidth.s10,
-        vertical: AppHeight.s4,
+        vertical: AppHeight.s2,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(AppRadius.s20),
-        border: Border.all(color: color),
+        color: containerFillColor,
+        borderRadius: BorderRadius.circular(AppRadius.s6),
+        border: Border.all(color: borderTextColor),
       ),
       child: Text(
         _statusLabel(status),
-        style: getSemiBoldStyle(
+        style: getBoldStyle(
           fontFamily: FontConstants.fontFamily,
-          fontSize: FontSize.s11,
-          color: color,
+          fontSize: FontSize.s10,
+          color: borderTextColor,
         ),
       ),
     );
   }
 
-  Color _statusColor(String s) {
+  Color _statusFillColor(String s) {
     switch (s) {
       case 'active':
       case 'ongoing':
-        return const Color(0xFF16A34A);
+        return ColorManager.infoLight;
       case 'upcoming':
-        return ColorManager.violet700;
+        return ColorManager.warningLight;
       case 'done':
-        return Colors.grey;
+        return ColorManager.successLight;
       case 'paused':
-        return Colors.orange;
+       return ColorManager.warningLight;
       default:
         return Colors.grey;
     }
   }
+   Color _textBorderFillColor(String s) {
+    switch (s) {
+      case 'active':
+      case 'ongoing':
+        return ColorManager.info;
+      case 'upcoming':
+        return ColorManager.warning;
+      case 'done':
+        return ColorManager.success;
+      case 'paused':
+       return ColorManager.warning;
+      default:
+        return Colors.grey;
+    }
+  }
+
+
 
   String _statusLabel(String s) {
     switch (s) {

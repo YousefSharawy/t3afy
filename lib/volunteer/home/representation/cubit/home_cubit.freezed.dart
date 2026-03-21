@@ -128,12 +128,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( VolunteerStatsEntity stats,  List<TaskEntity> todayTasks)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( VolunteerStatsEntity stats,  List<TaskEntity> todayTasks,  int unreadCount)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.stats,_that.todayTasks);case _Error() when error != null:
+return loaded(_that.stats,_that.todayTasks,_that.unreadCount);case _Error() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -152,12 +152,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( VolunteerStatsEntity stats,  List<TaskEntity> todayTasks)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( VolunteerStatsEntity stats,  List<TaskEntity> todayTasks,  int unreadCount)  loaded,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading();case _Loaded():
-return loaded(_that.stats,_that.todayTasks);case _Error():
+return loaded(_that.stats,_that.todayTasks,_that.unreadCount);case _Error():
 return error(_that.message);case _:
   throw StateError('Unexpected subclass');
 
@@ -175,12 +175,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( VolunteerStatsEntity stats,  List<TaskEntity> todayTasks)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( VolunteerStatsEntity stats,  List<TaskEntity> todayTasks,  int unreadCount)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.stats,_that.todayTasks);case _Error() when error != null:
+return loaded(_that.stats,_that.todayTasks,_that.unreadCount);case _Error() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -257,8 +257,8 @@ String toString() {
 
 
 class _Loaded implements HomeState {
-  const _Loaded({required this.stats, required final  List<TaskEntity> todayTasks}): _todayTasks = todayTasks;
-  
+  const _Loaded({required this.stats, required final  List<TaskEntity> todayTasks, required this.unreadCount}): _todayTasks = todayTasks;
+
 
  final  VolunteerStatsEntity stats;
  final  List<TaskEntity> _todayTasks;
@@ -267,6 +267,7 @@ class _Loaded implements HomeState {
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_todayTasks);
 }
+ final  int unreadCount;
 
 
 /// Create a copy of HomeState
@@ -279,16 +280,16 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&(identical(other.stats, stats) || other.stats == stats)&&const DeepCollectionEquality().equals(other._todayTasks, _todayTasks));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&(identical(other.stats, stats) || other.stats == stats)&&const DeepCollectionEquality().equals(other._todayTasks, _todayTasks)&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,stats,const DeepCollectionEquality().hash(_todayTasks));
+int get hashCode => Object.hash(runtimeType,stats,const DeepCollectionEquality().hash(_todayTasks),unreadCount);
 
 @override
 String toString() {
-  return 'HomeState.loaded(stats: $stats, todayTasks: $todayTasks)';
+  return 'HomeState.loaded(stats: $stats, todayTasks: $todayTasks, unreadCount: $unreadCount)';
 }
 
 
@@ -299,7 +300,7 @@ abstract mixin class _$LoadedCopyWith<$Res> implements $HomeStateCopyWith<$Res> 
   factory _$LoadedCopyWith(_Loaded value, $Res Function(_Loaded) _then) = __$LoadedCopyWithImpl;
 @useResult
 $Res call({
- VolunteerStatsEntity stats, List<TaskEntity> todayTasks
+ VolunteerStatsEntity stats, List<TaskEntity> todayTasks, int unreadCount
 });
 
 
@@ -316,11 +317,12 @@ class __$LoadedCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? stats = null,Object? todayTasks = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? stats = null,Object? todayTasks = null,Object? unreadCount = null,}) {
   return _then(_Loaded(
 stats: null == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
 as VolunteerStatsEntity,todayTasks: null == todayTasks ? _self._todayTasks : todayTasks // ignore: cast_nullable_to_non_nullable
-as List<TaskEntity>,
+as List<TaskEntity>,unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

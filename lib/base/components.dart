@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/base/widgets/nav_bar_item.dart';
 import 'package:t3afy/translation/locale_keys.g.dart';
@@ -167,53 +169,95 @@ class VolunteerScaffoldWithNavBar extends StatefulWidget {
 
 class _VolunteerScaffoldWithNavBarState
     extends State<VolunteerScaffoldWithNavBar> {
-  bool _isNavBarVisible = true;
+  int _unreadCount = 0;
 
   @override
   void initState() {
     super.initState();
+    _loadUnreadCount();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
+  Future<void> _loadUnreadCount() async {
+    final userId = LocalAppStorage.getUserId();
+    if (userId == null) return;
+    try {
+      final res = await Supabase.instance.client
+          .from('admin_notes')
+          .select('id')
+          .eq('volunteer_id', userId)
+          .eq('is_read', false);
+      if (mounted) setState(() => _unreadCount = (res as List).length);
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        // Don't hide nav bar on the bot/chatbot tab (index 4)
-        if (widget.navigationShell.currentIndex == 4) {
-          if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
-          return false;
-        }
-        if (notification is UserScrollNotification) {
-          if (notification.direction == ScrollDirection.reverse) {
-            // Scrolling down — hide nav bar
-            if (_isNavBarVisible) setState(() => _isNavBarVisible = false);
-          } else if (notification.direction == ScrollDirection.forward) {
-            // Scrolling up — show nav bar
-            if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
-          }
-        }
-        return false;
-      },
-      child: Scaffold(
-        backgroundColor: ColorManager.background,
-        body: Stack(
-          children: [
-            Positioned.fill(child: widget.navigationShell),
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 700),
-              curve: Curves.easeInOut,
-              left: AppWidth.s18,
-              right: AppWidth.s18,
-              bottom: _isNavBarVisible ? AppHeight.s34 : -90.sp,
-              child: _buildNavBar(context),
+    return Scaffold(
+      backgroundColor: ColorManager.background,
+      body: Stack(
+        children: [
+          Positioned.fill(child: widget.navigationShell),
+          Positioned(
+            top: MediaQuery.of(context).padding.top+AppHeight.s5,
+            left: AppWidth.s18,
+            child: _buildNotificationButton(context),
+          ),
+          Positioned(
+            left: AppWidth.s18,
+            right: AppWidth.s18,
+            bottom: AppHeight.s34,
+            child: _buildNavBar(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context
+          .push(Routes.notifications)
+          .then((_) => _loadUnreadCount()),
+      child: Stack(
+        children: [
+          Container(
+            padding: EdgeInsets.all(AppRadius.s10),
+            decoration: BoxDecoration(
+              color: ColorManager.white,
+              borderRadius: BorderRadius.circular(AppRadius.s10),
             ),
-          ],
-        ),
+            child: Image.asset(
+              IconAssets.notification,
+              width: AppWidth.s24,
+              height: AppHeight.s24,
+            ),
+          ),
+          if (_unreadCount > 0)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                constraints: BoxConstraints(
+                  minWidth: 14.sp,
+                  minHeight: 14.sp,
+                ),
+                child: Text(
+                  '$_unreadCount',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 9.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -221,16 +265,15 @@ class _VolunteerScaffoldWithNavBarState
   Widget _buildNavBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s49),
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            const Color(0xFF0E2A50),
-            const Color(0xFF132D63),
-            const Color(0xFF0C244E),
-          ],
-        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A000000),
+            offset: Offset(0, 0),
+            blurRadius: 9,
+          ),
+        ],
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: AppHeight.s10),
@@ -294,43 +337,20 @@ class AdminScaffoldWithNavBar extends StatefulWidget {
 }
 
 class _AdminScaffoldWithNavBarState extends State<AdminScaffoldWithNavBar> {
-  bool _isNavBarVisible = true;
-
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        // // Don't hide nav bar on the bot/chatbot tab (index 4)
-        // if (widget.navigationShell.currentIndex == 4) {
-        //   if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
-        //   return false;
-        // }
-        if (notification is UserScrollNotification) {
-          if (notification.direction == ScrollDirection.reverse) {
-            // Scrolling down — hide nav bar
-            if (_isNavBarVisible) setState(() => _isNavBarVisible = false);
-          } else if (notification.direction == ScrollDirection.forward) {
-            // Scrolling up — show nav bar
-            if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
-          }
-        }
-        return false;
-      },
-      child: Scaffold(
-        backgroundColor: ColorManager.background,
-        body: Stack(
-          children: [
-            Positioned.fill(child: widget.navigationShell),
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 700),
-              curve: Curves.easeInOut,
-              left: AppWidth.s18,
-              right: AppWidth.s18,
-              bottom: _isNavBarVisible ? AppHeight.s34 : -90.sp,
-              child: _buildNavBar(context),
-            ),
-          ],
-        ),
+    return Scaffold(
+      backgroundColor: ColorManager.background,
+      body: Stack(
+        children: [
+          Positioned.fill(child: widget.navigationShell),
+          Positioned(
+            left: AppWidth.s18,
+            right: AppWidth.s18,
+            bottom: AppHeight.s34,
+            child: _buildNavBar(context),
+          ),
+        ],
       ),
     );
   }
@@ -338,16 +358,15 @@ class _AdminScaffoldWithNavBarState extends State<AdminScaffoldWithNavBar> {
   Widget _buildNavBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s49),
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            const Color(0xFF0E2A50),
-            const Color(0xFF132D63),
-            const Color(0xFF0C244E),
-          ],
-        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A000000),
+            offset: Offset(0, 0),
+            blurRadius: 9,
+          ),
+        ],
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: AppHeight.s10),

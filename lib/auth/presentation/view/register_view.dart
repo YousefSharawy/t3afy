@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
@@ -75,192 +74,189 @@ class _RegisterViewState extends State<RegisterView> {
       child: PrimaryScaffold(
         body: Form(
           key: _formKey,
-          child: Padding(
+          child: SingleChildScrollView(
             padding: EdgeInsetsDirectional.only(
               start: AppWidth.s18,
               end: AppWidth.s18,
               bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: AppHeight.s47),
-                  Text(
-                    "انشاء حساب جديد",
-                    style: getBoldStyle(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(height: AppHeight.s47),
+                Text(
+                  "انشاء حساب جديد",
+                  style: getBoldStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    color: ColorManager.natural900,
+                    fontSize: FontSize.s24,
+                  ),
+                ),
+                SizedBox(height: AppHeight.s4),
+                BlocBuilder<AuthCubit, AuthState>(
+                  buildWhen: (previous, current) => current.maybeWhen(
+                    orElse: () => false,
+                    roleChanged: (_) => true,
+                  ),
+                  builder: (context, state) {
+                    final isVolunteer = context.read<AuthCubit>().isVolunteer;
+                    return RoleSwitcher(isVolunteer);
+                  },
+                ),
+                SizedBox(height: AppHeight.s8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "الاسم كامل",
+                    style: getSemiBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.blueOne900,
-                      fontSize: FontSize.s24,
+                      color: ColorManager.natural900,
+                      fontSize: FontSize.s18,
                     ),
                   ),
-                  SizedBox(height: AppHeight.s8),
-                  BlocBuilder<AuthCubit, AuthState>(
-                    buildWhen: (previous, current) => current.maybeWhen(
-                      orElse: () => false,
-                      roleChanged: (_) => true,
-                    ),
-                    builder: (context, state) {
-                      final isVolunteer = context.read<AuthCubit>().isVolunteer;
-                      return RoleSwitcher(isVolunteer);
-                    },
-                  ),
-                  SizedBox(height: AppHeight.s8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "الاسم كامل",
-                      style: getSemiBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blueOne700,
-                        fontSize: FontSize.s18,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: AppHeight.s8),
-                  PrimaryTextFF(
-                    textAlign: TextAlign.right,
-                    prefixIcon: IconAssets.person,
-                    hint: "مثال.. يوسف احمد شعراوي",
-                    controller: _nameController,
-                    keyboardType: TextInputType.name,
-                    validator: (value) =>
-                        value?.isEmpty ?? true ? 'ادخل الاسم' : null,
-                  ),
-                  SizedBox(height: AppHeight.s16),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "البريد الإلكتروني",
-                      style: getSemiBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blueOne700,
-                        fontSize: FontSize.s18,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: AppHeight.s8),
-                  PrimaryTextFF(
-                    icon: IconAssets.email,
-                    hint: "name@gmail.com",
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) => value?.isEmpty ?? true
-                        ? 'ادخل البريد الإلكتروني'
-                        : null,
-                  ),
-                  SizedBox(height: AppHeight.s8),
-                  // Gender label
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "النوع",
-                      style: getSemiBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blueOne700,
-                        fontSize: FontSize.s18,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: AppHeight.s16),
-                  BlocBuilder<AuthCubit, AuthState>(
-                    buildWhen: (previous, current) => current.maybeWhen(
-                      orElse: () => false,
-                      genderChanged: (_) => true,
-                    ),
-                    builder: (context, state) {
-                      final gender = context.read<AuthCubit>().gender;
-                      return GenderDropDown(gender);
-                    },
-                  ),
-                  SizedBox(height: AppHeight.s8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "كلمة المرور",
-                      style: getSemiBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blueOne700,
-                        fontSize: FontSize.s18,
-                      ),
-                    ),
-                  ),
-                  PrimaryTextFF(
-                    icon: IconAssets.password,
-                    isPassword: true,
-                    hint: "***********",
-                    controller: _passwordController,
-                    validator: (value) =>
-                        value?.isEmpty ?? true ? 'ادخل كلمة المرور' : null,
-                  ),
-                  SizedBox(height: AppHeight.s8),
-                  // Confirm Password label
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "تأكيد كلمة المرور",
-                      style: getSemiBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blueOne700,
-                        fontSize: FontSize.s18,
-                      ),
-                    ),
-                  ),
-                  PrimaryTextFF(
-                    icon: IconAssets.password,
-                    isPassword: true,
-                    hint: "***********",
-                    controller: _confirmPasswordController,
-                    validator: (value) {
-                      if (value?.isEmpty ?? true) {
-                        return 'ادخل تأكيد كلمة المرور';
-                      }
-                      if (value != _passwordController.text) {
-                        return 'كلمة المرور غير متطابقة';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: AppHeight.s29),
-                  PrimaryElevatedButton(
-                    width: AppWidth.s339,
-                    height: AppHeight.s50,
-                    title: 'إنشاء حساب',
-                    onPress: _register,
-                    textStyle: getBoldStyle(
+                ),
+                SizedBox(height: AppHeight.s8),
+                PrimaryTextFF(
+                  textAlign: TextAlign.right,
+                  prefixIcon: IconAssets.person,
+                  hint: "مثال.. يوسف احمد شعراوي",
+                  controller: _nameController,
+                  keyboardType: TextInputType.name,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'ادخل الاسم' : null,
+                ),
+                SizedBox(height: AppHeight.s8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "البريد الإلكتروني",
+                    style: getSemiBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s16,
-                      color: ColorManager.white,
+                      color: ColorManager.natural900,
+                      fontSize: FontSize.s18,
                     ),
                   ),
-                  SizedBox(height: AppHeight.s10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        " لديك حساب بالفعل؟",
-                        style: getMediumStyle(
+                ),
+                SizedBox(height: AppHeight.s8),
+                PrimaryTextFF(
+                  icon: IconAssets.email,
+                  hint: "name@gmail.com",
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'ادخل البريد الإلكتروني' : null,
+                ),
+                SizedBox(height: AppHeight.s8),
+                // Gender label
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "النوع",
+                    style: getSemiBoldStyle(
+                      fontFamily: FontConstants.fontFamily,
+                      color: ColorManager.natural900,
+                      fontSize: FontSize.s18,
+                    ),
+                  ),
+                ),
+                SizedBox(height: AppHeight.s8),
+                BlocBuilder<AuthCubit, AuthState>(
+                  buildWhen: (previous, current) => current.maybeWhen(
+                    orElse: () => false,
+                    genderChanged: (_) => true,
+                  ),
+                  builder: (context, state) {
+                    final gender = context.read<AuthCubit>().gender;
+                    return GenderDropDown(gender);
+                  },
+                ),
+                SizedBox(height: AppHeight.s8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "كلمة المرور",
+                    style: getSemiBoldStyle(
+                      fontFamily: FontConstants.fontFamily,
+                      color: ColorManager.natural900,
+                      fontSize: FontSize.s18,
+                    ),
+                  ),
+                ),
+                PrimaryTextFF(
+                  icon: IconAssets.password,
+                  isPassword: true,
+                  hint: "***********",
+                  controller: _passwordController,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'ادخل كلمة المرور' : null,
+                ),
+                SizedBox(height: AppHeight.s8),
+                // Confirm Password label
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "تأكيد كلمة المرور",
+                    style: getSemiBoldStyle(
+                      fontFamily: FontConstants.fontFamily,
+                      color: ColorManager.blueOne700,
+                      fontSize: FontSize.s18,
+                    ),
+                  ),
+                ),
+                PrimaryTextFF(
+                  icon: IconAssets.password,
+                  isPassword: true,
+                  hint: "***********",
+                  controller: _confirmPasswordController,
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) {
+                      return 'ادخل تأكيد كلمة المرور';
+                    }
+                    if (value != _passwordController.text) {
+                      return 'كلمة المرور غير متطابقة';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: AppHeight.s24),
+                PrimaryElevatedButton(
+                  width: AppWidth.s339,
+                  height: AppHeight.s46,
+                  title: 'إنشاء حساب',
+                  onPress: _register,
+                  textStyle: getBoldStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    fontSize: FontSize.s16,
+                    color: ColorManager.white,
+                  ),
+                ),
+                SizedBox(height: AppHeight.s24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      " لديك حساب بالفعل؟",
+                      style: getMediumStyle(
+                        fontFamily: FontConstants.fontFamily,
+                        color: ColorManager.natural700,
+                        fontSize: FontSize.s12,
+                      ),
+                    ),
+                    SizedBox(width: AppWidth.s4),
+                    GestureDetector(
+                      onTap: () => context.go(Routes.login),
+                      child: Text(
+                        "تسجيل الدخول",
+                        style: getBoldStyle(
                           fontFamily: FontConstants.fontFamily,
-                          color: ColorManager.blueOne800,
+                          color: ColorManager.primary500,
                           fontSize: FontSize.s12,
                         ),
                       ),
-                      SizedBox(width: AppWidth.s4),
-                      GestureDetector(
-                        onTap: () => context.go(Routes.login),
-                        child: Text(
-                          "تسجيل الدخول",
-                          style: getBoldStyle(
-                            fontFamily: FontConstants.fontFamily,
-                            color: ColorManager.blueOne500,
-                            fontSize: FontSize.s12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),

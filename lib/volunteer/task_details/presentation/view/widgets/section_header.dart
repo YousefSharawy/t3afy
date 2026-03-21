@@ -6,9 +6,9 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 class SectionHeader extends StatelessWidget {
-  const SectionHeader({super.key, required this.icon, required this.title});
+  const SectionHeader({super.key, this.icon, required this.title});
 
-  final IconData icon;
+  final String? icon;
   final String title;
 
   @override
@@ -16,16 +16,18 @@ class SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
+        if (icon != null) ...[
+          Image.asset(icon!, width: AppWidth.s24, height: AppHeight.s24),
+        ],
+        SizedBox(width: AppWidth.s4),
         Text(
           title,
           style: getBoldStyle(
             fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s14,
-            color: Colors.white,
+            fontSize: FontSize.s12,
+            color: ColorManager.natural600,
           ),
         ),
-        SizedBox(width: AppWidth.s8),
-        Icon(icon, color: ColorManager.cyanPrimary, size: 20.r),
       ],
     );
   }

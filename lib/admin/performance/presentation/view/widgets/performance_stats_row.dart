@@ -43,7 +43,6 @@ class PerformanceStatsRow extends StatelessWidget {
             iconAsset: IconAssets.star,
             value: data.avgRating.toStringAsFixed(1),
             label: 'متوسط التقييم',
-            valueColor: ColorManager.amber400,
             decoration: BoxDecoration(
               color: ColorManager.blueOne900,
               borderRadius: BorderRadius.circular(AppRadius.s12),

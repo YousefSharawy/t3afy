@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -18,29 +19,26 @@ class MapButton extends StatelessWidget {
       onTap: _openMap,
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: AppWidth.s12,
-          vertical: AppHeight.s6,
+          horizontal: AppWidth.s10,
+          vertical: AppHeight.s4,
         ),
         decoration: BoxDecoration(
-          color: ColorManager.cyanPrimary.withValues(alpha: 0.15),
+          color: ColorManager.primary600,
           borderRadius: BorderRadius.circular(AppRadius.s8),
-          border: Border.all(
-            color: ColorManager.cyanPrimary.withValues(alpha: 0.5),
-          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+           Image.asset(IconAssets.map),
+            SizedBox(width: AppWidth.s4),
             Text(
               'فتح في الخريطة',
-              style: getMediumStyle(
+              style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s12,
-                color: ColorManager.cyanPrimary,
+                color: ColorManager.white,
               ),
             ),
-            SizedBox(width: AppWidth.s6),
-            Icon(Icons.map_rounded, color: ColorManager.cyanPrimary, size: 16.r),
           ],
         ),
       ),

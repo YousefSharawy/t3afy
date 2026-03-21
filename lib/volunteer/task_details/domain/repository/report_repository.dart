@@ -4,4 +4,8 @@ import 'package:t3afy/volunteer/task_details/data/models/task_report_model.dart'
 
 abstract class ReportRepository {
   Future<Either<Failture, void>> submitReport(TaskReportModel model);
+  Future<Either<Failture, Map<String, dynamic>?>> getExistingReport(
+    String taskId,
+    String userId,
+  );
 }

@@ -12,7 +12,7 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
   Future<VolunteerStatsModel> getVolunteerStats(String userId) async {
     try {
       const ttl = Duration(minutes: 5);
-      final cacheKey = 'vol_stats_$userId';
+      final cacheKey = 'vol_stats_v2_$userId';
       final cached = LocalAppStorage.getCache(cacheKey);
       if (cached != null) {
         return VolunteerStatsModel.fromJson(
@@ -22,7 +22,7 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
       final response = await _client
           .from('users')
           .select(
-            'id, name, email, phone, avatar_url, level, level_title, rating, total_hours, total_tasks, places_visited',
+            'id, name, email, phone, avatar_url, level, level_title, rating, total_hours, total_tasks, places_visited, total_points',
           )
           .eq('id', userId)
           .single();

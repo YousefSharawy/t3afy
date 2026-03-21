@@ -45,6 +45,7 @@ import 'package:t3afy/volunteer/task_details/data/sources/report_remote_data_sou
 import 'package:t3afy/volunteer/task_details/data/sources/report_impl_remote_data_source.dart';
 import 'package:t3afy/volunteer/task_details/data/repository/report_impl_repository.dart';
 import 'package:t3afy/volunteer/task_details/domain/repository/report_repository.dart';
+import 'package:t3afy/volunteer/task_details/domain/use_cases/get_existing_report_use_case.dart';
 import 'package:t3afy/volunteer/task_details/domain/use_cases/submit_report_use_case.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/report_cubit.dart';
 import 'package:t3afy/volunteer/notifications/data/sources/notifications_remote_data_source.dart';
@@ -234,8 +235,14 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton(
     () => SubmitReportUseCase(getIt<ReportRepository>()),
   );
+  getIt.registerLazySingleton(
+    () => GetExistingReportUseCase(getIt<ReportRepository>()),
+  );
   getIt.registerFactory(
-    () => ReportCubit(getIt<SubmitReportUseCase>()),
+    () => ReportCubit(
+      getIt<SubmitReportUseCase>(),
+      getIt<GetExistingReportUseCase>(),
+    ),
   );
 
   // ===== Notifications =====

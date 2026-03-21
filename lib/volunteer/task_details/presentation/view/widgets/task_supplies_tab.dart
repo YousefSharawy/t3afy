@@ -15,9 +15,9 @@ class TaskSuppliesTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SuppliesCard(supplies: task.supplies),
-        SizedBox(height: AppHeight.s14),
+        SizedBox(height: AppHeight.s8),
         const SuppliesNoteCard(),
-        SizedBox(height: AppHeight.s24),
+        SizedBox(height: AppHeight.s26),
       ],
     );
   }

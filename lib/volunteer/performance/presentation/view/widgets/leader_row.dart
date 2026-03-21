@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
@@ -26,23 +27,19 @@ class LeaderRow extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        vertical: AppHeight.s12,
-        horizontal: AppWidth.s16,
+        vertical: AppHeight.s6,
+        horizontal: AppWidth.s18,
       ),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [Color(0xFF0C203B), Color(0xFF143764)],
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.s12),
+       color: ColorManager.white,
+        borderRadius: BorderRadius.circular(AppRadius.s16),
         border: isMe
-            ? Border.all(color: ColorManager.blueThree500, width: 1.5)
+            ? Border.all(color: ColorManager.primary500, width: 1.sp)
             : null,
       ),
       child: Row(
         children: [
-          Text(medal, style: TextStyle(fontSize: 24.sp)),
+          Image.asset(IconAssets.medal,width: AppWidth.s24,height: AppHeight.s24,),
           SizedBox(width: AppWidth.s8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +48,7 @@ class LeaderRow extends StatelessWidget {
                 name,
                 style: getBoldStyle(
                   fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.white,
+                  color: ColorManager.natural600,
                   fontSize: FontSize.s14,
                 ),
               ),
@@ -59,29 +56,19 @@ class LeaderRow extends StatelessWidget {
                 '$hours ساعة',
                 style: getMediumStyle(
                   fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.blueTwo100,
-                  fontSize: FontSize.s11,
+                  color: ColorManager.natural300,
+                  fontSize: FontSize.s10,
                 ),
               ),
             ],
           ),
           const Spacer(),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppWidth.s12,
-              vertical: AppHeight.s4,
-            ),
-            decoration: BoxDecoration(
-              color: ColorManager.blueThree500.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(AppRadius.s8),
-            ),
-            child: Text(
-              'pts $pts',
-              style: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                color: const Color(0xffFFCD0F),
-                fontSize: FontSize.s12,
-              ),
+          Text(
+            'pts $pts',
+            style: getBoldStyle(
+              fontFamily: FontConstants.fontFamily,
+              color:  ColorManager.warning,
+              fontSize: FontSize.s15,
             ),
           ),
         ],

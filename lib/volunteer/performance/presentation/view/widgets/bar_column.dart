@@ -24,10 +24,10 @@ class BarColumn extends StatelessWidget {
       children: [
         Text(
           '${hours.round()}h',
-          style: getBoldStyle(
+          style: getBlackStyle(
             fontFamily: FontConstants.fontFamily,
-            color: ColorManager.blueThree300,
-            fontSize: FontSize.s12,
+            color: ColorManager.primary500,
+            fontSize: FontSize.s13,
           ),
         ),
         SizedBox(height: AppHeight.s6),
@@ -35,14 +35,7 @@ class BarColumn extends StatelessWidget {
           width: 60.sp,
           height: (55 * ratio).sp,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                ColorManager.cyanPrimary,
-                Color(0xFF02389E),
-              ],
-            ),
+        color: ColorManager.primary500,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(8.sp),
               topRight: Radius.circular(8.sp),
@@ -54,10 +47,10 @@ class BarColumn extends StatelessWidget {
         SizedBox(height: AppHeight.s8),
         Text(
           label,
-          style: getMediumStyle(
+          style: getLightStyle(
             fontFamily: FontConstants.fontFamily,
-            color: ColorManager.blueTwo100,
-            fontSize: FontSize.s11,
+            color: ColorManager.natural400,
+            fontSize: FontSize.s12,
           ),
         ),
       ],

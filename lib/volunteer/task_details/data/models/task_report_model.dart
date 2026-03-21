@@ -5,7 +5,6 @@ class TaskReportModel {
   final String? challenges;
   final int? attendeesCount;
   final bool materialsDistributed;
-  final bool objectivesMet;
   final String? additionalNotes;
   final int? rating;
 
@@ -16,7 +15,6 @@ class TaskReportModel {
     this.challenges,
     this.attendeesCount,
     this.materialsDistributed = false,
-    this.objectivesMet = false,
     this.additionalNotes,
     this.rating,
   });
@@ -28,7 +26,6 @@ class TaskReportModel {
     if (challenges != null && challenges!.isNotEmpty) 'challenges': challenges,
     if (attendeesCount != null) 'attendees_count': attendeesCount,
     'materials_distributed': materialsDistributed,
-    'objectives_met': objectivesMet,
     if (additionalNotes != null && additionalNotes!.isNotEmpty)
       'additional_notes': additionalNotes,
     if (rating != null) 'rating': rating,

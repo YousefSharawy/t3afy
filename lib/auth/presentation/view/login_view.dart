@@ -47,7 +47,7 @@ class _LoginViewState extends State<LoginView> {
       case 'admin':
         context.go(Routes.adminHome);
         break;
-      case 'user':
+      case 'volunteer':
         context.go(Routes.volunteerHome);
         break;
       default:
@@ -75,9 +75,8 @@ class _LoginViewState extends State<LoginView> {
               bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: AppHeight.s95),
+                SizedBox(height: AppHeight.s71),
                 Row(
                   mainAxisAlignment: .center,
                   children: [
@@ -85,11 +84,10 @@ class _LoginViewState extends State<LoginView> {
                       LocaleKeys.app_name.tr(),
                       style: getBoldStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blueOne600,
+                        color: ColorManager.natural900,
                         fontSize: FontSize.s24,
                       ),
                     ),
-                    SizedBox(width: AppWidth.s16),
                     Image.asset(
                       IconAssets.logo,
                       width: AppWidth.s67,
@@ -97,23 +95,14 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ],
                 ),
-                SizedBox(height: AppHeight.s48),
-                Text(
-                  "مرحبًا بك",
-                  style: getBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.blueOne900,
-                    fontSize: FontSize.s18,
-                  ),
-                ),
-                SizedBox(height: AppHeight.s32),
+                SizedBox(height: AppHeight.s102),
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
                     "البريد الالكترونى",
                     style: getSemiBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.blueOne700,
+                      color: ColorManager.natural900,
                       fontSize: FontSize.s18,
                     ),
                   ),
@@ -134,7 +123,7 @@ class _LoginViewState extends State<LoginView> {
                     "كلمة المرور",
                     style: getSemiBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.blueOne700,
+                      color: ColorManager.natural900,
                       fontSize: FontSize.s18,
                     ),
                   ),
@@ -155,15 +144,15 @@ class _LoginViewState extends State<LoginView> {
                     "نسيت كلمة المرور؟",
                     style: getSemiBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.blueOne800,
+                      color: ColorManager.primary500,
                       fontSize: FontSize.s14,
                     ).copyWith(letterSpacing: -0.5.sp),
                   ),
                 ),
-                SizedBox(height: AppHeight.s31),
+                SizedBox(height: AppHeight.s32),
                 PrimaryElevatedButton(
                   width: AppWidth.s339,
-                  height: AppHeight.s50,
+                  height: AppHeight.s46,
                   title: 'تسجيل الدخول',
                   onPress: _login,
                   textStyle: getBoldStyle(
@@ -177,7 +166,7 @@ class _LoginViewState extends State<LoginView> {
                   children: [
                     Expanded(
                       child: Divider(
-                        color: ColorManager.lightGray700,
+                        color: ColorManager.natural200,
                         thickness: 1,
                       ),
                     ),
@@ -187,14 +176,14 @@ class _LoginViewState extends State<LoginView> {
                         "المتابعة باستخدام",
                         style: getBoldStyle(
                           fontFamily: FontConstants.fontFamily,
-                          color: ColorManager.lightGray700,
+                          color: ColorManager.natural200,
                           fontSize: FontSize.s12,
                         ),
                       ),
                     ),
                     Expanded(
                       child: Divider(
-                        color: ColorManager.lightGray700,
+                        color: ColorManager.natural200,
                         thickness: 1,
                       ),
                     ),
@@ -231,10 +220,10 @@ class _LoginViewState extends State<LoginView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "  ليس لديك حساب ؟",
+                      "ليس لديك حساب؟",
                       style: getMediumStyle(
                         fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blueOne800,
+                        color: ColorManager.natural700,
                         fontSize: FontSize.s12,
                       ),
                     ),
@@ -245,7 +234,7 @@ class _LoginViewState extends State<LoginView> {
                         "انشاء حساب",
                         style: getBoldStyle(
                           fontFamily: FontConstants.fontFamily,
-                          color: ColorManager.blueOne500,
+                          color: ColorManager.primary500,
                           fontSize: FontSize.s12,
                         ),
                       ),

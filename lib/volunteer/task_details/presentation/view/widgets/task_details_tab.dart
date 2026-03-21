@@ -17,30 +17,29 @@ class TaskDetailsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (_hasLocation) ...[
           LocationSection(task: task),
-          SizedBox(height: AppHeight.s12),
+          SizedBox(height: AppHeight.s8),
         ],
         if (task.description?.isNotEmpty == true) ...[
           DescriptionSection(description: task.description!),
-          SizedBox(height: AppHeight.s12),
+          SizedBox(height: AppHeight.s8),
         ],
         if (task.objectives.isNotEmpty) ...[
           ObjectivesSection(objectives: task.objectives),
-          SizedBox(height: AppHeight.s12),
+          SizedBox(height: AppHeight.s8),
         ],
         if (task.supervisorName != null) ...[
           SupervisorSection(
             name: task.supervisorName!,
             phone: task.supervisorPhone,
           ),
-          SizedBox(height: AppHeight.s12),
+          SizedBox(height: AppHeight.s8),
         ],
         if (task.notes?.isNotEmpty == true) ...[
           NotesCard(notes: task.notes!),
-          SizedBox(height: AppHeight.s12),
+          SizedBox(height: AppHeight.s16),
         ],
         ReportButton(taskId: task.id, taskTitle: task.title),
         SizedBox(height: AppHeight.s24),

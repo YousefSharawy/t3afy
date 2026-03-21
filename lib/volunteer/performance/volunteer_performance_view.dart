@@ -71,38 +71,50 @@ class _VolunteerPerformanceViewState extends State<VolunteerPerformanceView> {
     List<LeaderboardEntryEntity> leaderboard,
     String currentUserId,
   ) {
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      color: const Color(0xFF00ABD2),
-      child: SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(height: AppHeight.s10),
-          Text(
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(top: AppHeight.s10),
+          child: Text(
             'الاداء و التقييم',
-            style: getBoldStyle(
+            style: getExtraBoldStyle(
               fontFamily: FontConstants.fontFamily,
-              color: ColorManager.blueOne900,
+              color: ColorManager.natural900,
               fontSize: FontSize.s16,
             ),
           ),
-          SizedBox(height: AppHeight.s31),
-          RatingCard(stats: stats),
-          SizedBox(height: AppHeight.s16),
-          PerformanceStatsRow(stats: stats),
-          SizedBox(height: AppHeight.s16),
-          MonthlyChart(monthlyHours: monthlyHours),
-          SizedBox(height: AppHeight.s16),
-          HonorBoard(
-            leaderboard: leaderboard,
-            currentUserId: currentUserId,
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _refresh,
+            color: const Color(0xFF00ABD2),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.only(
+                left: AppWidth.s18,
+                right: AppWidth.s18,
+                top: AppHeight.s24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  RatingCard(stats: stats),
+                  SizedBox(height: AppHeight.s16),
+                  PerformanceStatsRow(stats: stats),
+                  SizedBox(height: AppHeight.s12),
+                  MonthlyChart(monthlyHours: monthlyHours),
+                  SizedBox(height: AppHeight.s16),
+                  HonorBoard(
+                    leaderboard: leaderboard,
+                    currentUserId: currentUserId,
+                  ),
+                  SizedBox(height: AppHeight.s100),
+                ],
+              ),
+            ),
           ),
-        ],
-      ),
-    ),
+        ),
+      ],
     );
   }
 }

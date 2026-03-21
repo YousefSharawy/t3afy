@@ -32,11 +32,7 @@ class GreetingCard extends StatelessWidget {
         vertical: AppHeight.s20,
       ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-         begin: .bottomRight,
-         end: .topLeft,
-          colors: [ColorManager.blueOne900, ColorManager.blueOne800],
-        ),
+        color: ColorManager.primary50,
         borderRadius: BorderRadius.circular(AppRadius.s12),
       ),
       child: Column(
@@ -46,7 +42,7 @@ class GreetingCard extends StatelessWidget {
             _greeting,
             style: getRegularStyle(
               fontFamily: FontConstants.fontFamily,
-              color: ColorManager.blueOne50,
+              color: ColorManager.natural400,
               fontSize: FontSize.s11,
             ),
           ),
@@ -55,7 +51,7 @@ class GreetingCard extends StatelessWidget {
             name,
             style: getBoldStyle(
               fontFamily: FontConstants.fontFamily,
-              color: ColorManager.blueOne50,
+              color: ColorManager.natural800,
               fontSize: FontSize.s20,
             ),
           ),
@@ -66,17 +62,14 @@ class GreetingCard extends StatelessWidget {
               vertical: AppHeight.s4,
             ),
             decoration: BoxDecoration(
-              color: Color(0xff0C8BA8),
-              borderRadius: BorderRadius.circular(AppRadius.s25),
-              border: Border.all(
-                color: Color(0xff00FFDA)
-              )
+              color: ColorManager.primary100,
+              borderRadius: BorderRadius.circular(AppRadius.s16),
             ),
             child: Text(
               '$levelTitle المستوى $level',
               style: getSemiBoldStyle(
                 fontFamily: FontConstants.fontFamily,
-                color: Color(0xFF00FFDA),
+                color: ColorManager.primary600,
                 fontSize: FontSize.s10,
               ),
             ),

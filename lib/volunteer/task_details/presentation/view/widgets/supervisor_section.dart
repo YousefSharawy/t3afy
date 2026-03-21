@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -20,82 +21,93 @@ class SupervisorSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(
-            icon: Icons.person_rounded,
+           SectionHeader(
             title: 'المشرف المسؤول',
           ),
-          SizedBox(height: AppHeight.s12),
+          SizedBox(height: AppHeight.s16),
           Row(
             children: [
               Container(
-                width: 42.r,
-                height: 42.r,
+                width: AppWidth.s44,
+                height: AppHeight.s42,
                 decoration: BoxDecoration(
-                  color: ColorManager.navyLight,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: ColorManager.cyanPrimary.withValues(alpha: 0.4),
-                  ),
+                  color: ColorManager.infoLight,
+                  border: Border.all(color: ColorManager.info, width: 0.5.sp),
+                  borderRadius: BorderRadius.circular(AppRadius.s12)
                 ),
-                child: Icon(
-                  Icons.person,
-                  color: Colors.white.withValues(alpha: 0.7),
-                  size: 24.r,
+                child: Center(
+                  child: Image.asset(
+                    IconAssets.mentor,
+                  ),
                 ),
               ),
-              SizedBox(width: AppWidth.s10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: getSemiBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s14,
-                      color: Colors.white,
-                    ),
-                  ),
-                  if (phone != null) ...[
-                    SizedBox(height: AppHeight.s2),
+              SizedBox(width: AppWidth.s8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      phone!,
-                      style: getRegularStyle(
+                      name,
+                      style: getBoldStyle(
                         fontFamily: FontConstants.fontFamily,
                         fontSize: FontSize.s12,
-                        color: Colors.white.withValues(alpha: 0.55),
+                        color: ColorManager.natural400,
                       ),
                     ),
+                    if (phone != null) ...[
+                      SizedBox(height: AppHeight.s4),
+                      Text(
+                        phone!,
+                        style: getSemiBoldStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          fontSize: FontSize.s10,
+                          color: ColorManager.natural300,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
               const Spacer(),
               Row(
                 children: [
-                  IconButton(
-                    onPressed: () => _launchSms(phone),
-                    icon: Icon(
-                      Icons.message_rounded,
-                      color: ColorManager.cyanPrimary,
-                      size: 22.r,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(
-                      minWidth: 36.r,
-                      minHeight: 36.r,
+                  GestureDetector(
+                    onTap: () => _launchSms(phone),
+                    child: Container(
+                      width: AppWidth.s28,
+                      height:AppHeight.s28,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppRadius.s8),
+                        border: Border.all(color: ColorManager.info, width: 0.5.sp),
+                        color: ColorManager.infoLight,
+                      ),
+                      child: Center(
+                        child: Image.asset(
+                          IconAssets.call,
+                          width: AppWidth.s18,
+                          height: AppHeight.s18,
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(width: AppWidth.s4),
-                  IconButton(
-                    onPressed: () => _launchPhone(phone),
-                    icon: Icon(
-                      Icons.phone_rounded,
-                      color: ColorManager.cyanPrimary,
-                      size: 22.r,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(
-                      minWidth: 36.r,
-                      minHeight: 36.r,
+                  SizedBox(width: AppWidth.s8),
+                  GestureDetector(
+                    onTap: () => _launchPhone(phone),
+                    child: Container(
+                  width: AppWidth.s28,
+                      height:AppHeight.s28,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppRadius.s8),
+                        border: Border.all(color: ColorManager.info, width: 0.5.sp),
+                        color: ColorManager.infoLight,
+                      ),
+                      child: Center(
+                        child: Image.asset(
+                          IconAssets.message,
+                        width: AppWidth.s18,
+                          height: AppHeight.s18,
+                        ),
+                      ),
                     ),
                   ),
                 ],

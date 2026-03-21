@@ -1,21 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 class HomeStatCard extends StatelessWidget {
-  const HomeStatCard({
-    super.key,
-    required this.icon,
-    required this.iconColor,
-    required this.value,
-    required this.label,
-  });
+  const HomeStatCard({super.key, required this.value, required this.label});
 
-  final String icon;
-  final Color iconColor;
   final String value;
   final String label;
 
@@ -28,23 +19,15 @@ class HomeStatCard extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.bottomRight,
-          end: Alignment.topLeft,
-          colors: [ColorManager.blueOne700, ColorManager.blueOne900],
+          begin: .bottomRight,
+          end: .topLeft,
+          colors: [ColorManager.primary500, ColorManager.primary300],
         ),
-        borderRadius: BorderRadius.circular(AppRadius.s12),
+        borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            padding: EdgeInsets.all(8.sp),
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(AppRadius.s10),
-            ),
-            child: Image.asset(icon),
-          ),
           SizedBox(height: AppHeight.s4),
           Text(
             value,
@@ -59,7 +42,7 @@ class HomeStatCard extends StatelessWidget {
             label,
             style: getMediumStyle(
               fontFamily: FontConstants.fontFamily,
-              color: ColorManager.blueTwo100,
+              color: ColorManager.white,
               fontSize: FontSize.s14,
             ),
           ),

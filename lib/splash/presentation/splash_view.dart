@@ -1,10 +1,10 @@
-import 'dart:ui';
+import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -25,13 +25,12 @@ class _SplashViewState extends State<SplashView>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
-  late Animation<double> _logoFadeIn;
-  late Animation<double> _logoScaleDown;
-  late Animation<double> _logoMoveDown;
-  late Animation<double> _logoMoveLeft;
-  late Animation<double> _logoShrink;
-  late Animation<double> _textReveal;
-  late Animation<double> _buttonAnimation;
+  // Phase 1: Circular reveal
+  late Animation<double> _circleReveal;
+  // Phase 2: Logo + text fade in at center
+  late Animation<double> _centerFadeIn;
+  // Phase 3: Arc split — logo goes left (CCW), text goes right (CW)
+  late Animation<double> _arcSplit;
 
   bool _hasCompletedOnboarding = false;
 
@@ -44,105 +43,67 @@ class _SplashViewState extends State<SplashView>
     context.read<SplashCubit>().start();
 
     if (_hasCompletedOnboarding) {
+      // ── Returning user: same 3 phases but faster ──────────────
       _controller = AnimationController(
-        duration: const Duration(milliseconds: 1500),
+        duration: const Duration(milliseconds: 2000),
         vsync: this,
       );
 
-      _logoFadeIn = Tween<double>(begin: 0.0, end: 1.0).animate(
+      // Circle reveal (0% – 30%)
+      _circleReveal = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.0, 0.35, curve: Curves.easeIn),
+          curve: const Interval(0.0, 0.30, curve: Curves.easeInOut),
         ),
       );
 
-      _logoScaleDown = Tween<double>(begin: 1.0, end: 1.0).animate(_controller);
-      _logoMoveDown = Tween<double>(begin: 0.0, end: 0.0).animate(_controller);
-
-      _logoMoveLeft = Tween<double>(begin: 0.0, end: 1.0).animate(
+      // Center fade in (25% – 50%)
+      _centerFadeIn = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.35, 0.70, curve: Curves.easeInOutCubic),
+          curve: const Interval(0.25, 0.50, curve: Curves.easeIn),
         ),
       );
 
-      _logoShrink = Tween<double>(begin: 1.0, end: 0.55).animate(
+      // Arc split (50% – 85%)
+      _arcSplit = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.35, 0.70, curve: Curves.easeInOutCubic),
+          curve: const Interval(0.50, 0.85, curve: Curves.easeInOutCubic),
         ),
       );
-
-      _textReveal = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-          parent: _controller,
-          curve: const Interval(0.65, 1.0, curve: Curves.easeOutCubic),
-        ),
-      );
-
-      _buttonAnimation = Tween<double>(
-        begin: 0.0,
-        end: 0.0,
-      ).animate(_controller);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _controller.forward();
-        Future.delayed(const Duration(milliseconds: 2200), () {
-          // if (mounted) context.go(Routes.home);
-        });
       });
     } else {
+      // ── First-time user: full duration ────────────────────────
       _controller = AnimationController(
         duration: const Duration(milliseconds: 3200),
         vsync: this,
       );
 
-      _logoFadeIn = Tween<double>(begin: 0.0, end: 1.0).animate(
+      // Circle reveal (0% – 20%)
+      _circleReveal = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.0, 0.15, curve: Curves.easeIn),
+          curve: const Interval(0.0, 0.20, curve: Curves.easeInOut),
         ),
       );
 
-      _logoScaleDown = Tween<double>(begin: 1.0, end: 0.85).animate(
+      // Center fade in (18% – 38%)
+      _centerFadeIn = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.20, 0.34, curve: Curves.easeInOut),
+          curve: const Interval(0.18, 0.38, curve: Curves.easeIn),
         ),
       );
 
-      _logoMoveDown = Tween<double>(begin: 0.0, end: 1.0).animate(
+      // Arc split (42% – 72%)
+      _arcSplit = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.20, 0.34, curve: Curves.easeInOut),
-        ),
-      );
-
-      _logoMoveLeft = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-          parent: _controller,
-          curve: const Interval(0.38, 0.58, curve: Curves.easeInOutCubic),
-        ),
-      );
-
-      _logoShrink = Tween<double>(begin: 0.85, end: 0.55).animate(
-        CurvedAnimation(
-          parent: _controller,
-          curve: const Interval(0.38, 0.58, curve: Curves.easeInOutCubic),
-        ),
-      );
-
-      _textReveal = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-          parent: _controller,
-          curve: const Interval(0.54, 0.78, curve: Curves.easeOut),
-        ),
-      );
-
-      _buttonAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-          parent: _controller,
-          curve: const Interval(0.80, 0.94, curve: Curves.easeOut),
+          curve: const Interval(0.42, 0.72, curve: Curves.easeInOutCubic),
         ),
       );
 
@@ -158,44 +119,10 @@ class _SplashViewState extends State<SplashView>
     super.dispose();
   }
 
-  /// Reveals Arabic text letter by letter.
-  /// م (index 0) appears first, ي (last index) appears last.
-  Widget _buildRevealText(double progress) {
-    final chars = _splashText.characters.toList();
-    final total = chars.length;
-    final visibleCount = progress * total; // ← added
-
-    return RichText(
-      softWrap: false,
-      text: TextSpan(
-        children: List.generate(total, (i) {
-          final opacity = (visibleCount - i).clamp(0.0, 1.0); // ← added
-          return TextSpan(
-            text: chars[i],
-            style: getBoldStyle(
-              fontSize: FontSize.s28,
-              fontFamily: FontConstants.fontFamily,
-              color: ColorManager.white.withOpacity(opacity), // ← added
-            )
-          );
-        }),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return _hasCompletedOnboarding
-        ? _buildSplash(isReturning: true)
-        : _buildSplash(isReturning: false);
-  }
-
-  Widget _buildSplash({required bool isReturning}) {
-     double aboveCenterStart = 60.0.sp;
-     double moveDownAmount = 28.0.sp;
-
-    return BlocListener<SplashCubit,SplashState>(
-       listener: (context, state) {
+    return BlocListener<SplashCubit, SplashState>(
+      listener: (context, state) {
         state.when(initial: () {}, success: (view) => context.go(view));
       },
       child: PrimaryScaffold(
@@ -203,54 +130,132 @@ class _SplashViewState extends State<SplashView>
           animation: _controller,
           builder: (context, child) {
             final size = MediaQuery.of(context).size;
-      
-            final double verticalOffset =
-                -aboveCenterStart + moveDownAmount * _logoMoveDown.value;
-      
-            // ── Unified logo size across all 3 phases ────────────────
-            // Phase 1: 304×213 → Phase 2: 247×173 → Phase 3: 195×137
-            final double logoW = lerpDouble(
-              lerpDouble(304.sp, 247.sp, (_logoScaleDown.value - 1.0) / (0.85 - 1.0))!,
-              195.sp,
-              _logoMoveLeft.value,
-            )!.w;
-            final double logoH = lerpDouble(
-              lerpDouble(213.sp, 173.sp, (_logoScaleDown.value - 1.0) / (0.85 - 1.0))!,
-              137.sp,
-              _logoMoveLeft.value,
-            )!.h;
-            // Starts centered, slides to left:0 smoothly
-            final double logoLeft = lerpDouble(
-              size.width / 2 - logoW / 2,
-              0,
-              _logoMoveLeft.value,
+            final centerX = size.width / 2;
+            final centerY = size.height / 2;
+
+            // ── Sizes ──────────────────────────────────────────────
+            // Logo: starts at 195×137 centered, stays that size
+            final double logoW = 195.sp.w;
+            final double logoH = 137.sp.h;
+            // Text height estimate
+            final double textH = 36.h;
+            // Gap between logo and text when stacked
+            final double gap = 12.h;
+
+            // ── Combined group center (logo + gap + text) ────────
+            final double groupH = logoH + gap + textH;
+            final double groupTop = centerY - groupH / 2;
+
+            // ── Arc radius: distance from center to final position ─
+            // Logo final position: left-center (logo centered vertically, left edge)
+            // Text final position: right-center (text centered vertically, right side)
+            final double logoFinalX = logoW / 2 + AppWidth.s16;
+            final double logoFinalY = centerY;
+            final double textFinalX = centerX + (size.width - centerX) / 2;
+            final double textFinalY = centerY;
+
+            // Arc radius for the logo (distance from center to final pos)
+            final double logoArcRadius = (centerX - logoFinalX).abs();
+            // Arc radius for the text
+            final double textArcRadius = (textFinalX - centerX).abs();
+
+            // ── Logo position along CCW arc ────────────────────────
+            // Starts at top of arc (angle = -π/2 = 12 o'clock relative to center)
+            // Ends at left (angle = -π = 9 o'clock) → counter-clockwise quarter
+            final double logoAngle = ui.lerpDouble(-pi / 2, -pi, _arcSplit.value)!;
+            final double logoCurrentX =
+                centerX + logoArcRadius * cos(logoAngle);
+            final double logoCurrentY =
+                centerY + logoArcRadius * sin(logoAngle);
+
+            // ── Text position along CW arc ─────────────────────────
+            // Starts at bottom of arc (angle = π/2 = 6 o'clock)
+            // Ends at right (angle = 0 = 3 o'clock) → clockwise quarter
+            final double textAngle = ui.lerpDouble(pi / 2, 0, _arcSplit.value)!;
+            final double textCurrentX =
+                centerX + textArcRadius * cos(textAngle);
+            final double textCurrentY =
+                centerY + textArcRadius * sin(textAngle);
+
+            // ── Interpolate positions ──────────────────────────────
+            // Before arc starts, items are in center stack position
+            // After arc ends, items are at their arc-computed positions
+            final double logoX = ui.lerpDouble(
+              centerX,
+              logoCurrentX,
+              _arcSplit.value,
             )!;
-            final double logoTop = size.height / 2 + verticalOffset - logoH / 2;
+            final double logoY = ui.lerpDouble(
+              groupTop + logoH / 2,
+              logoCurrentY,
+              _arcSplit.value,
+            )!;
+
+            final double textX = ui.lerpDouble(
+              centerX,
+              textCurrentX,
+              _arcSplit.value,
+            )!;
+            final double textY = ui.lerpDouble(
+              groupTop + logoH + gap + textH / 2,
+              textCurrentY,
+              _arcSplit.value,
+            )!;
+
             return Container(
               width: double.infinity,
               height: double.infinity,
-              color: ColorManager.blueOne500,
+              color: _circleReveal.value >= 1.0
+                  ? ColorManager.blueOne500
+                  : ColorManager.white,
               child: Stack(
                 children: [
-                  Positioned(
-                    top: logoTop,
-                    left: logoLeft,
-                    child: Opacity(
-                      opacity: _logoFadeIn.value,
-                      child: SizedBox(
-                        width: logoW,
-                        height: logoH,
-                        child: Image.asset(IconAssets.logo, fit: BoxFit.contain),
+                  // ── Phase 1: Circular reveal ───────────────────
+                  if (_circleReveal.value < 1.0)
+                    ClipPath(
+                      clipper: CircleRevealClipper(_circleReveal.value),
+                      child: Container(
+                        width: double.infinity,
+                        height: double.infinity,
+                        color: ColorManager.blueOne500,
                       ),
                     ),
-                  ),
-                  // ── Text to the right of logo ─────────────────────────
-                  if (_textReveal.value > 0)
+
+                  // ── Phase 2 & 3: Logo ──────────────────────────
+                  if (_centerFadeIn.value > 0)
                     Positioned(
-                      top: logoTop + logoH / 2 - 20.h,
-                      left: AppWidth.s16,
-                      right: AppWidth.s2,
-                      child: _buildRevealText(_textReveal.value),
+                      left: logoX - logoW / 2,
+                      top: logoY - logoH / 2,
+                      child: Opacity(
+                        opacity: _centerFadeIn.value,
+                        child: SizedBox(
+                          width: logoW,
+                          height: logoH,
+                          child: Image.asset(
+                            IconAssets.logo,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // ── Phase 2 & 3: Text ──────────────────────────
+                  if (_centerFadeIn.value > 0)
+                    Positioned(
+                      left: textX - _measureTextWidth() / 2,
+                      top: textY - textH / 2,
+                      child: Opacity(
+                        opacity: _centerFadeIn.value,
+                        child: Text(
+                          _splashText,
+                          style: getBoldStyle(
+                            fontSize: FontSize.s28,
+                            fontFamily: FontConstants.fontFamily,
+                            color: ColorManager.white,
+                          ),
+                          softWrap: false,
+                        ),
+                      ),
                     ),
                 ],
               ),
@@ -259,5 +264,46 @@ class _SplashViewState extends State<SplashView>
         ),
       ),
     );
+  }
+
+  /// Measures the rendered width of the splash text for accurate centering.
+  double _measureTextWidth() {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: _splashText,
+        style: getBoldStyle(
+          fontSize: FontSize.s28,
+          fontFamily: FontConstants.fontFamily,
+          color: ColorManager.white,
+        ),
+      ),
+textDirection: ui.TextDirection.rtl,
+      maxLines: 1,
+    )..layout();
+    return textPainter.width;
+  }
+}
+
+// ─── Circular Reveal Clipper ─────────────────────────────────────────────────
+
+class CircleRevealClipper extends CustomClipper<Path> {
+  final double progress;
+
+  CircleRevealClipper(this.progress);
+
+  @override
+  Path getClip(Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = sqrt(size.width * size.width + size.height * size.height);
+    final radius = maxRadius * progress;
+
+    final path = Path();
+    path.addOval(Rect.fromCircle(center: center, radius: radius));
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CircleRevealClipper oldClipper) {
+    return oldClipper.progress != progress;
   }
 }

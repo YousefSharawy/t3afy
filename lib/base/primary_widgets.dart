@@ -48,14 +48,14 @@ class PrimaryElevatedButton extends StatelessWidget {
         width: width ?? 1.sw,
         height: height ?? AppHeight.s50,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s10),
+          borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s24),
         ),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: backGroundColor ?? ColorManager.blueOne700,
+            backgroundColor: backGroundColor ?? ColorManager.primary500,
             shape: RoundedRectangleBorder(
-              side: BorderSide(color: borderColor ?? ColorManager.trasnparent),
-              borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s8),
+              side: BorderSide(color: borderColor ?? ColorManager.transparent),
+              borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s24),
             ),
             fixedSize: Size(width ?? 1.sw, height ?? AppHeight.s50),
           ),
@@ -110,7 +110,10 @@ class PrimaryRadio extends StatelessWidget {
           height: AppWidth.s20,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(width: AppSize.s05, color: ColorManager.blueOne600),
+            border: Border.all(
+              width: AppSize.s05,
+              color: ColorManager.blueOne600,
+            ),
             color: isSelected ? ColorManager.blueOne600 : Colors.transparent,
           ),
         ),
@@ -167,14 +170,14 @@ class _PrimaryTextFFState extends State<PrimaryTextFF> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: AppHeight.s54,
+      height: widget.maxLines == 1 ? AppHeight.s42 : null,
       decoration: BoxDecoration(
-        border: Border.all(width: 1.5.sp, color: ColorManager.blueOne700),
-        color: widget.filledColor ?? Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.s8),
+        border: Border.all(width: 1.sp, color: ColorManager.natural200),
+        color: widget.filledColor ?? ColorManager.natural100,
+        borderRadius: BorderRadius.circular(AppRadius.s12),
       ),
       child: TextFormField(
-        maxLines: 1,
+        maxLines: widget.maxLines,
         expands: false,
         keyboardType: widget.keyboardType,
         obscureText: isObscure,
@@ -188,8 +191,8 @@ class _PrimaryTextFFState extends State<PrimaryTextFF> {
         textAlign: widget.textAlign ?? TextAlign.right,
         textAlignVertical: TextAlignVertical.center,
         style: getSemiBoldStyle(
-          fontSize: FontSize.s18,
-          color: ColorManager.blueOne700,
+          fontSize: FontSize.s14,
+          color: ColorManager.natural900,
           fontFamily: FontConstants.fontFamily,
         ),
         decoration: InputDecoration(
@@ -198,12 +201,12 @@ class _PrimaryTextFFState extends State<PrimaryTextFF> {
             vertical: AppHeight.s10,
           ),
           filled: true,
-          fillColor: Colors.transparent,
+          fillColor: ColorManager.natural100,
           hintText: widget.hint,
           hintTextDirection: TextDirection.ltr,
           hintStyle: getSemiBoldStyle(
-            fontSize: FontSize.s18,
-            color: ColorManager.blueOne200,
+            fontSize: FontSize.s14,
+            color: ColorManager.natural400,
             fontFamily: FontConstants.fontFamily,
           ),
           border: InputBorder.none,

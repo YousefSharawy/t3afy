@@ -33,10 +33,12 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> login(String email, String password) async {
     emit(const AuthState.loading());
     final result = await _login(email, password);
-    result.fold((failure) => emit(AuthState.error(failure.message)), (user) async{
-       final entity = user.toEntity();
-  await LocalAppStorage.saveUserSession(entity.role, entity.id);
-  emit(AuthState.success(entity));
+    result.fold((failure) => emit(AuthState.error(failure.message)), (
+      user,
+    ) async {
+      final entity = user.toEntity();
+      await LocalAppStorage.saveUserSession(entity.role, entity.id);
+      emit(AuthState.success(entity));
     });
   }
 
@@ -53,7 +55,9 @@ class AuthCubit extends Cubit<AuthState> {
       password: password,
       role: role,
     );
-    result.fold((failure) => emit(AuthState.error(failure.message)), (user)async {
+    result.fold((failure) => emit(AuthState.error(failure.message)), (
+      user,
+    ) async {
       final entity = user.toEntity();
       await LocalAppStorage.saveUserSession(entity.role, entity.id);
       emit(AuthState.success(entity));

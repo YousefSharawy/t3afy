@@ -2,7 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:t3afy/app/failture.dart';
 import 'package:t3afy/volunteer/home/data/sources/volunteer_home_remote_data_source.dart';
 import 'package:t3afy/volunteer/home/domain/repository/home_repository.dart';
-import 'package:t3afy/volunteer/mappers/home_mappers.dart';
+import 'package:t3afy/volunteer/home/data/mappers/home_mappers.dart';
 import 'package:t3afy/volunteer/tasks/domain/entities/home_enities.dart';
 
 class HomeImplRepository implements VolunteerHomeRepository {

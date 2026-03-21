@@ -180,17 +180,16 @@ class _AdminProfileViewState extends State<AdminProfileView> {
             name: profile.name,
             subtitle: profile.email,
             avatarUrl: profile.avatarUrl,
-            showCameraIcon: true,
             badges: [
               ProfileBadge(
+                borderColor: ColorManager.infoLight,
                 label: 'مدير النظام',
-                color: const Color(0xFF00ABD2),
+                color: ColorManager.info,
               ),
             ],
           ),
           SizedBox(height: AppHeight.s4),
           ProfileInfoSection(
-            title: 'معلومات الحساب',
             items: [
               ProfileInfoItem(label: 'الاسم', value: profile.name),
               ProfileInfoItem(label: 'البريد الإلكتروني', value: profile.email),

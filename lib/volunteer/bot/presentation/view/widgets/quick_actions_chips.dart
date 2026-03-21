@@ -17,31 +17,28 @@ class QuickActionChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (actions.isEmpty) return const SizedBox.shrink();
     return Wrap(
-      spacing: 8.sp,
+      spacing: 4.sp,
       runSpacing: 8.sp,
-      alignment: WrapAlignment.center,
+      alignment: WrapAlignment.start,
       children: actions.map((action) {
         return GestureDetector(
           onTap: () => onTap(action),
           child: Container(
             padding: EdgeInsets.symmetric(
-              horizontal: 12.sp,
-              vertical: 6.sp,
+              horizontal: AppWidth.s12,
+              vertical: AppHeight.s2,
             ),
             decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(AppRadius.s20),
-              border: Border.all(
-                color: ColorManager.blueTwo200,
-                width: 1.sp,
-              ),
+              color: ColorManager.primary500,
+              borderRadius: BorderRadius.circular(AppRadius.s16),
             ),
             child: Text(
               action,
-              style: getSemiBoldStyle(
+              style: getRegularStyle(
                 fontFamily: FontConstants.fontFamily,
-                color: ColorManager.blueOne800,
+                color: ColorManager.natural50,
                 fontSize: FontSize.s10,
               ),
             ),

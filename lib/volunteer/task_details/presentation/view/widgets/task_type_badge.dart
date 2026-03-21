@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
@@ -16,15 +17,15 @@ class TaskTypeBadge extends StatelessWidget {
         vertical: AppHeight.s4,
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppRadius.s20),
+        color: ColorManager.natural50,
+        borderRadius: BorderRadius.circular(AppRadius.s4),
       ),
       child: Text(
         type,
         style: getMediumStyle(
           fontFamily: FontConstants.fontFamily,
-          fontSize: FontSize.s11,
-          color: Colors.white,
+          fontSize: FontSize.s10,
+          color: ColorManager.natural600,
         ),
       ),
     );

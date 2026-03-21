@@ -1,117 +1,110 @@
 import 'package:flutter/material.dart';
 
 class ColorManager {
-  static const trasnparent = Colors.transparent;
-  static const white = Color(0XFFFFFFFF);
-  static const black = Color(0XFF000000);
-  static const background = Color(0XFFFEFEFE);
-  // Blue 1
-  static const blueOne50 = Color(0xffe8edf4);
-  static const blueOne100 = Color(0xffb9c8dc);
-  static const blueOne200 = Color(0xff97adcb);
-  static const blueOne300 = Color(0xff6788b3);
-  static const blueOne400 = Color(0xff4971a4);
-  static const blueOne500 = Color(0xff1c4d8d);
-  static const blueOne600 = Color(0xff194680);
-  static const blueOne700 = Color(0xff143764);
-  static const blueOne800 = Color(0xff0f2a4e);
-  static const blueOne900 = Color(0xff0c203b);
-  // Blue 2
-  static const blueTwo50 = Color(0xffe9eef4);
-  static const blueTwo100 = Color(0xffbac9de);
-  static const blueTwo200 = Color(0xff98afce);
-  static const blueTwo300 = Color(0xff6a8bb8);
-  static const blueTwo400 = Color(0xff4d75aa);
-  static const blueTwo500 = Color(0xff205295);
-  static const blueTwo600 = Color(0xff1d4b88);
-  static const blueTwo700 = Color(0xff173a6a);
-  static const blueTwo800 = Color(0xff122d52);
-  static const blueTwo900 = Color(0xff0d223f);
+  static const transparent = Colors.transparent;
+  static const white = Color(0xFFFFFFFF);
+  static const black = Color(0xFF000000);
 
-  // Blue 3
-  static const blueThree50 = Color(0xffe6f4ff);
-  static const blueThree100 = Color(0xffb0deff);
-  static const blueThree200 = Color(0xff8aceff);
-  static const blueThree300 = Color(0xff54b8ff);
-  static const blueThree400 = Color(0xff33aaff);
-  static const blueThree500 = Color(0xff0095ff);
-  static const blueThree600 = Color(0xff0088e8);
-  static const blueThree700 = Color(0xff006ab5);
-  static const blueThree800 = Color(0xff00528c);
-  static const blueThree900 = Color(0xff003f6b);
+  // Primary (Teal/Cyan brand color)
+  static const primary50  = Color(0xFFE6F2F5);
+  static const primary100 = Color(0xFFB0D3DF);
+  static const primary200 = Color(0xFF8AC0D0);
+  static const primary300 = Color(0xFF54A3BB);// gradient1
+  static const primary400 = Color(0xFF3391AD);
+  static const primary500 = Color(0xFF007599); // elevated buttons, splash screen // gradient1
+  static const primary600 = Color(0xFF006B8B);
+  static const primary700 = Color(0xFF00546D);
+  static const primary800 = Color(0xFF004054);
+  static const primary900 = Color(0xFF003140);
 
-  // Dark Gray
-  static const darkGray50 = Color(0xffebebeb);
-  static const darkGray100 = Color(0xffc0c0c0);
-  static const darkGray200 = Color(0xffa1a1a1);
-  static const darkGray300 = Color(0xff767676);
-  static const darkGray400 = Color(0xff5c5c5c);
-  static const darkGray500 = Color(0xff333333);
-  static const darkGray600 = Color(0xff2e2e2e);
-  static const darkGray700 = Color(0xff242424);
-  static const darkGray800 = Color(0xff1c1c1c);
-  static const darkGray900 = Color(0xff151515);
+  // Neutral / Natural
+  static const natural50  = Color(0xFFF7F8FA); // background
+  static const natural100 = Color(0xFFEEF0F4);
+  static const natural200 = Color(0xFFD8DCE3);
+  static const natural300 = Color(0xFFB0B7C3);
+  static const natural400 = Color(0xFF8E96A4);
+  static const natural500 = Color(0xFF6B7280);
+  static const natural600 = Color(0xFF4B5563);
+  static const natural700 = Color(0xFF374151);
+  static const natural800 = Color(0xFF1F2937);
+  static const natural900 = Color(0xFF111827);
 
-  // Light Gray
-  static const lightGray50 = Color(0xfffdfdfd);
-  static const lightGray100 = Color(0xfff7f7f7);
-  static const lightGray200 = Color(0xfff4f4f4);
-  static const lightGray300 = Color(0xffeeeeee);
-  static const lightGray400 = Color(0xffebebeb);
-  static const lightGray500 = Color(0xffe6e6e6);
-  static const lightGray600 = Color(0xffd1d1d1);
-  static const lightGray700 = Color(0xffa3a3a3);
-  static const lightGray800 = Color(0xff7f7f7f);
-  static const lightGray900 = Color(0xff616161);
+  // Semantic — Status
+  static const success      = Color(0xFF16A34A); 
+  static const successLight = Color(0xFFDCFCE7);
+  static const warning      = Color(0xFFF59E0B);
+  static const warningLight = Color(0xFFFEF3C7);
+  static const error        = Color(0xFFDC2626);
+  static const errorLight   = Color(0xFFFEE2E2);
+  static const info         = Color(0xFF2563EB);
+  static const infoLight    = Color(0xFFDBEAFE);
 
-  static const Color darkPrimary = Color(0xff0C092A);
-  static const Color navbarInactiveItem = Color(0xffB5B5B5);
-  static const Color navbarInactiveItemTitle = Color(0xff9CA3AF);
-  static const tealSoft = Color(0XFFB8E3E3);
-  static const lightTealSoft = Color(0XFFF0FDFA);
-  static const lightGrey = Color(0XFFF3F4F6);
-  static const grey = Color(0xff464655);
-  static const darkGrey = Color(0xff364153);
-  static const divider = Color(0xffECEDF3);
-  static const secondary = Color(0xff4C9BD0);
+  static const accentSand     = Color(0xFFF5F0E8);
+  static const accentLavender = Color(0xFFEDE9FE);
+  static const accentMint     = Color(0xFFD1FAE5);
 
-  static const shimmerBaseColor = Color(0xFFF4F4F4);
-  static const shimmerHighlightedColor = Color(0xFFDADADA);
-  static const Color error = Color(0xffEF3826);
-  static const Color lightError = Color(0xFFFEF2F2);
-  static const Color success = Color(0xff0D943C);
-  static const Color warning = Color(0xffFD9A56);
-  static const Color chevronRight = Color(0xff99A1AF);
+  // ── Semantic aliases (new names) ──────────────────────────────────────────
+  static const background              = natural50;
+  static const shimmerBaseColor        = natural100;
+  static const shimmerHighlightedColor = natural200;
+  static const divider                 = natural200;
+  static const navbarInactiveItem      = natural300;
+  static const navbarInactiveItemTitle = natural400;
+  static const grey                    = natural500;
+  static const darkGrey                = natural700;
+  static const darkPrimary             = natural900;
+  static const fieldBackground         = natural50;
+  static const fieldBorder             = natural200;
+  static const chevronRight            = natural400;
+  static const secondary               = primary400;
+  static const cyanPrimary             = primary500;
+  static const cyanDark                = primary600;
+  static const lightTealSoft           = primary50;
+  static const tealSoft                = primary100;
+  static const navyCard                = natural800;
+  static const navyLight               = natural700;
+  static const amber400                = warning;
+  static const amber500                = Color(0xFFF59E0B);
+  static const emeraldGreen            = success;
+  static const neonGreen               = Color(0xFF66F839);
+  static const violet300               = accentLavender;
+  static const violet600               = Color(0xFF703DEB);
+  static const violet700               = Color(0xFF7C3AED);
+  static const red                     = error;
+  static const darkRed                 = Color(0xFF970909);
+  static const lightError              = errorLight;
+  static const lightGrey               = natural100;
 
-  // Cyan / Teal — primary CTA & accent colour used throughout the app
-  static const Color cyanPrimary = Color(0xFF00ABD2);
-  static const Color cyanDark = Color(0xFF0C8BA8);
-  static const Color cyanAccent = Color(0xFF00FFDA);
-  static const Color mintGreen = Color(0xFF00C9A7);
+  // ── blueOne* backward-compatible aliases ──────────────────────────────────
+  static const blueOne50  = primary50;
+  static const blueOne100 = primary100;
+  static const blueOne200 = primary200;
+  static const blueOne300 = primary300;
+  static const blueOne400 = primary400;
+  static const blueOne500 = primary500;
+  static const blueOne600 = primary500;
+  static const blueOne700 = primary700;
+  static const blueOne800 = natural800;
+  static const blueOne900 = natural900;
 
-  // Greens
-  static const Color successLight = Color(0xFF4ADE80);
-  static const Color emeraldGreen = Color(0xFF10B981);
-  static const Color neonGreen = Color(0xFF66F839);
+  // ── blueTwo* backward-compatible aliases ──────────────────────────────────
+  static const blueTwo100 = primary100;
+  static const blueTwo200 = primary200;
+  static const blueTwo300 = primary300;
+  static const blueTwo400 = primary400;
+  static const blueTwo500 = primary500;
+  static const blueTwo600 = primary600;
+  static const blueTwo900 = natural900;
 
-  // Ambers
-  static const Color amber400 = Color(0xFFFBBF24);
-  static const Color amber500 = Color(0xFFF59E0B);
+  // ── blueThree* backward-compatible aliases ────────────────────────────────
+  static const blueThree300 = accentMint;
+  static const blueThree400 = primary400;
+  static const blueThree500 = primary500;
+  static const blueThree600 = primary600;
+  static const blueThree900 = natural900;
 
-  // Purples / Violets — used for active tab indicators
-  static const Color violet300 = Color(0xFFA78BFA);
-  static const Color violet600 = Color(0xFF703DEB);
-  static const Color violet700 = Color(0xFF7C3AED);
-
-  // Navy fill colours used on cards & overlays
-  static const Color navyCard = Color(0xFF1F2E4F);
-  static const Color navyLight = Color(0xFF1E3A5F);
-
-  // Reds
-  static const Color darkRed = Color(0xFF970909);
-  static const Color red = Color(0xFFFF2424);
-
-  // Form fields (light theme)
-  static const Color fieldBackground = Color(0xFFF3F4F6);
-  static const Color fieldBorder = Color(0xFFE5E7EB);
+  // ── lightGray* / darkGray* backward-compatible aliases ───────────────────
+  static const lightGray400 = natural400;
+  static const lightGray700 = natural700;
+  static const darkGray     = natural700;
 }

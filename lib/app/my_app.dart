@@ -31,7 +31,6 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(
           lazy: false,
           create: (_) {
-            debugPrint('🟡 Creating OnlineStatusCubit from MyApp...');
             return getIt<OnlineStatusCubit>();
           },
         ),

@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/routes.dart';
+import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
@@ -13,7 +15,7 @@ import 'package:t3afy/volunteer/profile/presentation/view/widgets/profile_app_ba
 import 'package:t3afy/base/widgets/profile_header_card.dart';
 import 'package:t3afy/base/widgets/profile_info_section.dart';
 import 'package:t3afy/base/widgets/profile_badge.dart';
-import 'package:t3afy/volunteer/profile/presentation/view/widgets/profile_logout_button.dart';
+import 'package:t3afy/base/primary_widgets.dart';
 import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
 
 class VolunteerProfileView extends StatefulWidget {
@@ -103,63 +105,103 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
       onRefresh: _refresh,
       color: const Color(0xFF00ABD2),
       child: SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.only(left: AppWidth.s18, right: AppWidth.s18),
-      child: Column(
-        children: [
-          SizedBox(height: AppHeight.s10),
-          const ProfileAppBar(),
-          SizedBox(height: AppHeight.s24),
-          ProfileHeaderCard(
-            name: profile.name,
-            subtitle: '${profile.email} | ${profile.phone}',
-            avatarUrl: profile.avatarUrl,
-            badges: [
-              ProfileBadge(label: profile.levelTitle),
-              ProfileBadge(label: 'المستوى ${profile.level}'),
-            ],
-          ),
-          SizedBox(height: AppHeight.s4),
-          ProfileInfoSection(
-            title: 'بيانات التطوع',
-            items: [
-              ProfileInfoItem(label: 'المنطقة', value: profile.region),
-              ProfileInfoItem(label: 'تاريخ الإنضمام', value: joinedDate),
-              ProfileInfoItem(
-                label: 'المؤهل',
-                value: profile.qualification,
-                hasDivider: false,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(left: AppWidth.s18, right: AppWidth.s18),
+        child: Column(
+          children: [
+            SizedBox(height: AppHeight.s20),
+            const ProfileAppBar(),
+            SizedBox(height: AppHeight.s16),
+            ProfileHeaderCard(
+              name: profile.name,
+              subtitle: '${profile.email} | ${profile.phone}',
+              avatarUrl: profile.avatarUrl,
+              badges: [
+                ProfileBadge(
+                  color: ColorManager.success,
+                  borderColor: ColorManager.successLight,
+                  label: profile.levelTitle,
+                ),
+                ProfileBadge(
+                  color: ColorManager.warning,
+                  borderColor: ColorManager.warningLight,
+                  label: 'المستوى ${profile.level}',
+                ),
+              ],
+            ),
+            SizedBox(height: AppHeight.s16),
+            Align(
+              alignment: .centerRight,
+              child: Text(
+                "بيانات التطوع",
+                style: getBoldStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s14,
+                  color: ColorManager.natural700,
+                ),
               ),
-            ],
-          ),
-          SizedBox(height: AppHeight.s4),
-          ProfileInfoSection(
-            title: 'الإنجازات',
-            items: [
-              ProfileInfoItem(
-                label: 'مهام مكتملة',
-                value: '${profile.totalTasks} مهمة',
+            ),
+            SizedBox(height: AppHeight.s8),
+            ProfileInfoSection(
+              items: [
+                ProfileInfoItem(label: 'المنطقة', value: profile.region),
+                ProfileInfoItem(label: 'تاريخ الإنضمام', value: joinedDate),
+                ProfileInfoItem(
+                  label: 'المؤهل',
+                  value: profile.qualification,
+                  hasDivider: false,
+                ),
+              ],
+            ),
+            SizedBox(height: AppHeight.s16),
+            Align(
+              alignment: .centerRight,
+              child: Text(
+                "الإنجازات",
+                style: getBoldStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s14,
+                  color: ColorManager.natural700,
+                ),
               ),
-              ProfileInfoItem(
-                label: 'أماكن مزارة',
-                value: '${profile.placesVisited} مكان',
+            ),
+            SizedBox(height: AppHeight.s4),
+            ProfileInfoSection(
+              items: [
+                ProfileInfoItem(
+                  label: 'مهام مكتملة',
+                  value: '${profile.totalTasks} مهمة',
+                ),
+                ProfileInfoItem(
+                  label: 'أماكن مزارة',
+                  value: '${profile.placesVisited} مكان',
+                ),
+                ProfileInfoItem(
+                  label: 'إجمالي عدد الساعات',
+                  value: '${profile.totalHours} ساعة',
+                ),
+                ProfileInfoItem(
+                  label: 'النقاط المكتسبة',
+                  value: '${profile.totalPoints} نقطة',
+                  hasDivider: false,
+                ),
+              ],
+            ),
+            SizedBox(height: AppHeight.s16),
+            PrimaryElevatedButton(
+              height: AppHeight.s46,
+              title: 'تسجيل الخروج',
+              onPress: _logout,
+              backGroundColor: ColorManager.error,
+              textStyle: getBoldStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s16,
+                color: ColorManager.white,
               ),
-              ProfileInfoItem(
-                label: 'إجمالي عدد الساعات',
-                value: '${profile.totalHours} ساعة',
-              ),
-              ProfileInfoItem(
-                label: 'النقاط المكتسبة',
-                value: '${profile.totalPoints} نقطة',
-                hasDivider: false,
-              ),
-            ],
-          ),
-          SizedBox(height: AppHeight.s16),
-          ProfileLogoutButton(onPress: _logout),
-        ],
+            ),
+          ],
+        ),
       ),
-    ),
     );
   }
 }

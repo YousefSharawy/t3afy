@@ -21,7 +21,7 @@ class RatingCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: .topLeft,
           end: .bottomRight,
-          colors: [Color(0xFF00ABD2), Color(0xFF02389E)],
+          colors: [Color(0xFF54A3BB), Color(0xFF007599)],
         ),
         borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
@@ -34,45 +34,45 @@ class RatingCard extends StatelessWidget {
                 'تقييمى الكلى',
                 style: getRegularStyle(
                   fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.blueOne50,
+                  color: ColorManager.natural50,
                   fontSize: FontSize.s12,
                 ),
               ),
-              SizedBox(height: AppHeight.s4),
+              SizedBox(height: AppHeight.s2),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
-                    '5.0/',
-                    style: getMediumStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.blueTwo100,
-                      fontSize: FontSize.s13,
-                    ),
-                  ),
-                  SizedBox(width: 4.sp),
-                  Text(
                     stats.rating.toStringAsFixed(1),
                     style: getBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.white,
-                      fontSize: FontSize.s28,
+                      color: ColorManager.natural50,
+                      fontSize: FontSize.s24,
+                    ),
+                  ),
+                  Text(
+                    ' /5.0',
+                    style: getMediumStyle(
+                      fontFamily: FontConstants.fontFamily,
+                      color: ColorManager.natural50,
+                      fontSize: FontSize.s13,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: AppHeight.s4),
-              // Stars
+              SizedBox(height: AppHeight.s2),
               Row(
                 mainAxisSize: MainAxisSize.min,
-                children: List.generate(
-                  5,
-                  (index) => Padding(
+                children: List.generate(5, (index) {
+                  final filledCount = stats.rating.round().clamp(0, 5);
+                  return Padding(
                     padding: EdgeInsets.only(left: 2.sp),
-                    child: Image.asset(IconAssets.star)
-                  ),
-                ),
+                    child: Image.asset(
+                      index < filledCount ? IconAssets.star : IconAssets.unstar,
+                    ),
+                  );
+                }),
               ),
             ],
           ),
@@ -86,7 +86,7 @@ class RatingCard extends StatelessWidget {
                 height: AppHeight.s68,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Color(0xffB0DEFF).withOpacity(0.2),
+                  color: ColorManager.primary300,
                 ),
                 child: Center(child: Image.asset(IconAssets.trophy)),
               ),
@@ -95,7 +95,7 @@ class RatingCard extends StatelessWidget {
                 stats.levelTitle,
                 style: getSemiBoldStyle(
                   fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.white,
+                  color: ColorManager.natural50,
                   fontSize: FontSize.s10,
                 ),
               ),

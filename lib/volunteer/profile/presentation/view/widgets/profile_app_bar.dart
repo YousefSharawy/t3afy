@@ -16,15 +16,15 @@ class ProfileAppBar extends StatelessWidget {
           onTap: () => context.pop(),
           child: Icon(
             Icons.arrow_back_ios_new,
-            color: ColorManager.blueOne900,
+            color: ColorManager.black,
             size: 24.sp,
           ),
         ),
         Text(
           'الملف الشخصي',
-          style: getBoldStyle(
+          style: getExtraBoldStyle(
             fontFamily: FontConstants.fontFamily,
-            color: ColorManager.blueOne900,
+            color: ColorManager.natural900,
             fontSize: FontSize.s16,
           ),
         ),

@@ -5,6 +5,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/chip_badge.dart';
 import 'package:t3afy/volunteer/tasks/domain/entities/home_enities.dart';
 
 class TaskCard extends StatelessWidget {
@@ -15,15 +16,17 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isActive = task.assignmentStatus != 'completed';
     final badgeColor = task.assignmentStatus == 'completed'
-        ? const Color(0xFF4CAF50) // green for مكتملة
+        ? ColorManager.successLight
         : task.status == 'active'
-        ? const Color(0xFF2DD4BF) // teal for جارية
-        : const Color(0xFFFBBF24); // amber for قادمة
-    final borderColor = isActive
-        ? const Color(0xFF2DD4BF).withOpacity(0.5)
-        : const Color(0xFFFBBF24).withOpacity(0.5);
+        ? ColorManager.infoLight
+        : ColorManager.warningLight;
+
+    final borderColor = task.assignmentStatus == 'completed'
+        ? ColorManager.success
+        : task.status == 'active'
+        ? ColorManager.info
+        : ColorManager.warning;
 
     final badgeText = task.assignmentStatus == 'completed'
         ? 'مكتملة'
@@ -34,72 +37,64 @@ class TaskCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: EdgeInsets.only(bottom: 12.h),
-        padding: EdgeInsets.all(16.r),
+        margin: EdgeInsets.only(bottom: AppHeight.s14),
+        padding: EdgeInsets.all(12.sp),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0C203B), Color(0xFF143764)],
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
+          color: ColorManager.white,
+          borderRadius: BorderRadius.circular(AppRadius.s16),
+          border: BorderDirectional(
+            top: BorderSide(color: borderColor, width: AppWidth.s3),
           ),
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: borderColor, width: 1.2),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      task.type,
-                      style: getRegularStyle(
-                        fontSize: FontSize.s13,
-                        fontFamily: FontConstants.fontFamily,
-                        color: Colors.white70,
-                      ),
-                    ),
-                    SizedBox(width: 6.w),
-                    Text('🏠', style: TextStyle(fontSize: 18.sp)),
-                  ],
+                Image.asset(IconAssets.camp),
+                SizedBox(width: AppWidth.s4),
+                Text(
+                  task.type,
+                  style: getBoldStyle(
+                    fontSize: FontSize.s10,
+                    fontFamily: FontConstants.fontFamily,
+                    color: ColorManager.natural300,
+                  ),
                 ),
+                Spacer(),
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 4.h,
+                    horizontal: AppWidth.s12,
+                    vertical: AppHeight.s2,
                   ),
                   decoration: BoxDecoration(
-                    color: badgeColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20.r),
-                    border: Border.all(color: badgeColor),
+                    color: badgeColor,
+                    borderRadius: BorderRadius.circular(AppRadius.s6),
+                    border: Border.all(color: borderColor),
                   ),
                   child: Text(
                     badgeText,
-                    style: getSemiBoldStyle(
-                      fontSize: FontSize.s12,
+                    style: getBoldStyle(
+                      fontSize: FontSize.s10,
                       fontFamily: FontConstants.fontFamily,
-                      color: badgeColor,
+                      color: borderColor,
                     ),
                   ),
                 ),
               ],
             ),
 
-            SizedBox(height: 10.h),
-
-            // Title
+            SizedBox(height: AppHeight.s4),
             Text(
               task.title,
               textAlign: TextAlign.right,
               style: getBoldStyle(
-                fontSize: FontSize.s16,
+                fontSize: FontSize.s14,
                 fontFamily: FontConstants.fontFamily,
-                color: Colors.white,
+                color: ColorManager.natural500,
               ),
             ),
-            SizedBox(height: AppHeight.s10),
+            SizedBox(height: AppHeight.s4),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -114,7 +109,7 @@ class TaskCard extends StatelessWidget {
                   style: getRegularStyle(
                     fontSize: FontSize.s10,
                     fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.blueOne300,
+                    color: ColorManager.natural300,
                   ),
                 ),
                 SizedBox(width: AppWidth.s2),
@@ -127,9 +122,9 @@ class TaskCard extends StatelessWidget {
                 Text(
                   task.locationName,
                   style: getRegularStyle(
-                    fontSize: FontSize.s11,
+                    fontSize: FontSize.s10,
                     fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.blueOne300,
+                    color: ColorManager.natural300,
                   ),
                 ),
                 SizedBox(width: 2.w),
@@ -142,67 +137,36 @@ class TaskCard extends StatelessWidget {
                 Text(
                   task.supervisorName,
                   style: getRegularStyle(
-                    fontSize: FontSize.s11,
+                    fontSize: FontSize.s10,
                     fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.blueOne300,
+                    color: ColorManager.natural300,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: AppHeight.s16),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                _buildChip(
+                ChipBadge(
                   '+${task.points}',
-                  null,
-                  const Color(0xFFFFCD0F),
-                  trailing: Text('🏆', style: TextStyle(fontSize: 14.sp)),
+                  icon: IconAssets.medal,
+                  color: ColorManager.warning,
+                  borderColor: ColorManager.warning,
+                  fillColor:ColorManager.warningLight,
                 ),
-                SizedBox(width: 10.w),
-                _buildChip(
+                SizedBox(width: AppWidth.s8),
+                ChipBadge(
                   '${task.durationHours.toStringAsFixed(0)}h',
-                  Icons.access_time,
-                  ColorManager.blueTwo300,
+                  icon: IconAssets.hours,
+                  color: ColorManager.primary700,
+                  borderColor:ColorManager.info,
+                  fillColor: ColorManager.primary50,
                 ),
               ],
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildChip(
-    String text,
-    IconData? icon,
-    Color color, {
-    Widget? trailing,
-  }) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: color.withOpacity(0.4)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (trailing != null) ...[trailing, SizedBox(width: 4.w)],
-          Text(
-            text,
-            style: getSemiBoldStyle(
-              fontSize: FontSize.s12,
-              fontFamily: FontConstants.fontFamily,
-              color: color,
-            ),
-          ),
-          if (icon != null) ...[
-            SizedBox(width: 4.w),
-            Icon(icon, color: color, size: 14.sp),
-          ],
-        ],
       ),
     );
   }

@@ -8,11 +8,13 @@ class ProfileBadge extends StatelessWidget {
   const ProfileBadge({
     super.key,
     required this.label,
-    this.color = ColorManager.blueThree500,
+    required this.color,
+    required this.borderColor,
   });
 
   final String label;
   final Color color;
+  final Color borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +24,7 @@ class ProfileBadge extends StatelessWidget {
         vertical: AppHeight.s2,
       ),
       decoration: BoxDecoration(
+        border: Border.all(color: borderColor),
         color: color,
         borderRadius: BorderRadius.circular(AppRadius.s25),
       ),

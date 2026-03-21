@@ -112,3 +112,19 @@ TextStyle getExtraBoldStyle({
     fontFamily,
   );
 }
+
+TextStyle getBlackStyle({
+  double fontSize = 12,
+  Color color = ColorManager.darkPrimary,
+  double? height,
+      String ? fontFamily,
+
+}) {
+  return _getTextStyle(
+    fontSize,
+    color,
+    FontWeightManager.black,
+    height,
+    fontFamily,
+  );
+}

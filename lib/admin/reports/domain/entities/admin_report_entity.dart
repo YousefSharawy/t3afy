@@ -6,7 +6,6 @@ class AdminReportEntity {
   final String? challenges;
   final int? attendeesCount;
   final bool materialsDistributed;
-  final bool objectivesMet;
   final String? additionalNotes;
   final int rating;
   final String status;
@@ -25,7 +24,6 @@ class AdminReportEntity {
     this.challenges,
     this.attendeesCount,
     required this.materialsDistributed,
-    required this.objectivesMet,
     this.additionalNotes,
     required this.rating,
     required this.status,
@@ -48,7 +46,6 @@ class AdminReportEntity {
       challenges: json['challenges'] as String?,
       attendeesCount: json['attendees_count'] as int?,
       materialsDistributed: json['materials_distributed'] as bool? ?? false,
-      objectivesMet: json['objectives_met'] as bool? ?? false,
       additionalNotes: json['additional_notes'] as String?,
       rating: json['rating'] as int? ?? 0,
       status: json['status'] as String? ?? 'pending',

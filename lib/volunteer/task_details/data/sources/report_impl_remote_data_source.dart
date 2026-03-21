@@ -14,4 +14,21 @@ class ReportImplRemoteDataSource implements ReportRemoteDataSource {
       throw ErrorHandler.handle(e).failture;
     }
   }
+
+  @override
+  Future<Map<String, dynamic>?> getExistingReport(
+    String taskId,
+    String userId,
+  ) async {
+    try {
+      return await Supabase.instance.client
+          .from('task_reports')
+          .select()
+          .eq('task_id', taskId)
+          .eq('user_id', userId)
+          .maybeSingle();
+    } catch (e) {
+      throw ErrorHandler.handle(e).failture;
+    }
+  }
 }

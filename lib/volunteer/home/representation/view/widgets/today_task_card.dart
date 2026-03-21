@@ -14,49 +14,49 @@ class TodayTaskCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   String get _statusLabel {
-  switch (task.status) {
-    case 'ongoing':
-    case 'active':
-      return 'جارية';
-    case 'upcoming':
-      return 'قادمة';
-    case 'completed':
-    case 'done':
-      return 'مكتملة';
-    default:
-      return task.status;
+    switch (task.status) {
+      case 'ongoing':
+      case 'active':
+        return 'جارية';
+      case 'upcoming':
+        return 'قادمة';
+      case 'completed':
+      case 'done':
+        return 'مكتملة';
+      default:
+        return task.status;
+    }
   }
-}
 
-Color get _statusTextColor {
-  switch (task.status) {
-    case 'ongoing':
-    case 'active':
-      return const Color(0xFF00FFCF);
-    case 'upcoming':
-      return const Color(0xFFFFA600);
-    case 'completed':
-    case 'done':
-      return ColorManager.blueThree500;
-    default:
-      return Colors.grey;
+  Color get _statusTextColor {
+    switch (task.status) {
+      case 'ongoing':
+      case 'active':
+        return ColorManager.info;
+      case 'upcoming':
+        return ColorManager.warning;
+      case 'completed':
+      case 'done':
+        return ColorManager.success;
+      default:
+        return Colors.grey;
+    }
   }
-}
 
-Color get _statusFillColor {
-  switch (task.status) {
-    case 'ongoing':
-    case 'active':
-      return const Color(0xFF147489);
-    case 'upcoming':
-      return const Color(0xffD08E00).withOpacity(0.45);
-    case 'completed':
-    case 'done':
-      return const Color(0xFF0D2D5A);
-    default:
-      return Colors.grey.withOpacity(0.2);
+  Color get _statusFillColor {
+    switch (task.status) {
+      case 'ongoing':
+      case 'active':
+        return ColorManager.infoLight;
+      case 'upcoming':
+        return ColorManager.warningLight;
+      case 'completed':
+      case 'done':
+        return ColorManager.successLight;
+      default:
+        return Colors.grey.withOpacity(0.2);
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -64,34 +64,70 @@ Color get _statusFillColor {
       onTap: onTap,
       child: Container(
         width: AppWidth.s339,
-        padding: EdgeInsets.symmetric(horizontal: 14.sp, vertical: 10.sp),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppWidth.s16,
+          vertical: AppHeight.s8,
+        ),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomRight,
-            end: Alignment.topLeft,
-            colors: [ColorManager.blueOne800, ColorManager.blueOne900],
-          ),
-          borderRadius: BorderRadius.circular(AppRadius.s12),
-          border: Border.all(
-            width: 0.5.sp,
+          color: ColorManager.white,
+          borderRadius: BorderRadius.circular(AppRadius.s16),
+          border: BorderDirectional(
+            start: BorderSide(color: _statusTextColor, width: AppWidth.s3),
           ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            Row(
-              mainAxisAlignment: .spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
+            Expanded(
+              child: Column(
+                crossAxisAlignment: .start,
+                children: [
+                  Text(
                     task.title,
-                    style: getBoldStyle(
+                    style: getSemiBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.white,
+                      color: ColorManager.natural500,
                       fontSize: FontSize.s14,
                     ),
                   ),
-                ),
+                  Row(
+                    children: [
+                      Image.asset(
+                        IconAssets.hours,
+                        width: AppWidth.s14,
+                        height: AppHeight.s14,
+                      ),
+                      SizedBox(width: AppWidth.s4),
+                      Text(
+                        '${task.timeStart} ص',
+                        style: getSemiBoldStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          color: ColorManager.natural300,
+                          fontSize: FontSize.s10,
+                        ),
+                      ),
+                      SizedBox(width: AppWidth.s4),
+                      Image.asset(
+                        IconAssets.location,
+                        width: AppWidth.s14,
+                        height: AppHeight.s14,
+                      ),
+                      SizedBox(width: AppWidth.s4),
+                      Text(
+                        task.locationName,
+                        style: getSemiBoldStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          color: ColorManager.natural300,
+                          fontSize: FontSize.s10,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Title
+                ],
+              ),
+            ),
+            Column(
+              children: [
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: AppWidth.s10,
@@ -100,7 +136,7 @@ Color get _statusFillColor {
                   decoration: BoxDecoration(
                     color: _statusFillColor,
                     borderRadius: BorderRadius.circular(AppRadius.s6),
-                    border: Border.all(color: _statusTextColor, width: 1.sp),
+                    border: Border.all(color: _statusTextColor, width: 0.5.sp),
                   ),
                   child: Text(
                     _statusLabel,
@@ -111,63 +147,19 @@ Color get _statusFillColor {
                     ),
                   ),
                 ),
-                // Title
-              ],
-            ),
-            SizedBox(height: AppWidth.s4),
-            Row(
-              children: [
-                Image.asset(
-                  IconAssets.hours,
-                  width: AppWidth.s14,
-                  height: AppHeight.s14,
-                ),
-                SizedBox(width: AppWidth.s4),
                 Text(
-                  '${task.timeStart} ص',
-                  style: getRegularStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.blueTwo200,
-                    fontSize: FontSize.s10,
-                  ),
-                ),
-                SizedBox(width: AppWidth.s4),
-                Image.asset(
-                  IconAssets.location,
-                  width: AppWidth.s14,
-                  height: AppHeight.s14,
-                ),
-                SizedBox(width: AppWidth.s4),
-
-                Text(
-                  task.locationName,
-                  style: getRegularStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.blueTwo200,
-                    fontSize: FontSize.s10,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '+${task.points}',
+                  '${task.points} +نقطة',
                   style: getSemiBoldStyle(
                     fontFamily: FontConstants.fontFamily,
-                    color: Color(0xffFFCC00),
+                    color: ColorManager.warning,
                     fontSize: FontSize.s10,
                   ),
                 ),
-                Text(
-                  'نقطة',
-                  style: getSemiBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    color: Color(0xffFFCC00),
-                    fontSize: FontSize.s10,
-                  ),
-                ),
-
-                // Location
               ],
             ),
+            //
+
+            // ),
           ],
         ),
       ),

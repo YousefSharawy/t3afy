@@ -18,7 +18,6 @@ class FirstOnboarding extends StatelessWidget {
       body: Padding(
         padding: EdgeInsetsDirectional.symmetric(horizontal: AppWidth.s18),
         child: Column(
-          crossAxisAlignment: .center,
           children: [
             SizedBox(height: AppHeight.s79),
             Row(
@@ -27,7 +26,7 @@ class FirstOnboarding extends StatelessWidget {
                   "معًا نبدأ طريق التعافى",
                   style: getBoldStyle(
                     fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.blueOne600,
+                    color: ColorManager.natural900,
                     fontSize: FontSize.s24,
                   ),
                 ),
@@ -51,22 +50,22 @@ class FirstOnboarding extends StatelessWidget {
               "كن السبب في إنقاذ حياة",
               style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
-                color: ColorManager.blueOne600,
+                color: ColorManager.natural800,
                 fontSize: FontSize.s20,
               ),
             ),
             SizedBox(height: AppHeight.s8),
             Text(
               "تطوّعك اليوم قد يُغيّر مسار حياة شخص يحتاجك",
-              style: getRegularStyle(
+              style: getMediumStyle(
                 fontFamily: FontConstants.fontFamily,
-                color: ColorManager.blueOne600,
-                fontSize: FontSize.s14,
+                color: ColorManager.natural600,
+                fontSize: FontSize.s16,
               ),
             ),
             SizedBox(height: AppHeight.s140),
             PrimaryElevatedButton(
-              buttonRadius: AppRadius.s8,
+              buttonRadius: AppRadius.s24,
               title: 'ابدأ رحلة التطوع',
               onPress: () {
                 context.go(Routes.login);

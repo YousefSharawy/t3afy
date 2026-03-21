@@ -40,26 +40,23 @@ class MonthlyChart extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: 192.sp,
-      padding: EdgeInsets.all(16.sp),
+      padding: EdgeInsets.all(12.sp),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.bottomRight,
-          end: Alignment.topLeft,
-          colors: [Color(0xFF0C203B), Color(0xFF143764)],
-        ),
+       color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
       child: Column(
+        crossAxisAlignment: .start,
         children: [
           Text(
             'ساعات التطوع الشهرية',
             style: getBoldStyle(
               fontFamily: FontConstants.fontFamily,
-              color: ColorManager.white,
+              color: ColorManager.natural600,
               fontSize: FontSize.s14,
             ),
           ),
-          SizedBox(height: AppHeight.s20),
+          SizedBox(height: AppHeight.s13),
           Expanded(
             child: monthlyHours.isEmpty
                 ? Center(

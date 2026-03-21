@@ -122,7 +122,7 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
   @override
   Future<List<LeaderboardEntryModel>> getLeaderboard() async {
     try {
-      const cacheKey = 'leaderboard';
+      const cacheKey = 'leaderboard_v2';
       final cached = LocalAppStorage.getCache(cacheKey);
       if (cached != null) {
         return (cached as List)
@@ -164,29 +164,7 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
 
       entries.sort((a, b) => b.pts.compareTo(a.pts));
 
-      if (entries.length < 3) {
-        final dummyNames = ['سارة احمد', 'أحمد محمد', 'محمد علي'];
-        final dummyHours = [160, 145, 130];
-        final dummyPts = [480, 420, 390];
-        final existingIds = entries.map((e) => e.id).toSet();
-
-        for (int i = 0; entries.length < 3 && i < 3; i++) {
-          final dummyId = 'dummy_$i';
-          if (!existingIds.contains(dummyId)) {
-            entries.add(LeaderboardEntryModel(
-              id: dummyId,
-              name: dummyNames[i],
-              avatarUrl: '',
-              totalHours: dummyHours[i],
-              pts: dummyPts[i],
-            ));
-          }
-        }
-
-        entries.sort((a, b) => b.pts.compareTo(a.pts));
-      }
-
-      final result = entries.take(10).toList();
+      final result = entries.take(3).toList();
       await LocalAppStorage.setCache(
           cacheKey, result.map((e) => e.toJson()).toList(),
           ttl: const Duration(minutes: 10));

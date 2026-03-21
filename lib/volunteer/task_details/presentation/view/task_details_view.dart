@@ -38,7 +38,7 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
     return Scaffold(
       backgroundColor: ColorManager.background,
       appBar: AppBar(
-        backgroundColor: ColorManager.white,
+        backgroundColor: ColorManager.background,
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
@@ -55,7 +55,7 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
           child: Icon(
             Icons.arrow_back_ios_new_rounded,
             color: ColorManager.blueOne900,
-            size: 20.r,
+            size: 20.sp,
           ),
         ),
       ),
@@ -74,18 +74,18 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
             ),
             loaded: (task) => SingleChildScrollView(
               padding: EdgeInsets.symmetric(
-                horizontal: AppWidth.s16,
-                vertical: AppHeight.s16,
+                horizontal: AppWidth.s18,
               ),
               child: Column(
                 children: [
+                  SizedBox(height: AppHeight.s10,),
                   TaskDetailsHeaderCard(task: task),
                   SizedBox(height: AppHeight.s16),
                   TaskDetailsTabSwitcher(
                     selectedIndex: _selectedTab,
                     onTabChanged: (i) => setState(() => _selectedTab = i),
                   ),
-                  SizedBox(height: AppHeight.s16),
+                  SizedBox(height: AppHeight.s24),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 280),
                     child: _selectedTab == 0

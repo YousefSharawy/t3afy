@@ -167,14 +167,6 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                         label: 'توزيع المواد',
                         value: report.materialsDistributed ? 'نعم' : 'لا',
                       ),
-                      SizedBox(height: AppHeight.s12),
-                      ReviewInfoRow(
-                        label: 'تحقيق الأهداف',
-                        value: report.objectivesMet ? 'نعم' : 'لا',
-                        valueColor: report.objectivesMet
-                            ? const Color(0xFF4CAF50)
-                            : Colors.red,
-                      ),
                       if (report.additionalNotes != null) ...[
                         SizedBox(height: AppHeight.s12),
                         ReviewDetailCard(

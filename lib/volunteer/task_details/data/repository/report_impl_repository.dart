@@ -18,4 +18,17 @@ class ReportImplRepository implements ReportRepository {
       return Left(f);
     }
   }
+
+  @override
+  Future<Either<Failture, Map<String, dynamic>?>> getExistingReport(
+    String taskId,
+    String userId,
+  ) async {
+    try {
+      final result = await _dataSource.getExistingReport(taskId, userId);
+      return Right(result);
+    } on Failture catch (f) {
+      return Left(f);
+    }
+  }
 }

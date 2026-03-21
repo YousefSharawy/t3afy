@@ -76,8 +76,8 @@ class _NavBarItemState extends State<NavBarItem>
                   fontFamily: FontConstants.fontFamily,
                   fontSize: FontSize.s10,
                   color: widget.isSelected
-                      ? ColorManager.blueThree500
-                      : ColorManager.white,
+                      ? ColorManager.primary500
+                      : ColorManager.navbarInactiveItemTitle,
                 ),
                 child: Text(widget.label),
               ),
@@ -88,7 +88,7 @@ class _NavBarItemState extends State<NavBarItem>
                 width: widget.isSelected ? AppWidth.s24 : 0,
                 height: AppHeight.s2,
                 decoration: BoxDecoration(
-                  color: ColorManager.blueThree500,
+                  color: ColorManager.primary500,
                   borderRadius: BorderRadius.circular(AppRadius.s1),
                 ),
               ),

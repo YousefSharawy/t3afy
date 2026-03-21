@@ -26,8 +26,8 @@ class TasksTabSwitcher extends StatelessWidget {
       height: AppHeight.s46,
       padding: EdgeInsets.all(6.sp),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne800,
-        borderRadius: BorderRadius.circular(AppRadius.s4),
+        color: ColorManager.white,
+        borderRadius: BorderRadius.circular(AppRadius.s29),
       ),
       child: Row(
         children: [
@@ -45,18 +45,17 @@ class TasksTabSwitcher extends StatelessWidget {
         onTap: () => onTabChanged(index),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 250),
-          padding: EdgeInsets.symmetric(vertical: 6.h),
           decoration: BoxDecoration(
-            color: isSelected ? ColorManager.blueTwo600 : Colors.transparent,
-            borderRadius: BorderRadius.circular(10.r),
+            color: isSelected ? ColorManager.primary600 : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.s25),
           ),
           alignment: Alignment.center,
           child: Text(
             label,
-            style: getSemiBoldStyle(
-              fontSize: FontSize.s14,
+            style: getBoldStyle(
+              fontSize: FontSize.s12,
               fontFamily: FontConstants.fontFamily,
-              color: isSelected ? Colors.white : Colors.white54,
+              color: isSelected ? ColorManager.primary50 : ColorManager.natural500,
             ),
           ),
         ),

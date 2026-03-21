@@ -5,6 +5,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/primary_widgets.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/report_cubit.dart';
 import 'submit_report_sheet.dart';
 
@@ -16,37 +17,28 @@ class ReportButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return PrimaryElevatedButton(
+      title: 'رفع تقرير',
       width: double.infinity,
-      height: AppHeight.s50,
-      child: ElevatedButton(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (context) => BlocProvider(
-              create: (_) => getIt<ReportCubit>(),
-              child: SubmitReportSheet(taskId: taskId, taskTitle: taskTitle),
-            ),
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: ColorManager.cyanPrimary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.s12),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          'رفع تقرير',
-          style: getBoldStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s16,
-            color: Colors.white,
-          ),
-        ),
+      height: AppHeight.s46,
+      backGroundColor: ColorManager.primary500,
+      buttonRadius: AppRadius.s24,
+      textStyle: getBoldStyle(
+        fontFamily: FontConstants.fontFamily,
+        fontSize: FontSize.s16,
+        color: ColorManager.white,
       ),
+      onPress: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => BlocProvider(
+            create: (_) => getIt<ReportCubit>(),
+            child: SubmitReportSheet(taskId: taskId, taskTitle: taskTitle),
+          ),
+        );
+      },
     );
   }
 }

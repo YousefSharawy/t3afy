@@ -6,6 +6,8 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
+import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/components.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_cubit.dart';
@@ -30,8 +32,7 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-    
+    return PrimaryScaffold(
       body: SafeArea(
         child: BlocBuilder<TasksCubit, TasksState>(
           builder: (context, state) {
@@ -48,18 +49,18 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: Column(
                     children: [
+                      SizedBox(height: AppHeight.s10,),
                       Text(
                         'المهام اليومية',
-                        style: getBoldStyle(
-                          fontSize: FontSize.s20,
+                        style: getExtraBoldStyle(
+                          fontSize: FontSize.s16,
                           fontFamily: FontConstants.fontFamily,
-                          color: ColorManager.blueOne900,
+                          color: ColorManager.natural900,
                         ),
                       ),
-                      SizedBox(height: 16.h),
-                      // Stats row
+                      SizedBox(height: AppHeight.s24),
                       TasksHeaderStats(stats: stats),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: AppHeight.s16),
                       TasksTabSwitcher(
                         selectedIndex: selectedTab,
                         todayCount: todayTasks.length,
@@ -68,8 +69,7 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
                           context.read<TasksCubit>().switchTab(index);
                         },
                       ),
-                      SizedBox(height: 16.h),
-                      // Task list
+                      SizedBox(height: AppHeight.s24),
                       Expanded(
                         child: RefreshIndicator(
                           onRefresh: () =>

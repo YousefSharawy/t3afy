@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
@@ -17,17 +19,17 @@ class DescriptionSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SectionHeader(
-            icon: Icons.description_rounded,
+           icon: IconAssets.details,
             title: 'وصف المهمة',
           ),
           SizedBox(height: AppHeight.s10),
           Text(
             description,
             textAlign: TextAlign.right,
-            style: getRegularStyle(
+            style: getSemiBoldStyle(
               fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: FontSize.s12,
+              color: ColorManager.natural400,
             ),
           ),
         ],

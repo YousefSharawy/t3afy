@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
@@ -17,48 +18,52 @@ class ObjectivesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return GradientCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          const SectionHeader(
-            icon: Icons.flag_rounded,
+           SectionHeader(
+          icon:  IconAssets.target,
             title: 'الأهداف المطلوبة',
           ),
-          SizedBox(height: AppHeight.s10),
+          SizedBox(height: AppHeight.s16),
           ...objectives.asMap().entries.map(
             (e) => Padding(
               padding: EdgeInsets.only(bottom: AppHeight.s8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      e.value.title,
-                      textAlign: TextAlign.right,
-                      style: getRegularStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s13,
-                        color: Colors.white.withValues(alpha: 0.8),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: AppWidth.s10),
-                  Container(
-                    width: 26.sp,
-                    height: 26.sp,
+                    Container(
+                    width: AppWidth.s15,
+                    height: AppHeight.s15,
                     decoration: const BoxDecoration(
-                      color: ColorManager.cyanPrimary,
+                     gradient: LinearGradient(
+                      begin: .topLeft,
+                      end: .bottomRight,
+                      colors: [
+                      Color(0xff36DFF1),
+                      Color(0xff2764E7),
+                     ]),
                       shape: BoxShape.circle,
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${e.key + 1}',
-                      style: getBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s12,
-                        color: Colors.white,
+                    child: Center(
+                      child: Text(
+                        '${e.key + 1}',
+                        style: getExtraBoldStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          fontSize: FontSize.s8,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
+                  SizedBox(width: AppWidth.s5),
+                  Text(
+                    e.value.title,
+                    style: getSemiBoldStyle(
+                      fontFamily: FontConstants.fontFamily,
+                      fontSize: FontSize.s12,
+                      color: ColorManager.natural400,
+                    ),
+                  ),
+                
                 ],
               ),
             ),
