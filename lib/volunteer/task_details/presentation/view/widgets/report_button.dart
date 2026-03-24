@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/di.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -28,8 +29,8 @@ class ReportButton extends StatelessWidget {
         fontSize: FontSize.s16,
         color: ColorManager.white,
       ),
-      onPress: () {
-        showModalBottomSheet(
+      onPress: () async {
+        final submitted = await showModalBottomSheet<bool>(
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
@@ -38,6 +39,9 @@ class ReportButton extends StatelessWidget {
             child: SubmitReportSheet(taskId: taskId, taskTitle: taskTitle),
           ),
         );
+        if (submitted == true && context.mounted) {
+          context.pop(true);
+        }
       },
     );
   }

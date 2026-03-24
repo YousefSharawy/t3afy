@@ -8,7 +8,7 @@ import 'package:t3afy/app/resources/values_manager.dart';
 
 import '../../../domain/entities/task_details_entity.dart';
 import 'task_info_row.dart';
-import 'task_status_badge.dart';
+import 'package:t3afy/base/widgets/status_badge.dart';
 import 'task_type_badge.dart';
 
 class TaskDetailsHeaderCard extends StatelessWidget {
@@ -39,7 +39,7 @@ class TaskDetailsHeaderCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      TaskStatusBadge(status: task.status),
+                      StatusBadge(status: task.status),
                       SizedBox(width: AppWidth.s3),
                       TaskTypeBadge(type: task.type),
                     ],

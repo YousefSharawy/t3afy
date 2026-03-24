@@ -9,7 +9,7 @@ class ReportDivider extends StatelessWidget {
     return Divider(
       height: 1,
       thickness: 1,
-      color: ColorManager.blueOne700,
+      color: ColorManager.natural200,
     );
   }
 }

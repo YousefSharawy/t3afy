@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/profile/presentation/cubit/admin_profile_cubit.dart';
@@ -29,6 +30,7 @@ class _AdminEditSheetState extends State<AdminEditSheet> {
   bool _saving = false;
 
   Future<void> _save() async {
+    HapticFeedback.mediumImpact();
     setState(() => _saving = true);
     await context.read<AdminProfileCubit>().updateProfile(
           userId: widget.userId,
@@ -61,7 +63,7 @@ class _AdminEditSheetState extends State<AdminEditSheet> {
               style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s16,
-                color: ColorManager.white,
+                color: ColorManager.natural900,
               ),
             ),
             SizedBox(height: AppHeight.s20),
@@ -84,7 +86,7 @@ class _AdminEditSheetState extends State<AdminEditSheet> {
               child: ElevatedButton(
                 onPressed: _saving ? null : _save,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00ABD2),
+                  backgroundColor: ColorManager.primary500,
                   padding: EdgeInsets.symmetric(vertical: AppHeight.s14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.s12),
@@ -95,7 +97,7 @@ class _AdminEditSheetState extends State<AdminEditSheet> {
                         width: 20.sp,
                         height: 20.sp,
                         child: const CircularProgressIndicator(
-                          color: Colors.white,
+                          color: ColorManager.white,
                           strokeWidth: 2,
                         ),
                       )
@@ -128,32 +130,32 @@ class _AdminEditSheetState extends State<AdminEditSheet> {
       style: getRegularStyle(
         fontFamily: FontConstants.fontFamily,
         fontSize: FontSize.s13,
-        color: ColorManager.white,
+        color: ColorManager.natural900,
       ),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: getRegularStyle(
           fontFamily: FontConstants.fontFamily,
           fontSize: FontSize.s13,
-          color: ColorManager.white.withValues(alpha: 0.4),
+          color: ColorManager.natural400,
         ),
         filled: true,
-        fillColor: ColorManager.blueOne900,
+        fillColor: ColorManager.natural50,
         contentPadding: EdgeInsets.symmetric(
           horizontal: AppWidth.s12,
           vertical: AppHeight.s12,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.s10),
-          borderSide: BorderSide(color: ColorManager.blueOne700),
+          borderSide: BorderSide(color: ColorManager.natural200),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.s10),
-          borderSide: BorderSide(color: ColorManager.blueOne700),
+          borderSide: BorderSide(color: ColorManager.natural200),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.s10),
-          borderSide: const BorderSide(color: Color(0xFF00ABD2)),
+          borderSide: BorderSide(color: ColorManager.primary500),
         ),
       ),
     );

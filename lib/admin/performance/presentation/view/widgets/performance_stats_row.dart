@@ -20,8 +20,8 @@ class PerformanceStatsRow extends StatelessWidget {
             value: '${data.totalVolunteers}',
             label: 'متطوع',
             decoration: BoxDecoration(
-              color: ColorManager.blueOne900,
-              borderRadius: BorderRadius.circular(AppRadius.s12),
+              color: ColorManager.white,
+              borderRadius: BorderRadius.circular(AppRadius.s16),
             ),
           ),
         ),
@@ -32,8 +32,8 @@ class PerformanceStatsRow extends StatelessWidget {
             value: '${data.totalHours}',
             label: 'ساعة',
             decoration: BoxDecoration(
-              color: ColorManager.blueOne900,
-              borderRadius: BorderRadius.circular(AppRadius.s12),
+              color: ColorManager.white,
+              borderRadius: BorderRadius.circular(AppRadius.s16),
             ),
           ),
         ),
@@ -44,8 +44,8 @@ class PerformanceStatsRow extends StatelessWidget {
             value: data.avgRating.toStringAsFixed(1),
             label: 'متوسط التقييم',
             decoration: BoxDecoration(
-              color: ColorManager.blueOne900,
-              borderRadius: BorderRadius.circular(AppRadius.s12),
+              color: ColorManager.white,
+              borderRadius: BorderRadius.circular(AppRadius.s16),
             ),
           ),
         ),

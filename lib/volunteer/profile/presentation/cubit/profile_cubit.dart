@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/volunteer/profile/domain/entity/profile_entity.dart';
 import 'package:t3afy/volunteer/profile/domain/use_cases/profile_use_case.dart';
 
@@ -11,7 +14,47 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   final GetProfile _getProfile;
 
+  RealtimeChannel? _usersChannel;
+  Timer? _debounce;
+  String? _currentUserId;
+
+  void _subscribeToRealtime(String userId) {
+    _usersChannel?.unsubscribe();
+    _usersChannel = Supabase.instance.client
+        .channel('volunteer_profile_user_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'users',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: userId,
+          ),
+          callback: (_) => _onRealtimeChange(),
+        )
+        .subscribe();
+  }
+
+  void _onRealtimeChange() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (_currentUserId != null) loadProfile(_currentUserId!);
+    });
+  }
+
+  @override
+  Future<void> close() async {
+    _debounce?.cancel();
+    await _usersChannel?.unsubscribe();
+    return super.close();
+  }
+
   Future<void> loadProfile(String userId) async {
+    if (_currentUserId != userId) {
+      _currentUserId = userId;
+      _subscribeToRealtime(userId);
+    }
     emit(const ProfileState.loading());
     final result = await _getProfile(userId);
     result.fold(

@@ -19,7 +19,14 @@ ThemeData getApplicationTheme() {
     scaffoldBackgroundColor: ColorManager.natural50,
     fontFamily: FontConstants.fontFamily,
     textTheme: _textTheme(),
-    dialogTheme: DialogThemeData(backgroundColor: Colors.white),
+    dialogTheme: DialogThemeData(
+      backgroundColor: ColorManager.natural50,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.s20)),
+      titleTextStyle: getSemiBoldStyle(color: ColorManager.natural900, fontSize: FontSize.s18),
+      contentTextStyle: getRegularStyle(color: ColorManager.natural900, fontSize: FontSize.s14),
+      elevation: 0,
+    ),
 
     colorScheme: const ColorScheme.light(
       primary: ColorManager.primary500,
@@ -48,6 +55,54 @@ ThemeData getApplicationTheme() {
       ),
       side: WidgetStateBorderSide.resolveWith(
         (states) => BorderSide(width: AppSize.s1, color: ColorManager.primary500),
+      ),
+    ),
+    timePickerTheme: TimePickerThemeData(
+      backgroundColor: ColorManager.natural50,
+      hourMinuteColor: ColorManager.primary500.withValues(alpha: 0.08),
+      hourMinuteTextColor: ColorManager.natural900,
+      dayPeriodColor: ColorManager.primary500.withValues(alpha: 0.08),
+      dayPeriodTextColor: ColorManager.natural900,
+      dialBackgroundColor: ColorManager.primary500.withValues(alpha: 0.06),
+      dialHandColor: ColorManager.primary500,
+      dialTextColor: ColorManager.natural900,
+      entryModeIconColor: ColorManager.primary500,
+      helpTextStyle: getSemiBoldStyle(color: ColorManager.natural900, fontSize: FontSize.s16),
+      hourMinuteTextStyle: getBoldStyle(color: ColorManager.natural900, fontSize: FontSize.s40),
+      dayPeriodTextStyle: getMediumStyle(color: ColorManager.natural900, fontSize: FontSize.s14),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.s20)),
+      hourMinuteShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.s12)),
+      dayPeriodShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.s8)),
+      dayPeriodBorderSide: BorderSide(color: ColorManager.primary500.withValues(alpha: 0.2)),
+      confirmButtonStyle: ButtonStyle(
+        foregroundColor: WidgetStatePropertyAll(ColorManager.primary500),
+      ),
+      cancelButtonStyle: ButtonStyle(
+        foregroundColor: WidgetStatePropertyAll(ColorManager.natural900.withValues(alpha: 0.6)),
+      ),
+    ),
+    datePickerTheme: DatePickerThemeData(
+      backgroundColor: ColorManager.natural50,
+      headerBackgroundColor: ColorManager.primary500,
+      headerForegroundColor: Colors.white,
+      dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return ColorManager.primary500;
+        return Colors.transparent;
+      }),
+      dayForegroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return Colors.white;
+        return ColorManager.natural900;
+      }),
+      todayBackgroundColor: WidgetStatePropertyAll(Colors.transparent),
+      todayForegroundColor: WidgetStatePropertyAll(ColorManager.primary500),
+      todayBorder: BorderSide(color: ColorManager.primary500),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.s20)),
+      confirmButtonStyle: ButtonStyle(
+        foregroundColor: WidgetStatePropertyAll(ColorManager.primary500),
+      ),
+      cancelButtonStyle: ButtonStyle(
+        foregroundColor: WidgetStatePropertyAll(ColorManager.natural900.withValues(alpha: 0.6)),
       ),
     ),
   );

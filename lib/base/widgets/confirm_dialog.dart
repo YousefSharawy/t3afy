@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
@@ -9,57 +10,72 @@ Future<bool> showConfirmDialog(
   required String title,
   required String body,
   required String confirmLabel,
-  required Color confirmColor,
+  bool isDestructive = false,
 }) async {
+  final confirmColor =
+      isDestructive ? ColorManager.error : ColorManager.primary500;
+
   final result = await showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      backgroundColor: ColorManager.blueOne800,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.s16),
-      ),
-      title: Text(
-        title,
-        style: getBoldStyle(
-          fontFamily: FontConstants.fontFamily,
-          fontSize: FontSize.s16,
-          color: Colors.white,
+    builder: (ctx) => Directionality(
+      textDirection: TextDirection.rtl,
+      child: AlertDialog(
+        backgroundColor: ColorManager.natural50,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.s20),
         ),
-        textDirection: TextDirection.rtl,
-      ),
-      content: Text(
-        body,
-        style: getMediumStyle(
-          fontFamily: FontConstants.fontFamily,
-          fontSize: FontSize.s13,
-          color: Colors.white70,
-        ),
-        textDirection: TextDirection.rtl,
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: Text(
-            '\u0625\u0644\u063a\u0627\u0621',
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: Colors.white54,
-            ),
+        title: Text(
+          title,
+          style: getSemiBoldStyle(
+            color: ColorManager.natural900,
+            fontSize: FontSize.s18,
           ),
         ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: Text(
-            confirmLabel,
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: confirmColor,
-            ),
+        content: Text(
+          body,
+          style: getRegularStyle(
+            color: ColorManager.natural900.withValues(alpha: 0.7),
+            fontSize: FontSize.s14,
           ),
         ),
-      ],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'إلغاء',
+              style: getMediumStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s14,
+                color: ColorManager.natural900.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: confirmColor,
+              foregroundColor: ColorManager.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.s30),
+              ),
+            ),
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              Navigator.pop(ctx, true);
+            },
+            child: Text(
+              confirmLabel,
+              style: getMediumStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s14,
+                color: ColorManager.white,
+              ),
+            ),
+          ),
+        ],
+      ),
     ),
   );
   return result == true;

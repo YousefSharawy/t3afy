@@ -3,12 +3,14 @@ class VolunteerTaskAssignmentEntity {
   final String title;
   final DateTime? assignedAt;
   final String status;
+  final double durationHours;
 
   const VolunteerTaskAssignmentEntity({
     required this.id,
     required this.title,
     this.assignedAt,
     required this.status,
+    this.durationHours = 0,
   });
 
   factory VolunteerTaskAssignmentEntity.fromJson(Map<String, dynamic> json) {
@@ -19,6 +21,7 @@ class VolunteerTaskAssignmentEntity {
       title: task?['title'] as String? ?? '',
       assignedAt: assignedStr != null ? DateTime.tryParse(assignedStr) : null,
       status: json['status'] as String? ?? 'active',
+      durationHours: ((task?['duration_hours'] as num?) ?? 0).toDouble(),
     );
   }
 }
@@ -68,6 +71,52 @@ class VolunteerDetailsEntity {
     this.volunteerAreas = const [],
   });
 
+  VolunteerDetailsEntity copyWith({
+    String? id,
+    String? name,
+    String? avatarUrl,
+    double? rating,
+    int? level,
+    String? levelTitle,
+    int? totalTasks,
+    int? totalHours,
+    int? totalPoints,
+    int? placesVisited,
+    String? region,
+    String? email,
+    String? phone,
+    String? qualification,
+    DateTime? joinedAt,
+    bool? isOnline,
+    DateTime? lastSeenAt,
+    String? role,
+    List<VolunteerTaskAssignmentEntity>? tasks,
+    List<String>? volunteerAreas,
+  }) {
+    return VolunteerDetailsEntity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      rating: rating ?? this.rating,
+      level: level ?? this.level,
+      levelTitle: levelTitle ?? this.levelTitle,
+      totalTasks: totalTasks ?? this.totalTasks,
+      totalHours: totalHours ?? this.totalHours,
+      totalPoints: totalPoints ?? this.totalPoints,
+      placesVisited: placesVisited ?? this.placesVisited,
+      region: region ?? this.region,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      qualification: qualification ?? this.qualification,
+      joinedAt: joinedAt ?? this.joinedAt,
+      isOnline: isOnline ?? this.isOnline,
+      lastSeenAt: lastSeenAt ?? this.lastSeenAt,
+      role: role ?? this.role,
+      tasks: tasks ?? this.tasks,
+      volunteerAreas: volunteerAreas ?? this.volunteerAreas,
+    );
+  }
+
   bool get isActiveNow =>
       isOnline &&
       lastSeenAt != null &&
@@ -90,6 +139,9 @@ class VolunteerDetailsEntity {
     final lastSeenStr = json['last_seen_at'] as String?;
     final joinedStr = json['joined_at'] as String?;
     final lvl = (json['level'] as num?)?.toInt() ?? 1;
+    final completedHours = tasks
+        .where((t) => t.status == 'completed')
+        .fold<double>(0, (sum, t) => sum + t.durationHours);
     return VolunteerDetailsEntity(
       id: json['id'] as String,
       name: json['name'] as String? ?? '',
@@ -98,7 +150,7 @@ class VolunteerDetailsEntity {
       level: lvl,
       levelTitle: _levelTitle(lvl),
       totalTasks: (json['total_tasks'] as num?)?.toInt() ?? 0,
-      totalHours: (json['total_hours'] as num?)?.toInt() ?? 0,
+      totalHours: completedHours.round(),
       totalPoints: (json['total_points'] as num?)?.toInt() ?? 0,
       placesVisited: (json['places_visited'] as num?)?.toInt() ?? 0,
       region: json['region'] as String?,

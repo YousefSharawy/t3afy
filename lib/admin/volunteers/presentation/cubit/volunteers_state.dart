@@ -8,6 +8,8 @@ class VolunteersState with _$VolunteersState {
     List<AdminVolunteerEntity> volunteers, {
     @Default('all') String filter,
     @Default('') String searchQuery,
+    @Default([]) List<AdminVolunteerEntity> pendingUsers,
+    @Default(false) bool pendingLoading,
   }) = _Loaded;
   const factory VolunteersState.error(String message) = _Error;
 }

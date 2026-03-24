@@ -32,6 +32,8 @@ import 'package:t3afy/volunteer/performance/presentation/cubit/performance_cubit
 import 'package:t3afy/volunteer/home/representation/cubit/home_cubit.dart';
 import 'package:t3afy/volunteer/home/representation/volunteer_home_view.dart';
 import 'package:t3afy/volunteer/maps/volunteer_map_view.dart';
+import 'package:t3afy/admin/notifications/presentation/cubit/admin_notifications_cubit.dart';
+import 'package:t3afy/admin/notifications/presentation/view/admin_notifications_view.dart';
 import 'package:t3afy/volunteer/notifications/notifications_view.dart';
 import 'package:t3afy/volunteer/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:t3afy/volunteer/performance/volunteer_performance_view.dart';
@@ -69,6 +71,7 @@ static const String volunteers = '/adminVolunteers';
   static const String adminProfile = '/adminProfile';
   static const String volunteerDetails = '/volunteerDetails';
   static const String adminPerformance = '/adminPerformance';
+  static const String adminNotifications = '/adminNotifications';
 }
 
 class AppNavigation {
@@ -122,6 +125,16 @@ class AppNavigation {
           child: BlocProvider(
             create: (_) => getIt<NotificationsCubit>(),
             child: const NotificationsView(),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: Routes.adminNotifications,
+        pageBuilder: (context, state) => CustomTransitionPage2(
+          key: state.pageKey,
+          child: BlocProvider(
+            create: (_) => getIt<AdminNotificationsCubit>(),
+            child: const AdminNotificationsView(),
           ),
         ),
       ),

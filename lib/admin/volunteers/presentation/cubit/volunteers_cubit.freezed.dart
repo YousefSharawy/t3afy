@@ -128,12 +128,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<AdminVolunteerEntity> volunteers,  String filter,  String searchQuery)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<AdminVolunteerEntity> volunteers,  String filter,  String searchQuery,  List<AdminVolunteerEntity> pendingUsers,  bool pendingLoading)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.volunteers,_that.filter,_that.searchQuery);case _Error() when error != null:
+return loaded(_that.volunteers,_that.filter,_that.searchQuery,_that.pendingUsers,_that.pendingLoading);case _Error() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -152,12 +152,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<AdminVolunteerEntity> volunteers,  String filter,  String searchQuery)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<AdminVolunteerEntity> volunteers,  String filter,  String searchQuery,  List<AdminVolunteerEntity> pendingUsers,  bool pendingLoading)  loaded,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading();case _Loaded():
-return loaded(_that.volunteers,_that.filter,_that.searchQuery);case _Error():
+return loaded(_that.volunteers,_that.filter,_that.searchQuery,_that.pendingUsers,_that.pendingLoading);case _Error():
 return error(_that.message);case _:
   throw StateError('Unexpected subclass');
 
@@ -175,12 +175,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<AdminVolunteerEntity> volunteers,  String filter,  String searchQuery)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<AdminVolunteerEntity> volunteers,  String filter,  String searchQuery,  List<AdminVolunteerEntity> pendingUsers,  bool pendingLoading)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.volunteers,_that.filter,_that.searchQuery);case _Error() when error != null:
+return loaded(_that.volunteers,_that.filter,_that.searchQuery,_that.pendingUsers,_that.pendingLoading);case _Error() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -257,7 +257,7 @@ String toString() {
 
 
 class _Loaded implements VolunteersState {
-  const _Loaded(final  List<AdminVolunteerEntity> volunteers, {this.filter = 'all', this.searchQuery = ''}): _volunteers = volunteers;
+  const _Loaded(final  List<AdminVolunteerEntity> volunteers, {this.filter = 'all', this.searchQuery = '', final  List<AdminVolunteerEntity> pendingUsers = const [], this.pendingLoading = false}): _volunteers = volunteers,_pendingUsers = pendingUsers;
   
 
  final  List<AdminVolunteerEntity> _volunteers;
@@ -269,6 +269,14 @@ class _Loaded implements VolunteersState {
 
 @JsonKey() final  String filter;
 @JsonKey() final  String searchQuery;
+ final  List<AdminVolunteerEntity> _pendingUsers;
+@JsonKey() List<AdminVolunteerEntity> get pendingUsers {
+  if (_pendingUsers is EqualUnmodifiableListView) return _pendingUsers;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_pendingUsers);
+}
+
+@JsonKey() final  bool pendingLoading;
 
 /// Create a copy of VolunteersState
 /// with the given fields replaced by the non-null parameter values.
@@ -280,16 +288,16 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._volunteers, _volunteers)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._volunteers, _volunteers)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery)&&const DeepCollectionEquality().equals(other._pendingUsers, _pendingUsers)&&(identical(other.pendingLoading, pendingLoading) || other.pendingLoading == pendingLoading));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_volunteers),filter,searchQuery);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_volunteers),filter,searchQuery,const DeepCollectionEquality().hash(_pendingUsers),pendingLoading);
 
 @override
 String toString() {
-  return 'VolunteersState.loaded(volunteers: $volunteers, filter: $filter, searchQuery: $searchQuery)';
+  return 'VolunteersState.loaded(volunteers: $volunteers, filter: $filter, searchQuery: $searchQuery, pendingUsers: $pendingUsers, pendingLoading: $pendingLoading)';
 }
 
 
@@ -300,7 +308,7 @@ abstract mixin class _$LoadedCopyWith<$Res> implements $VolunteersStateCopyWith<
   factory _$LoadedCopyWith(_Loaded value, $Res Function(_Loaded) _then) = __$LoadedCopyWithImpl;
 @useResult
 $Res call({
- List<AdminVolunteerEntity> volunteers, String filter, String searchQuery
+ List<AdminVolunteerEntity> volunteers, String filter, String searchQuery, List<AdminVolunteerEntity> pendingUsers, bool pendingLoading
 });
 
 
@@ -317,12 +325,14 @@ class __$LoadedCopyWithImpl<$Res>
 
 /// Create a copy of VolunteersState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? volunteers = null,Object? filter = null,Object? searchQuery = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? volunteers = null,Object? filter = null,Object? searchQuery = null,Object? pendingUsers = null,Object? pendingLoading = null,}) {
   return _then(_Loaded(
 null == volunteers ? _self._volunteers : volunteers // ignore: cast_nullable_to_non_nullable
 as List<AdminVolunteerEntity>,filter: null == filter ? _self.filter : filter // ignore: cast_nullable_to_non_nullable
 as String,searchQuery: null == searchQuery ? _self.searchQuery : searchQuery // ignore: cast_nullable_to_non_nullable
-as String,
+as String,pendingUsers: null == pendingUsers ? _self._pendingUsers : pendingUsers // ignore: cast_nullable_to_non_nullable
+as List<AdminVolunteerEntity>,pendingLoading: null == pendingLoading ? _self.pendingLoading : pendingLoading // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

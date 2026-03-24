@@ -26,9 +26,12 @@ class _VolunteerPerformanceViewState extends State<VolunteerPerformanceView> {
   @override
   void initState() {
     super.initState();
-    final userId = LocalAppStorage.getUserId();
-    if (userId != null) {
-      context.read<PerformanceCubit>().loadPerformance(userId);
+    final cubit = context.read<PerformanceCubit>();
+    if (!cubit.state.maybeWhen(loaded: (a, b, c, d) => true, orElse: () => false)) {
+      final userId = LocalAppStorage.getUserId();
+      if (userId != null) {
+        cubit.loadPerformance(userId);
+      }
     }
   }
 

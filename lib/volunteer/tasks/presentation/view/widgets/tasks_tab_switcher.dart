@@ -44,7 +44,8 @@ class TasksTabSwitcher extends StatelessWidget {
       child: GestureDetector(
         onTap: () => onTabChanged(index),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
           decoration: BoxDecoration(
             color: isSelected ? ColorManager.primary600 : Colors.transparent,
             borderRadius: BorderRadius.circular(AppRadius.s25),

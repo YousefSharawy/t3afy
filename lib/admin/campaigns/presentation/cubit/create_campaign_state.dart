@@ -19,11 +19,46 @@ class CreateCampaignReady extends CreateCampaignState {
   final Set<String> selectedIds;
   final Map<String, dynamic>? taskData;
 
+  // Form field state owned by the cubit
+  final String selectedType;
+  final String selectedStatus;
+  final DateTime? selectedDate;
+  final TimeOfDay? timeStart;
+  final TimeOfDay? timeEnd;
+
   const CreateCampaignReady({
     required this.volunteers,
     required this.selectedIds,
     this.taskData,
+    this.selectedType = 'توعية مدرسية',
+    this.selectedStatus = 'ongoing',
+    this.selectedDate,
+    this.timeStart,
+    this.timeEnd,
   });
+
+  CreateCampaignReady copyWith({
+    List<VolunteerEntity>? volunteers,
+    Set<String>? selectedIds,
+    Map<String, dynamic>? taskData,
+    String? selectedType,
+    String? selectedStatus,
+    DateTime? selectedDate,
+    TimeOfDay? timeStart,
+    TimeOfDay? timeEnd,
+    bool clearTaskData = false,
+  }) {
+    return CreateCampaignReady(
+      volunteers: volunteers ?? this.volunteers,
+      selectedIds: selectedIds ?? this.selectedIds,
+      taskData: clearTaskData ? null : (taskData ?? this.taskData),
+      selectedType: selectedType ?? this.selectedType,
+      selectedStatus: selectedStatus ?? this.selectedStatus,
+      selectedDate: selectedDate ?? this.selectedDate,
+      timeStart: timeStart ?? this.timeStart,
+      timeEnd: timeEnd ?? this.timeEnd,
+    );
+  }
 }
 
 class CreateCampaignSaving extends CreateCampaignState {
@@ -44,4 +79,9 @@ class CreateCampaignActionError extends CreateCampaignState {
 class CreateCampaignError extends CreateCampaignState {
   final String message;
   const CreateCampaignError(this.message);
+}
+
+class CreateCampaignValidationError extends CreateCampaignState {
+  final String message;
+  const CreateCampaignValidationError(this.message);
 }

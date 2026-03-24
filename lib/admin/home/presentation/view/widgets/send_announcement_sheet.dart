@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+
 import 'package:t3afy/admin/home/presentation/cubit/admin_home_cubit.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
+import 'package:t3afy/base/primary_widgets.dart';
 
 class SendAnnouncementSheet extends StatefulWidget {
   const SendAnnouncementSheet({super.key});
@@ -33,17 +36,16 @@ class _SendAnnouncementSheetState extends State<SendAnnouncementSheet> {
   }
 
   void _handleSend() {
+    HapticFeedback.mediumImpact();
     if (_titleController.text.isEmpty || _bodyController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('الرجاء ملء جميع الحقول')),
-      );
+      Toast.warning.show(context, title: 'الرجاء ملء جميع الحقول');
       return;
     }
 
     context.read<AdminHomeCubit>().sendAnnouncement(
-          title: _titleController.text,
-          body: _bodyController.text,
-        );
+      title: _titleController.text,
+      body: _bodyController.text,
+    );
   }
 
   @override
@@ -57,17 +59,12 @@ class _SendAnnouncementSheetState extends State<SendAnnouncementSheet> {
       listener: (context, state) {
         state.maybeWhen(
           announcementSent: () {
-            final messenger = ScaffoldMessenger.of(context);
             Navigator.of(context).pop();
-            messenger.showSnackBar(
-              const SnackBar(content: Text('تم إرسال الإعلان بنجاح')),
-            );
+            Toast.success.show(context, title: 'تم إرسال الإعلان بنجاح');
             context.read<AdminHomeCubit>().loadDashboard();
           },
           announcementError: (message) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message)),
-            );
+            Toast.error.show(context, title: message);
           },
           orElse: () {},
         );
@@ -75,7 +72,7 @@ class _SendAnnouncementSheetState extends State<SendAnnouncementSheet> {
       child: SingleChildScrollView(
         child: Container(
           decoration: BoxDecoration(
-            color: ColorManager.blueOne900,
+            color: ColorManager.white,
             borderRadius: BorderRadius.vertical(
               top: Radius.circular(AppRadius.s20),
             ),
@@ -94,81 +91,21 @@ class _SendAnnouncementSheetState extends State<SendAnnouncementSheet> {
                 style: getBoldStyle(
                   fontFamily: FontConstants.fontFamily,
                   fontSize: FontSize.s18,
-                  color: Colors.white,
+                  color: ColorManager.natural900,
                 ),
               ),
               SizedBox(height: AppHeight.s20),
-              TextField(
+              PrimaryTextFF(
+                textAlign: .right,
                 controller: _titleController,
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: Colors.white,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'عنوان الإعلان',
-                  hintStyle: getRegularStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s14,
-                    color: ColorManager.blueTwo200,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: AppWidth.s16,
-                    vertical: AppHeight.s12,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s12),
-                    borderSide: BorderSide(color: ColorManager.blueOne700),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s12),
-                    borderSide: BorderSide(color: ColorManager.blueOne700),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s12),
-                    borderSide: BorderSide(color: ColorManager.blueTwo500),
-                  ),
-                  filled: true,
-                  fillColor: ColorManager.blueOne800,
-                ),
-                textDirection: TextDirection.rtl,
+                hint: 'عنوان الإعلان',
               ),
               SizedBox(height: AppHeight.s16),
-              TextField(
+              PrimaryTextFF(
+                textAlign: .right,
                 controller: _bodyController,
+                hint: 'نص الرسالة',
                 maxLines: 4,
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: Colors.white,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'نص الرسالة',
-                  hintStyle: getRegularStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s14,
-                    color: ColorManager.blueTwo200,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: AppWidth.s16,
-                    vertical: AppHeight.s12,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s12),
-                    borderSide: BorderSide(color: ColorManager.blueOne700),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s12),
-                    borderSide: BorderSide(color: ColorManager.blueOne700),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s12),
-                    borderSide: BorderSide(color: ColorManager.blueTwo500),
-                  ),
-                  filled: true,
-                  fillColor: ColorManager.blueOne800,
-                ),
-                textDirection: TextDirection.rtl,
               ),
               SizedBox(height: AppHeight.s24),
               BlocBuilder<AdminHomeCubit, AdminHomeState>(
@@ -185,70 +122,28 @@ class _SendAnnouncementSheetState extends State<SendAnnouncementSheet> {
 
                   return Column(
                     children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: isSending ? null : _handleSend,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ColorManager.blueTwo500,
-                            disabledBackgroundColor:
-                                ColorManager.blueTwo500.withValues(alpha: 0.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.s12),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              vertical: AppHeight.s12,
-                            ),
-                          ),
-                          child: isSending
-                              ? SizedBox(
-                                  height: 20.r,
-                                  width: 20.r,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              : Text(
-                                  'إرسال للجميع',
-                                  style: getBoldStyle(
-                                    fontFamily: FontConstants.fontFamily,
-                                    fontSize: FontSize.s14,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                      PrimaryElevatedButton(
+                        title: 'إرسال',
+                        onPress: isSending ? () {} : _handleSend,
+                        isLoading: isSending,
+                        textStyle: getBoldStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          fontSize: FontSize.s16,
+                          color: Colors.white,
                         ),
                       ),
                       SizedBox(height: AppHeight.s12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                              color: ColorManager.blueOne700,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.s12),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              vertical: AppHeight.s12,
-                            ),
-                          ),
-                          child: Text(
-                            'إلغاء',
-                            style: getBoldStyle(
-                              fontFamily: FontConstants.fontFamily,
-                              fontSize: FontSize.s14,
-                              color: ColorManager.blueTwo200,
-                            ),
-                          ),
+                      PrimaryElevatedButton(
+                        title: 'إلغاء',
+                        onPress: () => Navigator.pop(context),
+                        backGroundColor: ColorManager.natural200,
+                        textStyle: getBoldStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          fontSize: FontSize.s16,
+                          color: ColorManager.natural600,
                         ),
                       ),
+                      SizedBox(height: AppHeight.s100),
                     ],
                   );
                 },

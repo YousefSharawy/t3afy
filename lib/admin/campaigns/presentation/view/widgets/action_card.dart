@@ -25,30 +25,22 @@ class ActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        height: AppHeight.s50,
         padding: EdgeInsets.symmetric(
-          horizontal: AppWidth.s8,
+          horizontal: AppWidth.s12,
           vertical: AppHeight.s8,
         ),
         decoration: BoxDecoration(
-          color: titleColor != null
-              ? Colors.transparent
-              : ColorManager.blueOne900,
-          borderRadius: BorderRadius.circular(AppRadius.s12),
+          color: ColorManager.white,
+          borderRadius: BorderRadius.circular(AppRadius.s16),
         ),
         child: Row(
           children: [
-            Container(
-              width: AppWidth.s32,
-              height: AppHeight.s32,
-              decoration: BoxDecoration(
-                color: ColorManager.navyCard,
-                borderRadius: BorderRadius.circular(AppRadius.s10),
-              ),
-              child: Image.asset(icon),
-            ),
-            SizedBox(width: AppWidth.s12),
+            Image.asset(icon),
+            SizedBox(width: AppWidth.s8),
             Expanded(
               child: Column(
+                mainAxisAlignment: .center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -56,18 +48,11 @@ class ActionCard extends StatelessWidget {
                     style: getBoldStyle(
                       fontFamily: FontConstants.fontFamily,
                       fontSize: FontSize.s13,
-                      color: titleColor ?? Colors.white,
+                      color: titleColor ?? ColorManager.natural900,
                     ),
                   ),
                   SizedBox(height: AppHeight.s3),
-                  Text(
-                    subtitle,
-                    style: getRegularStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s11,
-                      color: Colors.white.withValues(alpha: 0.25),
-                    ),
-                  ),
+               
                 ],
               ),
             ),

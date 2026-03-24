@@ -26,17 +26,15 @@ class PerfStatBox extends StatelessWidget {
       ),
       decoration: decoration ??
           BoxDecoration(
-           color: ColorManager.white,
-            borderRadius: BorderRadius.circular(AppRadius.s12),
-            border: Border.all(
-              color: ColorManager.blueThree500.withValues(alpha: 0.3),
-            ),
+           color: ColorManager.primary100,
+            borderRadius: BorderRadius.circular(AppRadius.s16),
+           
           ),
       child: Column(
         children: [
           if (iconAsset != null) ...[
-            Image.asset(iconAsset!, width: 28, height: 28),
-            SizedBox(height: AppHeight.s6),
+            Image.asset(iconAsset!, width: AppWidth.s24, height: AppHeight.s24),
+            SizedBox(height: AppHeight.s5),
           ],
           Text(
             value,
@@ -48,9 +46,9 @@ class PerfStatBox extends StatelessWidget {
           ),
           Text(
             label,
-            style: getMediumStyle(
+            style: getRegularStyle(
               fontFamily: FontConstants.fontFamily,
-              color: ColorManager.natural300,
+              color: ColorManager.natural400,
               fontSize: FontSize.s12,
             ),
             textAlign: TextAlign.center,

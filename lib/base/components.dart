@@ -337,6 +337,28 @@ class AdminScaffoldWithNavBar extends StatefulWidget {
 }
 
 class _AdminScaffoldWithNavBarState extends State<AdminScaffoldWithNavBar> {
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    final adminId = LocalAppStorage.getUserId();
+    if (adminId == null) return;
+    try {
+      final res = await Supabase.instance.client
+          .from('admin_notes')
+          .select('id')
+          .eq('admin_id', adminId)
+          .eq('volunteer_id', adminId)
+          .eq('is_read', false);
+      if (mounted) setState(() => _unreadCount = (res as List).length);
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -345,11 +367,65 @@ class _AdminScaffoldWithNavBarState extends State<AdminScaffoldWithNavBar> {
         children: [
           Positioned.fill(child: widget.navigationShell),
           Positioned(
+            top: MediaQuery.of(context).padding.top + AppHeight.s5,
+            left: AppWidth.s18,
+            child: _buildNotificationButton(context),
+          ),
+          Positioned(
             left: AppWidth.s18,
             right: AppWidth.s18,
             bottom: AppHeight.s34,
             child: _buildNavBar(context),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context
+          .push(Routes.adminNotifications)
+          .then((_) => _loadUnreadCount()),
+      child: Stack(
+        children: [
+          Container(
+            padding: EdgeInsets.all(AppRadius.s10),
+            decoration: BoxDecoration(
+              color: ColorManager.white,
+              borderRadius: BorderRadius.circular(AppRadius.s10),
+            ),
+            child: Image.asset(
+              IconAssets.notification,
+              width: AppWidth.s24,
+              height: AppHeight.s24,
+            ),
+          ),
+          if (_unreadCount > 0)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                constraints: BoxConstraints(
+                  minWidth: 14.sp,
+                  minHeight: 14.sp,
+                ),
+                child: Text(
+                  '$_unreadCount',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 9.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
         ],
       ),
     );

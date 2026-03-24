@@ -21,40 +21,26 @@ class VolunteerActionRow extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        height: AppHeight.s50,
         margin: EdgeInsets.only(bottom: AppHeight.s8),
         padding: EdgeInsets.symmetric(
-          horizontal: AppWidth.s16,
-          vertical: AppHeight.s14,
+          horizontal: AppWidth.s12,
+          vertical: AppHeight.s8,
         ),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [
-              ColorManager.blueOne900,
-              ColorManager.blueOne800,
-            ],
-          ),
-          borderRadius: BorderRadius.circular(AppRadius.s8),
+      color: ColorManager.white,
+          borderRadius: BorderRadius.circular(AppRadius.s16),
         ),
         child: Row(
           children: [
-            Container(
-              width: AppWidth.s32,
-              height: AppHeight.s32,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppRadius.s8),
-                color: ColorManager.navyCard,
-              ),
-              child: Image.asset(icon),
-            ),
+            Image.asset(icon,width: AppWidth.s24,height: AppHeight.s24,fit: BoxFit.contain,),
             SizedBox(width: AppWidth.s8),
             Text(
               label,
               style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s12,
-                color: ColorManager.blueOne50,
+                color: ColorManager.natural700,
               ),
             ),
           ],

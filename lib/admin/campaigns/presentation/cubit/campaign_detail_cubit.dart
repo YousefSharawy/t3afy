@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/campaign_detail_entity.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/volunteer_entity.dart';
 import 'package:t3afy/admin/campaigns/domain/usecases/get_campaign_detail_usecase.dart';
@@ -30,7 +34,51 @@ class CampaignDetailCubit extends Cubit<CampaignDetailState> {
   final UpdateCampaignUsecase _updateCampaign;
   final GetUnassignedVolunteersUsecase _getUnassigned;
 
-  Future<void> load(String taskId) async {
+  RealtimeChannel? _assignmentsChannel;
+  Timer? _debounce;
+  String? _currentTaskId;
+
+  void _onRealtimeChange() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (_currentTaskId != null) _refresh(_currentTaskId!);
+    });
+  }
+
+  void _subscribeToAssignments(String taskId) {
+    _assignmentsChannel?.unsubscribe();
+    _assignmentsChannel = Supabase.instance.client
+        .channel('campaign_detail_assignments_$taskId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'task_assignments',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'task_id',
+            value: taskId,
+          ),
+          callback: (_) => _onRealtimeChange(),
+        )
+        .subscribe();
+  }
+
+  @override
+  Future<void> close() async {
+    _debounce?.cancel();
+    await _assignmentsChannel?.unsubscribe();
+    return super.close();
+  }
+
+  Future<void> load(String taskId, {bool invalidateListCache = false}) async {
+    if (_currentTaskId != taskId) {
+      _currentTaskId = taskId;
+      _subscribeToAssignments(taskId);
+    }
+    if (invalidateListCache) {
+      await LocalAppStorage.invalidateCache('campaigns_list');
+      await LocalAppStorage.invalidateCache('campaigns_stats');
+    }
     emit(const CampaignDetailLoading());
     final result = await _getDetail(taskId);
     result.fold(
@@ -39,30 +87,58 @@ class CampaignDetailCubit extends Cubit<CampaignDetailState> {
     );
   }
 
-  Future<void> assignVolunteer({
+  /// Silently re-fetches detail without emitting a Loading state.
+  Future<void> _refresh(String taskId) async {
+    final result = await _getDetail(taskId);
+    result.fold(
+      (_) {}, // swallow errors on background refresh
+      (detail) => emit(CampaignDetailLoaded(detail)),
+    );
+  }
+
+  CampaignDetailEntity? get _currentDetail {
+    final s = state;
+    if (s is CampaignDetailLoaded) return s.detail;
+    return null;
+  }
+
+  Future<bool> assignVolunteers({
     required String taskId,
-    required String userId,
+    required List<String> userIds,
     required String adminId,
   }) async {
     final result = await _assignVolunteer(
       taskId: taskId,
-      userId: userId,
+      userIds: userIds,
       adminId: adminId,
     );
+    bool success = false;
     result.fold(
       (f) => emit(CampaignDetailActionError(f.message)),
-      (_) => load(taskId),
+      (_) => success = true,
     );
+    if (success) await _refresh(taskId);
+    return success;
   }
 
   Future<void> removeVolunteer({
     required String taskId,
     required String userId,
   }) async {
+    final detail = _currentDetail;
     final result = await _removeVolunteer(taskId: taskId, userId: userId);
-    result.fold(
-      (f) => emit(CampaignDetailActionError(f.message)),
-      (_) => load(taskId),
+    await result.fold(
+      (f) async => emit(CampaignDetailActionError(f.message)),
+      (_) async {
+        if (detail != null) {
+          emit(CampaignDetailLoaded(
+            detail.copyWith(
+              members: detail.members.where((m) => m.id != userId).toList(),
+            ),
+          ));
+        }
+        await _refresh(taskId);
+      },
     );
   }
 
@@ -103,10 +179,16 @@ class CampaignDetailCubit extends Cubit<CampaignDetailState> {
   }
 
   Future<void> pauseCampaign(String taskId) async {
+    final detail = _currentDetail;
     final result = await _updateCampaign(taskId, {'status': 'paused'});
-    result.fold(
-      (f) => emit(CampaignDetailActionError(f.message)),
-      (_) => load(taskId),
+    await result.fold(
+      (f) async => emit(CampaignDetailActionError(f.message)),
+      (_) async {
+        if (detail != null) {
+          emit(CampaignDetailLoaded(detail.copyWith(status: 'paused')));
+        }
+        await _refresh(taskId);
+      },
     );
   }
 

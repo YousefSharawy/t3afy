@@ -411,22 +411,26 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
   }
 
   @override
-  Future<void> assignVolunteer({
+  Future<void> assignVolunteers({
     required String taskId,
-    required String userId,
+    required List<String> userIds,
     required String adminId,
   }) async {
     try {
       final now = DateTime.now().toUtc().toIso8601String();
-      await _client.from('task_assignments').insert({
-        'task_id': taskId,
-        'user_id': userId,
-        'status': 'assigned',
-        'assigned_at': now,
-        'assigned_by': adminId,
-      });
 
-      // Fetch campaign title for the notification body
+      final assignments = userIds
+          .map((id) => {
+                'task_id': taskId,
+                'user_id': id,
+                'status': 'assigned',
+                'assigned_at': now,
+                'assigned_by': adminId,
+              })
+          .toList();
+      await _client.from('task_assignments').insert(assignments);
+
+      // Fetch campaign title for notification bodies
       final task = await _client
           .from('tasks')
           .select('title')
@@ -434,15 +438,19 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
           .single();
       final campaignTitle = task['title'] as String? ?? '';
 
-      await _client.from('admin_notes').insert({
-        'admin_id': adminId,
-        'volunteer_id': userId,
-        'task_id': taskId,
-        'title': 'تم تعيينك في حملة جديدة',
-        'body': campaignTitle,
-        'is_read': false,
-        'created_at': now,
-      });
+      final notes = userIds
+          .map((id) => {
+                'admin_id': adminId,
+                'volunteer_id': id,
+                'task_id': taskId,
+                'title': 'تم تعيينك في حملة جديدة',
+                'body': campaignTitle,
+                'is_read': false,
+                'created_at': now,
+              })
+          .toList();
+      await _client.from('admin_notes').insert(notes);
+      await LocalAppStorage.invalidateCache('campaigns_list');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -459,6 +467,7 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
           .delete()
           .eq('task_id', taskId)
           .eq('user_id', userId);
+      await LocalAppStorage.invalidateCache('campaigns_list');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

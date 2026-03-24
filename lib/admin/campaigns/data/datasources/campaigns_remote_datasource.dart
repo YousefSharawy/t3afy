@@ -10,9 +10,9 @@ abstract class CampaignsRemoteDatasource {
   Future<String> createCampaign(Map<String, dynamic> data);
   Future<void> updateCampaign(String id, Map<String, dynamic> data);
   Future<void> deleteCampaign(String id);
-  Future<void> assignVolunteer({
+  Future<void> assignVolunteers({
     required String taskId,
-    required String userId,
+    required List<String> userIds,
     required String adminId,
   });
   Future<void> removeVolunteer({required String taskId, required String userId});

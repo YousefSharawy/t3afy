@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/primary_widgets.dart';
 
 class SupplyField extends StatelessWidget {
   const SupplyField({
@@ -23,83 +22,24 @@ class SupplyField extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: AppHeight.s8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             flex: 3,
-            child: TextField(
+            child: PrimaryTextFF(
+              textAlign: .right,
               controller: nameController,
-              textDirection: TextDirection.rtl,
-              style: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s13,
-                color: ColorManager.blueOne300,
-              ),
-              decoration: InputDecoration(
-                hintText: 'اسم المستلزم',
-                hintStyle: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s13,
-                  color: ColorManager.blueOne300,
-                ),
-                filled: true,
-                fillColor: ColorManager.blueOne700,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: AppWidth.s12,
-                  vertical: AppHeight.s10,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.s10),
-                  borderSide: BorderSide(color: ColorManager.blueOne600),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.s10),
-                  borderSide: BorderSide(color: ColorManager.blueOne600),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.s10),
-                  borderSide: const BorderSide(color: ColorManager.cyanPrimary),
-                ),
-              ),
+              hint: 'اسم المستلزم',
             ),
           ),
           SizedBox(width: AppWidth.s8),
           Expanded(
             flex: 1,
-            child: TextField(
+            child: PrimaryTextFF(
+              textAlign: .right,
               controller: quantityController,
+              hint: 'الكمية',
               keyboardType: TextInputType.number,
-              textDirection: TextDirection.rtl,
-              style: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s13,
-                color: ColorManager.white,
-              ),
-              decoration: InputDecoration(
-                hintText: 'الكمية',
-                hintStyle: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s11,
-                  color: ColorManager.blueOne300,
-                ),
-                filled: true,
-                fillColor: ColorManager.blueOne700,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: AppWidth.s8,
-                  vertical: AppHeight.s10,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.s10),
-                  borderSide: BorderSide(color: ColorManager.blueOne600),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.s10),
-                  borderSide: BorderSide(color: ColorManager.blueOne600),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.s10),
-                  borderSide: const BorderSide(color: ColorManager.cyanPrimary),
-                ),
-              ),
             ),
           ),
           SizedBox(width: AppWidth.s8),
@@ -108,7 +48,7 @@ class SupplyField extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.all(AppSize.s8),
               decoration: BoxDecoration(
-                color: ColorManager.error.withValues(alpha: 0.1),
+                color: ColorManager.errorLight,
                 borderRadius: BorderRadius.circular(AppRadius.s8),
               ),
               child: Icon(

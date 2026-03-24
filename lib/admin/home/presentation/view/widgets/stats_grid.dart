@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/home/presentation/view/widgets/stat_card.dart';
 
@@ -25,8 +26,9 @@ class StatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final volunteersTrend =
-        volunteersThisMonth > 0 ? '↑$volunteersThisMonth هذا الشهر' : null;
+    final volunteersTrend = volunteersThisMonth > 0
+        ? '↑$volunteersThisMonth هذا الشهر'
+        : null;
 
     final String? activeTrend;
     if (activeDiffFromYesterday > 0) {
@@ -52,15 +54,17 @@ class StatsGrid extends StatelessWidget {
           children: [
             Expanded(
               child: StatCard(
-                icon: IconAssets.group,
+                iconBgColor: ColorManager.primary50,
+                icon: IconAssets.vol,
                 value: '$totalVolunteers',
                 label: 'اجمالي المتطوعين',
                 trend: volunteersTrend,
               ),
             ),
-            SizedBox(width: AppWidth.s18),
+            SizedBox(width: AppWidth.s8),
             Expanded(
               child: StatCard(
+                iconBgColor: ColorManager.accentSand,
                 icon: IconAssets.boy,
                 value: '$activeTodayCount',
                 label: 'نشيط اليوم',
@@ -74,15 +78,17 @@ class StatsGrid extends StatelessWidget {
           children: [
             Expanded(
               child: StatCard(
-                icon: IconAssets.hours,
+                iconBgColor: ColorManager.infoLight,
+                icon: IconAssets.alarm,
                 value: '$completedCampaigns',
                 label: 'حملة مكتملة',
               ),
             ),
-            SizedBox(width: AppWidth.s18),
+            SizedBox(width: AppWidth.s8),
             Expanded(
               child: StatCard(
-                icon: IconAssets.done,
+                iconBgColor: ColorManager.successLight,
+                icon: IconAssets.done2,
                 value: totalHours.toStringAsFixed(0),
                 label: 'ساعات التطوع',
                 trend: hoursTrend,

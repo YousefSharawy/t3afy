@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,7 @@ import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
 import 'package:t3afy/base/components.dart';
 import 'package:t3afy/base/primary_widgets.dart';
 import 'package:t3afy/translation/locale_keys.g.dart';
@@ -34,6 +36,7 @@ class _LoginViewState extends State<LoginView> {
   }
 
   void _login() {
+    HapticFeedback.mediumImpact();
     if (_formKey.currentState?.validate() ?? false) {
       context.read<AuthCubit>().login(
         _emailController.text.trim(),
@@ -60,9 +63,7 @@ class _LoginViewState extends State<LoginView> {
       listener: (context, state) {
         state.whenOrNull(
           success: (user) => _navigateByRole(user.role),
-          error: (message) => ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message))),
+          error: (message) => Toast.error.show(context, title: message),
         );
       },
       child: PrimaryScaffold(

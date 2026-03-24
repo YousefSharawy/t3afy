@@ -4,6 +4,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/empty_state_text.dart';
 import 'region_item.dart';
 
 class RegionRankingSection extends StatelessWidget {
@@ -13,31 +14,21 @@ class RegionRankingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (regions.isEmpty) return const SizedBox.shrink();
+    if (regions.isEmpty) return const EmptyStateText(message: 'لا توجد بيانات للمناطق');
 
     final maxCount = regions.map((r) => r.volunteerCount).reduce(
           (a, b) => a > b ? a : b,
         );
 
     return Container(
-      padding: EdgeInsets.all(AppWidth.s16),
+      padding: EdgeInsets.symmetric(vertical: AppHeight.s18,horizontal: AppWidth.s11),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne900,
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s16),
-        border: Border.all(color: ColorManager.navyLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'توزيع المتطوعين حسب المنطقة',
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s14,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(height: AppHeight.s16),
           ...List.generate(regions.length, (i) {
             final region = regions[i];
             final fraction =

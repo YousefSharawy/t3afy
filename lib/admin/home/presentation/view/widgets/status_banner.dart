@@ -43,19 +43,12 @@ class StatusBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s12,
+        horizontal: AppWidth.s24,
         vertical: AppHeight.s12,
       ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            ColorManager.blueOne900,
-            ColorManager.blueOne800,
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.s12),
+        color: ColorManager.white,
+        borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
       child: Row(
         children: [
@@ -66,8 +59,8 @@ class StatusBanner extends StatelessWidget {
                 _formatDate(DateTime.now()),
                 style: getRegularStyle(
                   fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s12,
-                  color: ColorManager.blueOne100,
+                  fontSize: FontSize.s10,
+                  color: ColorManager.natural400,
                 ),
               ),
               SizedBox(height: AppHeight.s4),
@@ -78,17 +71,17 @@ class StatusBanner extends StatelessWidget {
                     width: 8.r,
                     height: 8.r,
                     decoration: const BoxDecoration(
-                      color: Color(0xFF4CAF50),
+                      color: ColorManager.success,
                       shape: BoxShape.circle,
                     ),
                   ),
                   SizedBox(width: AppWidth.s6),
                   Text(
                     '$activeVolunteersCount متطوع نشيط الآن',
-                    style: getMediumStyle(
+                    style: getBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s13,
-                      color: Colors.white,
+                      fontSize: FontSize.s12,
+                      color: ColorManager.success,
                     ),
                   ),
                 ],
@@ -98,19 +91,19 @@ class StatusBanner extends StatelessWidget {
           const Spacer(),
           Container(
             padding: EdgeInsets.symmetric(
-              horizontal: AppWidth.s10,
+              horizontal: AppWidth.s8,
               vertical: AppHeight.s4,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFF2DD4BF).withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppRadius.s20),
+               color: ColorManager.successLight,
+              borderRadius: BorderRadius.circular(AppRadius.s8),
             ),
             child: Text(
               'النظام يعمل ✓',
-              style: getSemiBoldStyle(
+              style: getMediumStyle(
                 fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s11,
-                color: const Color(0xFF2DD4BF),
+                fontSize: FontSize.s10,
+                color: ColorManager.success,
               ),
             ),
           ),

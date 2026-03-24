@@ -55,13 +55,10 @@ class AuthCubit extends Cubit<AuthState> {
       password: password,
       role: role,
     );
-    result.fold((failure) => emit(AuthState.error(failure.message)), (
-      user,
-    ) async {
-      final entity = user.toEntity();
-      await LocalAppStorage.saveUserSession(entity.role, entity.id);
-      emit(AuthState.success(entity));
-    });
+    result.fold(
+      (failure) => emit(AuthState.error(failure.message)),
+      (_) => emit(const AuthState.registrationPending()),
+    );
   }
 
   Future<void> logout() async {

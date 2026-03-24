@@ -28,7 +28,7 @@ class AdminReportsView extends StatelessWidget {
           style: getBoldStyle(
             fontFamily: FontConstants.fontFamily,
             fontSize: FontSize.s16,
-            color: ColorManager.blueOne900,
+            color: ColorManager.natural900,
           ),
         ),
       ),
@@ -48,6 +48,7 @@ class AdminReportsView extends StatelessWidget {
                   : reports.where((r) => r.status == filter).toList();
               return Column(
                 children: [
+                  SizedBox(height: AppHeight.s10,),
                   SizedBox(
                     height: AppHeight.s48,
                     child: ListView(
@@ -89,7 +90,7 @@ class AdminReportsView extends StatelessWidget {
                         : RefreshIndicator(
                             onRefresh: () =>
                                 context.read<AdminReportsCubit>().loadReports(),
-                            color: const Color(0xFF00ABD2),
+                            color: ColorManager.primary500,
                             child: ListView.builder(
                               padding: EdgeInsets.symmetric(
                                 horizontal: AppWidth.s16,

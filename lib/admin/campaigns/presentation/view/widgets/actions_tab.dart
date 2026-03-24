@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
@@ -64,7 +65,12 @@ class ActionsTab extends StatelessWidget {
           icon: IconAssets.edit,
           title: 'تعديل تفاصيل الحملة',
           subtitle: 'تعديل معلومات وبيانات الحملة',
-          onTap: () => context.push('/editCampaign/${detail.id}'),
+          onTap: () async {
+            final changed = await context.push<bool>('/editCampaign/${detail.id}');
+            if (changed == true && context.mounted) {
+              cubit.load(detail.id, invalidateListCache: true);
+            }
+          },
         ),
         SizedBox(height: AppHeight.s12),
         ActionCard(
@@ -72,12 +78,12 @@ class ActionsTab extends StatelessWidget {
           title: 'ايقاف الحملة مؤقتاً',
           subtitle: 'تغيير حالة الحملة إلى موقوفة',
           onTap: () async {
+            HapticFeedback.mediumImpact();
             final confirmed = await showConfirmDialog(
               context,
               title: 'ايقاف الحملة',
               body: 'هل تريد إيقاف هذه الحملة مؤقتاً؟',
               confirmLabel: 'إيقاف',
-              confirmColor: ColorManager.amber500,
             );
             if (confirmed && context.mounted) {
               cubit.pauseCampaign(detail.id);
@@ -86,17 +92,17 @@ class ActionsTab extends StatelessWidget {
         ),
         SizedBox(height: AppHeight.s12),
         PrimaryElevatedButton(
-          borderColor: ColorManager.darkRed,
-          backGroundColor: ColorManager.white,
+          backGroundColor: ColorManager.errorLight,
           title: "حذف الحملة",
           onPress: () async {
+            HapticFeedback.mediumImpact();
             final confirmed = await showConfirmDialog(
               context,
               title: 'حذف الحملة',
               body:
                   'هذا الإجراء لا يمكن التراجع عنه. هل تريد حذف الحملة نهائياً؟',
               confirmLabel: 'حذف',
-              confirmColor: ColorManager.error,
+              isDestructive: true,
             );
             if (confirmed && context.mounted) {
               cubit.deleteCampaign(detail.id);
@@ -104,8 +110,8 @@ class ActionsTab extends StatelessWidget {
           },
           textStyle: getBoldStyle(
             fontFamily: FontConstants.fontFamily,
-            color: Colors.red,
-            fontSize: FontSize.s14,
+            color: ColorManager.error,
+            fontSize: FontSize.s16,
           ),
         ),
         SizedBox(height: AppHeight.s80),

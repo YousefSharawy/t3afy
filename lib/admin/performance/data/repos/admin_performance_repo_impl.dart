@@ -10,9 +10,10 @@ class AdminPerformanceRepoImpl implements AdminPerformanceRepo {
   AdminPerformanceRepoImpl(this._datasource);
 
   @override
-  Future<Either<Failture, AdminPerformanceEntity>> getPerformanceData() async {
+  Future<Either<Failture, AdminPerformanceEntity>> getPerformanceData(
+      DateTime startDate, String period) async {
     try {
-      final data = await _datasource.getPerformanceData();
+      final data = await _datasource.getPerformanceData(startDate, period);
       return Right(data);
     } on Failture catch (f) {
       return Left(f);

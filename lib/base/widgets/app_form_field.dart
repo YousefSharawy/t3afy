@@ -9,6 +9,7 @@ class AppFormField extends StatelessWidget {
     super.key,
     required this.controller,
     required this.hint,
+    this.label,
     this.maxLines = 1,
     this.keyboardType,
     this.validator,
@@ -18,10 +19,12 @@ class AppFormField extends StatelessWidget {
     this.textColor,
     this.hintColor,
     this.prefixIcon,
+    this.onChanged,
   });
 
   final TextEditingController controller;
   final String hint;
+  final String? label;
   final int maxLines;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
@@ -31,6 +34,7 @@ class AppFormField extends StatelessWidget {
   final Color? textColor;
   final Color? hintColor;
   final Widget? prefixIcon;
+  final void Function(String)? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -41,11 +45,12 @@ class AppFormField extends StatelessWidget {
     final effectiveHint =
         hintColor ?? Colors.white.withValues(alpha: 0.3);
 
-    return TextFormField(
+    final field = TextFormField(
       controller: controller,
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
+      onChanged: onChanged,
       textDirection: TextDirection.rtl,
       style: getMediumStyle(
         fontFamily: FontConstants.fontFamily,
@@ -67,22 +72,40 @@ class AppFormField extends StatelessWidget {
           vertical: AppHeight.s12,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s10),
+          borderRadius: BorderRadius.circular(AppRadius.s23),
           borderSide: BorderSide(color: effectiveBorder),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s10),
+          borderRadius: BorderRadius.circular(AppRadius.s23),
           borderSide: BorderSide(color: effectiveBorder),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s10),
+          borderRadius: BorderRadius.circular(AppRadius.s23),
           borderSide: BorderSide(color: effectiveFocused),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s10),
+          borderRadius: BorderRadius.circular(AppRadius.s23),
           borderSide: const BorderSide(color: ColorManager.error),
         ),
       ),
+    );
+
+    if (label == null) return field;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label!,
+          style: getRegularStyle(
+            fontFamily: FontConstants.fontFamily,
+            fontSize: FontSize.s12,
+            color: ColorManager.natural400,
+          ),
+        ),
+        SizedBox(height: AppHeight.s6),
+        field,
+      ],
     );
   }
 }

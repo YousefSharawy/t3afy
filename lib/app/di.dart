@@ -57,6 +57,14 @@ import 'package:t3afy/volunteer/notifications/domain/use_cases/mark_as_read_use_
 import 'package:t3afy/volunteer/notifications/domain/use_cases/mark_all_as_read_use_case.dart';
 import 'package:t3afy/volunteer/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:t3afy/admin/reports/data/datasources/admin_reports_remote_datasource.dart';
+import 'package:t3afy/admin/notifications/data/repository/admin_notifications_impl_repository.dart';
+import 'package:t3afy/admin/notifications/data/sources/admin_notifications_impl_remote_data_source.dart';
+import 'package:t3afy/admin/notifications/data/sources/admin_notifications_remote_data_source.dart';
+import 'package:t3afy/admin/notifications/domain/repository/admin_notifications_repository.dart';
+import 'package:t3afy/admin/notifications/domain/use_cases/get_admin_notifications_use_case.dart';
+import 'package:t3afy/admin/notifications/domain/use_cases/mark_admin_notification_read_use_case.dart';
+import 'package:t3afy/admin/notifications/domain/use_cases/mark_all_admin_notifications_read_use_case.dart';
+import 'package:t3afy/admin/notifications/presentation/cubit/admin_notifications_cubit.dart';
 import 'package:t3afy/admin/reports/data/datasources/admin_reports_remote_datasource_impl.dart';
 import 'package:t3afy/admin/reports/data/repos/admin_reports_repo_impl.dart';
 import 'package:t3afy/admin/reports/domain/repos/admin_reports_repo.dart';
@@ -96,7 +104,16 @@ import 'package:t3afy/admin/volunteers/domain/usecases/add_volunteer_usecase.dar
 import 'package:t3afy/admin/volunteers/domain/usecases/approve_volunteer_usecase.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/delete_volunteer_usecase.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/get_volunteer_details_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/add_rating_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/assign_custom_task_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/assign_task_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/edit_volunteer_data_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/get_available_tasks_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/get_pending_users_usecase.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/get_volunteers_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/send_direct_message_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/suspend_account_usecase.dart';
+import 'package:t3afy/admin/volunteers/domain/usecases/upgrade_level_usecase.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_cubit.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteers_cubit.dart';
 import 'package:t3afy/app/services/online_status_cubit.dart';
@@ -269,6 +286,33 @@ getIt.registerFactory(() => TasksCubit(
     ),
   );
 
+  // ===== Admin Notifications =====
+  getIt.registerLazySingleton<AdminNotificationsRemoteDataSource>(
+    () => AdminNotificationsImplRemoteDataSource(),
+  );
+  getIt.registerLazySingleton<AdminNotificationsRepository>(
+    () => AdminNotificationsImplRepository(
+        getIt<AdminNotificationsRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetAdminNotificationsUseCase(getIt<AdminNotificationsRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => MarkAdminNotificationReadUseCase(
+        getIt<AdminNotificationsRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => MarkAllAdminNotificationsReadUseCase(
+        getIt<AdminNotificationsRepository>()),
+  );
+  getIt.registerFactory(
+    () => AdminNotificationsCubit(
+      getIt<GetAdminNotificationsUseCase>(),
+      getIt<MarkAdminNotificationReadUseCase>(),
+      getIt<MarkAllAdminNotificationsReadUseCase>(),
+    ),
+  );
+
   getIt.registerLazySingleton<AdminReportsRemoteDatasource>(
     () => AdminReportsRemoteDatasourceImpl(),
   );
@@ -393,11 +437,39 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton(
     () => ApproveVolunteerUsecase(getIt<VolunteersRepo>()),
   );
+  getIt.registerLazySingleton(
+    () => GetAvailableTasksUsecase(getIt<VolunteersRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => AssignTaskUsecase(getIt<VolunteersRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => SendDirectMessageUsecase(getIt<VolunteersRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => AddRatingUsecase(getIt<VolunteersRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => UpgradeLevelUsecase(getIt<VolunteersRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => EditVolunteerDataUsecase(getIt<VolunteersRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => SuspendAccountUsecase(getIt<VolunteersRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => AssignCustomTaskUsecase(getIt<VolunteersRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetPendingUsersUsecase(getIt<VolunteersRepo>()),
+  );
   getIt.registerFactory(
     () => VolunteersCubit(
       getIt<GetVolunteersUsecase>(),
       getIt<VolunteersRepo>(),
       getIt<AddVolunteerUsecase>(),
+      getIt<GetPendingUsersUsecase>(),
     ),
   );
   getIt.registerFactory(
@@ -405,6 +477,14 @@ getIt.registerFactory(() => TasksCubit(
       getIt<GetVolunteerDetailsUsecase>(),
       getIt<DeleteVolunteerUsecase>(),
       getIt<ApproveVolunteerUsecase>(),
+      getIt<GetAvailableTasksUsecase>(),
+      getIt<AssignTaskUsecase>(),
+      getIt<SendDirectMessageUsecase>(),
+      getIt<AddRatingUsecase>(),
+      getIt<UpgradeLevelUsecase>(),
+      getIt<EditVolunteerDataUsecase>(),
+      getIt<SuspendAccountUsecase>(),
+      getIt<AssignCustomTaskUsecase>(),
     ),
   );
 

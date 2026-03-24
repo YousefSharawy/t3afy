@@ -5,6 +5,7 @@ import 'package:t3afy/auth/data/models/user_model.dart';
 import 'package:t3afy/auth/data/source/auth_remote_date_source.dart';
 
 import '../../../app/error_handler.dart';
+import '../../../app/failture.dart';
 
 class AuthImplRemoteDataSource implements AuthRemoteDateSource {
   @override
@@ -15,6 +16,13 @@ class AuthImplRemoteDataSource implements AuthRemoteDateSource {
           .select('id,email,name,role')
           .ilike('email', email)
           .single();
+      final role = userResponse['role'] as String? ?? '';
+      if (role == 'user') {
+        throw Failture(0, 'حسابك قيد المراجعة، يرجى انتظار موافقة الإدارة');
+      }
+      if (role == 'suspended') {
+        throw Failture(0, 'تم تعليق حسابك، تواصل مع الإدارة');
+      }
       return UserModel.fromJson(userResponse);
     } catch (error) {
       throw ErrorHandler.handle(error).failture;

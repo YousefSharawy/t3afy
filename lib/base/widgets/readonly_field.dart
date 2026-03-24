@@ -10,6 +10,7 @@ class ReadonlyField extends StatelessWidget {
     super.key,
     required this.value,
     required this.icon,
+    this.label,
     this.backgroundColor,
     this.borderColor,
     this.textColor,
@@ -18,6 +19,7 @@ class ReadonlyField extends StatelessWidget {
 
   final String value;
   final IconData icon;
+  final String? label;
   final Color? backgroundColor;
   final Color? borderColor;
   final Color? textColor;
@@ -25,7 +27,7 @@ class ReadonlyField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final field = Container(
       padding: EdgeInsets.symmetric(
         horizontal: AppWidth.s12,
         vertical: AppHeight.s14,
@@ -50,6 +52,24 @@ class ReadonlyField extends StatelessWidget {
           Icon(icon, color: iconColor ?? ColorManager.blueTwo200, size: 16.r),
         ],
       ),
+    );
+
+    if (label == null) return field;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label!,
+          style: getRegularStyle(
+            fontFamily: FontConstants.fontFamily,
+            fontSize: FontSize.s12,
+            color: ColorManager.natural400,
+          ),
+        ),
+        SizedBox(height: AppHeight.s6),
+        field,
+      ],
     );
   }
 }

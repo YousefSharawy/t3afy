@@ -1,54 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
 import 'qualification_row.dart';
 import 'package:t3afy/base/widgets/info_row.dart';
 
-class VolunteerDataTab extends StatelessWidget {
+class VolunteerDataTab extends StatefulWidget {
   const VolunteerDataTab({super.key, required this.details});
 
   final VolunteerDetailsEntity details;
 
   @override
+  State<VolunteerDataTab> createState() => _VolunteerDataTabState();
+}
+
+class _VolunteerDataTabState extends State<VolunteerDataTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return ListView(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s16,
-        vertical: AppHeight.s8,
-      ),
       children: [
         InfoRow(
           icon: IconAssets.phone,
           label: 'رقم الهاتف',
-          value: details.phone ?? '—',
+          value: widget.details.phone ?? '—',
         ),
         InfoRow(
           icon: IconAssets.email2,
           label: 'البريد',
-          value: details.email ?? '—',
+          value: widget.details.email ?? '—',
         ),
         InfoRow(
           icon: IconAssets.location,
           label: 'المنطقة',
-          value: details.region ?? '—',
+          value: widget.details.region ?? '—',
         ),
         InfoRow(
           icon: IconAssets.calendar,
           label: 'تاريخ الانضمام',
-          value: details.joinedAt != null
-              ? _formatArabicMonth(details.joinedAt!)
+          value: widget.details.joinedAt != null
+              ? _formatArabicMonth(widget.details.joinedAt!)
               : '—',
         ),
         InfoRow(
           icon: IconAssets.hours,
           label: 'آخر ظهور',
-          value: details.lastSeenAt != null
-              ? _timeAgo(details.lastSeenAt!)
+          value: widget.details.lastSeenAt != null
+              ? _timeAgo(widget.details.lastSeenAt!)
               : '—',
         ),
         QualificationRow(
-          values: details.volunteerAreas,
+          values: widget.details.volunteerAreas,
         ),
       ],
     );

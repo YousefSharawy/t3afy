@@ -69,20 +69,39 @@ class MonthlyChart extends StatelessWidget {
                       ),
                     ),
                   )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: monthlyHours.map((m) {
-                      final ratio = m.hours / maxHours;
-                      final name = (m.month >= 1 && m.month <= 12)
-                          ? _monthNames[m.month]
-                          : '${m.month}';
-                      return BarColumn(
-                        label: name,
-                        hours: m.hours,
-                        ratio: ratio,
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      final count = monthlyHours.length;
+                      final minWidth = count * AppWidth.s64;
+                      final chartWidth = minWidth > constraints.maxWidth
+                          ? minWidth
+                          : constraints.maxWidth;
+                      final barWidth = (chartWidth / count)
+                          .clamp(AppWidth.s64, AppWidth.s81);
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        reverse: true,
+                        child: SizedBox(
+                          width: chartWidth,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: monthlyHours.map((m) {
+                              final ratio = m.hours / maxHours;
+                              final name = (m.month >= 1 && m.month <= 12)
+                                  ? _monthNames[m.month]
+                                  : '${m.month}';
+                              return BarColumn(
+                                label: name,
+                                hours: m.hours,
+                                ratio: ratio,
+                                barWidth: barWidth,
+                              );
+                            }).toList(),
+                          ),
+                        ),
                       );
-                    }).toList(),
+                    },
                   ),
           ),
         ],

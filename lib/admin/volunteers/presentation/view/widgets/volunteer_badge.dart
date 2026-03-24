@@ -6,13 +6,13 @@ import 'package:t3afy/app/resources/values_manager.dart';
 class VolunteerBadge extends StatelessWidget {
   const VolunteerBadge({
     super.key,
-    required this.icon,
+     this.icon,
     required this.label,
     required this.color,
     required this.bg,
   });
 
-  final IconData icon;
+  final IconData? icon;
   final String label;
   final Color color;
   final Color bg;
@@ -31,11 +31,10 @@ class VolunteerBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 11),
           SizedBox(width: AppWidth.s4),
           Text(
             label,
-            style: getMediumStyle(
+            style: getSemiBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s10,
               color: color,

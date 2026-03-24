@@ -24,7 +24,7 @@ class AdminPerformanceView extends StatelessWidget {
       child: Scaffold(
         backgroundColor: ColorManager.background,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: ColorManager.background,
           elevation: 0,
           automaticallyImplyLeading: false,
           centerTitle: true,
@@ -33,51 +33,86 @@ class AdminPerformanceView extends StatelessWidget {
             style: getBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s16,
-              color: ColorManager.blueOne900,
+              color: ColorManager.natural900,
             ),
           ),
         ),
         body: BlocBuilder<AdminPerformanceCubit, AdminPerformanceState>(
           builder: (context, state) {
-            if (state is AdminPerformanceLoading ||
-                state is AdminPerformanceInitial) {
+            if (state is AdminPerformanceInitial) {
               return const LoadingIndicator();
             }
             if (state is AdminPerformanceError) {
               return ErrorState(
                 message: state.message,
                 onRetry: () =>
-                    context.read<AdminPerformanceCubit>().loadPerformance(),
+                    context.read<AdminPerformanceCubit>().loadPerformance(
+                      state.selectedPeriod,
+                      forceRefresh: true,
+                    ),
               );
             }
-            if (state is! AdminPerformanceLoaded) {
-              return const SizedBox.shrink();
-            }
-            final data = state.data;
-            return RefreshIndicator(
-              onRefresh: () =>
-                  context.read<AdminPerformanceCubit>().loadPerformance(),
-              color: const Color(0xFF00ABD2),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: AppHeight.s24),
-                    const PerformanceTimeFilter(),
-                    SizedBox(height: AppHeight.s16),
-                    PerformanceStatsRow(data: data),
-                    SizedBox(height: AppHeight.s8),
-                    PerformanceBarChart(data: data.monthlyCompletedTasks),
-                    SizedBox(height: AppHeight.s8),
-                    RegionRankingSection(regions: data.topRegions),
-                    SizedBox(height: AppHeight.s8),
-                    CampaignCompletionCard(data: data),
-                    SizedBox(height: AppHeight.s100),
-                  ],
-                ),
-              ),
+
+            final isLoading = state is AdminPerformanceLoading;
+            final data = state is AdminPerformanceLoaded ? state.data : null;
+
+            return Stack(
+              children: [
+                if (data != null)
+                  RefreshIndicator(
+                    onRefresh: () =>
+                        context.read<AdminPerformanceCubit>().loadPerformance(
+                          (state as AdminPerformanceLoaded).selectedPeriod,
+                          forceRefresh: true,
+                        ),
+                    color: ColorManager.primary500,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: AppHeight.s24),
+                          const PerformanceTimeFilter(),
+                          SizedBox(height: AppHeight.s16),
+                          PerformanceStatsRow(data: data),
+                          SizedBox(height: AppHeight.s8),
+                          PerformanceBarChart(
+                            bars: data.chartBars,
+                            title: switch (state is AdminPerformanceLoaded
+                                ? state.selectedPeriod
+                                : 'year') {
+                              'week' => 'المهام المنجزة أسبوعياً',
+                              'months' => 'المهام المنجزة شهرياً',
+                              _ => 'المهام المنجزة سنوياً',
+                            },
+                          ),
+                          SizedBox(height: AppHeight.s8),
+                          RegionRankingSection(regions: data.topRegions),
+                          SizedBox(height: AppHeight.s8),
+                          CampaignCompletionCard(
+                            data: data,
+                            selectedPeriod: state is AdminPerformanceLoaded
+                                ? state.selectedPeriod
+                                : 'year',
+                          ),
+                          SizedBox(height: AppHeight.s120),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  const LoadingIndicator(),
+                if (isLoading && data != null)
+                  const Positioned.fill(
+                    child: IgnorePointer(
+                      child: ColoredBox(
+                        color: Colors.white54,
+                        child: LoadingIndicator(),
+                      ),
+                    ),
+                  ),
+              ],
             );
           },
         ),

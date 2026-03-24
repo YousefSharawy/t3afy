@@ -74,7 +74,7 @@ class OverviewTab extends StatelessWidget {
               value: '${detail.targetBeneficiaries} مستفيد',
             ),
             OverviewInfoRowWithCheck(
-              icon: IconAssets.target,
+              icon: IconAssets.done2,
               label: 'تم الوصول',
               value: '${detail.reachedBeneficiaries} مستفيد',
               achieved: detail.reachedBeneficiaries > 0,
@@ -102,7 +102,7 @@ class OverviewTab extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(AppSize.s16),
             decoration: BoxDecoration(
-              color: ColorManager.blueOne800,
+              color: ColorManager.white,
               borderRadius: BorderRadius.circular(AppRadius.s12),
             ),
             child: Column(
@@ -144,7 +144,7 @@ class OverviewTab extends StatelessWidget {
                             vertical: AppHeight.s2,
                           ),
                           decoration: BoxDecoration(
-                            color: ColorManager.blueOne700,
+                            color: ColorManager.natural200,
                             borderRadius: BorderRadius.circular(AppRadius.s8),
                           ),
                           child: Text(
@@ -152,7 +152,7 @@ class OverviewTab extends StatelessWidget {
                             style: getMediumStyle(
                               fontFamily: FontConstants.fontFamily,
                               fontSize: FontSize.s11,
-                              color: ColorManager.blueTwo200,
+                              color: ColorManager.natural400,
                             ),
                           ),
                         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/report_cubit.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/report_state.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
@@ -73,20 +74,10 @@ class _SubmitReportSheetState extends State<SubmitReportSheet> {
     return BlocListener<ReportCubit, ReportState>(
       listener: (context, state) {
         if (state is ReportStateSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم إرسال التقرير بنجاح ✓'),
-              backgroundColor: ColorManager.success,
-            ),
-          );
+          Toast.success.show(context, title: 'تم إرسال التقرير بنجاح');
           Navigator.of(context).pop(true);
         } else if (state is ReportStateError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: ColorManager.error,
-            ),
-          );
+          Toast.error.show(context, title: state.message);
         }
       },
       child: Container(

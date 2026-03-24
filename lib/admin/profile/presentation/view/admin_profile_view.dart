@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/admin/profile/domain/entities/admin_profile_entity.dart';
@@ -37,6 +38,7 @@ class _AdminProfileViewState extends State<AdminProfileView> {
   }
 
   void _logout() async {
+    HapticFeedback.mediumImpact();
     await context.read<AuthCubit>().logout();
     if (mounted) {
       context.go(Routes.login);
@@ -51,9 +53,11 @@ class _AdminProfileViewState extends State<AdminProfileView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: ColorManager.blueOne800,
+      backgroundColor: ColorManager.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.s16)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.s16),
+        ),
       ),
       builder: (sheetCtx) {
         return BlocProvider.value(
@@ -117,7 +121,8 @@ class _AdminProfileViewState extends State<AdminProfileView> {
 
   Future<void> _refresh() {
     final userId = LocalAppStorage.getUserId();
-    if (userId != null) return context.read<AdminProfileCubit>().loadProfile(userId);
+    if (userId != null)
+      return context.read<AdminProfileCubit>().loadProfile(userId);
     return Future.value();
   }
 
@@ -145,113 +150,105 @@ class _AdminProfileViewState extends State<AdminProfileView> {
 
     return RefreshIndicator(
       onRefresh: _refresh,
-      color: const Color(0xFF00ABD2),
+      color: ColorManager.primary500,
       child: SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-      child: Column(
-        children: [
-          SizedBox(height: AppHeight.s10),
-          // App bar row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              GestureDetector(
-                onTap: () => context.pop(),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: ColorManager.blueOne900,
-                  size: 24.sp,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
+        child: Column(
+          crossAxisAlignment: .start,
+          children: [
+            SizedBox(height: AppHeight.s10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GestureDetector(
+                  onTap: () => context.pop(),
+                  child: Icon(
+                    Icons.arrow_back_ios_new,
+                    color: ColorManager.natural900,
+                    size: 24.sp,
+                  ),
                 ),
-              ),
-              Text(
-                'الملف الشخصي',
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.blueOne900,
-                  fontSize: FontSize.s16,
+                Text(
+                  'الملف الشخصي',
+                  style: getExtraBoldStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    color: ColorManager.natural900,
+                    fontSize: FontSize.s16,
+                  ),
                 ),
-              ),
-              SizedBox(width: 36.w),
-            ],
-          ),
-          SizedBox(height: AppHeight.s24),
-          ProfileHeaderCard(
-            name: profile.name,
-            subtitle: profile.email,
-            avatarUrl: profile.avatarUrl,
-            badges: [
-              ProfileBadge(
-                borderColor: ColorManager.infoLight,
-                label: 'مدير النظام',
-                color: ColorManager.info,
-              ),
-            ],
-          ),
-          SizedBox(height: AppHeight.s4),
-          ProfileInfoSection(
-            items: [
-              ProfileInfoItem(label: 'الاسم', value: profile.name),
-              ProfileInfoItem(label: 'البريد الإلكتروني', value: profile.email),
-              ProfileInfoItem(
-                label: 'رقم الهاتف',
-                value: profile.phone?.isNotEmpty == true ? profile.phone! : '—',
-              ),
-              ProfileInfoItem(
-                label: 'تاريخ الانضمام',
-                value: joinedDate.isNotEmpty ? joinedDate : '—',
-              ),
-            ],
-          ),
-          SizedBox(height: AppHeight.s16),
-          // Edit button
-          PrimaryElevatedButton(
-            width: AppWidth.s339,
-            height: AppHeight.s50,
-            title: 'تعديل الملف الشخصي',
-            onPress: () => _showEditSheet(profile),
-            textStyle: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s14,
-              color: ColorManager.white,
+                SizedBox(width: 36.w),
+              ],
             ),
-          ),
-          SizedBox(height: AppHeight.s8),
-          // Logout button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _logout,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xff970909),
-                padding: EdgeInsets.symmetric(vertical: AppHeight.s14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.s12),
-                ),
-              ),
-              child: Text(
-                'تسجيل خروج',
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: ColorManager.white,
-                ),
+            SizedBox(height: AppHeight.s16),
+
+            ProfileHeaderCard(
+              name: profile.name,
+              subtitle: profile.email,
+              avatarUrl: profile.avatarUrl,
+            ),
+            SizedBox(height: AppHeight.s16),
+            Text(
+              "معلومات الحساب",
+              style: getBoldStyle(
+                fontFamily: FontConstants.fontFamily,
+                color: ColorManager.natural700,
+                fontSize: FontSize.s14,
               ),
             ),
-          ),
-          SizedBox(height: AppHeight.s16),
-          Text(
-            'T3afy • v1.0.0',
-            style: getRegularStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color: ColorManager.blueOne400,
+             SizedBox(height: AppHeight.s8),
+            ProfileInfoSection(
+              items: [
+                ProfileInfoItem(label: 'الاسم', value: profile.name),
+                ProfileInfoItem(
+                  label: 'البريد الإلكتروني',
+                  value: profile.email,
+                ),
+                ProfileInfoItem(
+                  label: 'رقم الهاتف',
+                  value: profile.phone?.isNotEmpty == true
+                      ? profile.phone!
+                      : '—',
+                ),
+                ProfileInfoItem(
+                  hasDivider: false,
+                  label: 'تاريخ الانضمام',
+                  value: joinedDate.isNotEmpty ? joinedDate : '—',
+                ),
+              ],
             ),
-          ),
-          SizedBox(height: AppHeight.s32),
-        ],
+            SizedBox(height: AppHeight.s24),
+            // Edit button
+            PrimaryElevatedButton(
+              height: AppHeight.s46,
+              title: 'تعديل الملف الشخصي',
+              onPress: () {
+                HapticFeedback.mediumImpact();
+                _showEditSheet(profile);
+              },
+              textStyle: getBoldStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s16,
+                color: ColorManager.white,
+              ),
+            ),
+            SizedBox(height: AppHeight.s8),
+            // Logout button
+            PrimaryElevatedButton(
+              title: 'تسجيل خروج',
+              onPress: _logout,
+              backGroundColor: ColorManager.error,
+               textStyle: getBoldStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s16,
+                color: ColorManager.white,
+              ),
+            ),
+
+            SizedBox(height: AppHeight.s32),
+          ],
+        ),
       ),
-    ),
     );
   }
 }

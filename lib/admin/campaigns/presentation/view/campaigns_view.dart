@@ -44,50 +44,50 @@ class _CampaignsViewState extends State<CampaignsView> {
             style: getBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s16,
-              color: ColorManager.blueOne900,
+              color: ColorManager.natural900,
             ),
           ),
           centerTitle: true,
-          actions: [
-            Center(
-              child: Padding(
-                padding: EdgeInsetsDirectional.only(end: AppWidth.s18),
-                child: GestureDetector(
-                  onTap: () async {
-                    final refreshed = await context.push<bool>(
-                      '/createCampaign',
-                    );
-                    if (refreshed == true && context.mounted) {
-                      context.read<CampaignsCubit>().load();
-                    }
-                  },
-                  child: Container(
-                    height: AppHeight.s26,
-                    padding: EdgeInsets.symmetric(horizontal: AppWidth.s15),
-                    decoration: BoxDecoration(
-                      color: ColorManager.blueOne900,
-                      borderRadius: BorderRadius.circular(AppRadius.s6),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: .center,
-                      children: [
-                        Image.asset(IconAssets.add),
-                        SizedBox(width: AppWidth.s4),
-                        Text(
-                          'حملة جديدة',
-                          style: getBoldStyle(
-                            fontFamily: FontConstants.fontFamily,
-                            fontSize: FontSize.s12,
-                            color: ColorManager.white,
-                          ),
+          leadingWidth: AppWidth.s125,
+          leading: Center(
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(start: AppWidth.s18),
+              child: GestureDetector(
+                onTap: () async {
+                  final refreshed = await context.push<bool>(
+                    '/createCampaign',
+                  );
+                  if (refreshed == true && context.mounted) {
+                    context.read<CampaignsCubit>().load();
+                  }
+                },
+                child: Container(
+                  height: AppHeight.s26,
+                  padding: EdgeInsets.symmetric(horizontal: AppWidth.s12),
+                  decoration: BoxDecoration(
+                    color: ColorManager.primary50,
+                    borderRadius: BorderRadius.circular(AppRadius.s20),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(IconAssets.add),
+                      SizedBox(width: AppWidth.s4),
+                      Text(
+                        'حملة جديدة',
+                        style: getMediumStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          fontSize: FontSize.s12,
+                          color: ColorManager.primary500,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-          ],
+          ),
         ),
         body: BlocBuilder<CampaignsCubit, CampaignsState>(
           builder: (context, state) {
@@ -111,10 +111,10 @@ class _CampaignsViewState extends State<CampaignsView> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(
-                        AppWidth.s16,
-                        AppHeight.s12,
-                        AppWidth.s16,
-                        AppHeight.s16,
+                        AppWidth.s18,
+                        AppHeight.s24,
+                        AppWidth.s18,
+                        AppHeight.s18,
                       ),
                       child: Row(
                         children: [
@@ -162,7 +162,7 @@ class _CampaignsViewState extends State<CampaignsView> {
                         )
                       : SliverPadding(
                           padding: EdgeInsets.symmetric(
-                            horizontal: AppWidth.s16,
+                            horizontal: AppWidth.s18,
                           ),
                           sliver: SliverList(
                             delegate: SliverChildBuilderDelegate((context, i) {

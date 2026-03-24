@@ -26,11 +26,14 @@ class IconAssets {
   static const String performance = '$ICON_PATH/performance.png';
   static const String bot = '$ICON_PATH/bot.png';
   static const String volHome = '$ICON_PATH/volHome.png';
+  static const String vol = '$ICON_PATH/vol.png';
+  static const String vol2 = '$ICON_PATH/vol2.png';
   static const String notification = '$ICON_PATH/notification.png';
   static const String star = '$ICON_PATH/star.png';
   static const String hours = '$ICON_PATH/hours.png';
   static const String location = '$ICON_PATH/location.png';
   static const String done = '$ICON_PATH/done.png';
+  static const String done2 = '$ICON_PATH/done2.png';
   static const String trophy = '$ICON_PATH/trophy.png';
   static const String commit = '$ICON_PATH/commit.png';
   static const String alarm = '$ICON_PATH/alarm.png';
@@ -52,6 +55,7 @@ class IconAssets {
   static const String edit= '$ICON_PATH/edit.png';
   static const String settings = '$ICON_PATH/settings.png';
   static const String camp = '$ICON_PATH/camp.png';
+  static const String camp2 = '$ICON_PATH/camp.png';
   static const String pause = '$ICON_PATH/pause.png';
   static const String medal = '$ICON_PATH/medal.png';
   static const String details = '$ICON_PATH/details.png';
@@ -64,6 +68,11 @@ class IconAssets {
   static const String call = '$ICON_PATH/call.png';
   static const String send = '$ICON_PATH/send.png';
   static const String unstar = '$ICON_PATH/unstar.png';
+  static const String add2 = '$ICON_PATH/add2.png';
+  static const String add3 = '$ICON_PATH/add3.png';
+  static const String hospital = '$ICON_PATH/hospital.png';
+  static const String group2= '$ICON_PATH/group2.png';
+  static const String x= '$ICON_PATH/x.png';
 }
 
 class DemoAssets {}

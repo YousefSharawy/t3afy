@@ -11,8 +11,8 @@ class InfoRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
-    this.labelColor = ColorManager.blueOne100,
-    this.valueColor = ColorManager.blueOne50,
+    this.labelColor = ColorManager.natural400,
+    this.valueColor = ColorManager.natural700,
   });
 
   final String icon;
@@ -27,25 +27,17 @@ class InfoRow extends StatelessWidget {
       margin: EdgeInsets.only(bottom: AppHeight.s8),
       padding: EdgeInsets.symmetric(
         horizontal: AppWidth.s12,
-        vertical: AppHeight.s12,
+        vertical: AppHeight.s8,
       ),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne800,
-        borderRadius: BorderRadius.circular(AppRadius.s12),
+        color: ColorManager.white,
+        borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 36.r,
-            height: 36.r,
-            decoration: BoxDecoration(
-              color: ColorManager.navyCard,
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: Image.asset(icon),
-          ),
-          SizedBox(width: AppWidth.s12),
+          Image.asset(icon),
+          SizedBox(width: AppWidth.s8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -57,7 +49,6 @@ class InfoRow extends StatelessWidget {
                   color: labelColor,
                 ),
               ),
-              SizedBox(height: 2.h),
               Text(
                 value,
                 style: getBoldStyle(

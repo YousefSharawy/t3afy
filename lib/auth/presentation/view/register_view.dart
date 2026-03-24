@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
@@ -10,6 +11,7 @@ import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
 import 'package:t3afy/auth/presentation/view/widgets/gender_drop_down.dart';
 import 'package:t3afy/auth/presentation/view/widgets/role_switcher.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
 import 'package:t3afy/base/components.dart';
 import 'package:t3afy/base/primary_widgets.dart';
 
@@ -37,6 +39,7 @@ class _RegisterViewState extends State<RegisterView> {
   }
 
   void _register() {
+    HapticFeedback.mediumImpact();
     if (_formKey.currentState?.validate() ?? false) {
       final cubit = context.read<AuthCubit>();
       cubit.register(
@@ -48,16 +51,52 @@ class _RegisterViewState extends State<RegisterView> {
     }
   }
 
-  void _navigateByRole(String role) {
-    switch (role) {
-      case 'admin':
-        context.go(Routes.adminHome);
-        break;
-      case 'user':
-        context.go(Routes.volunteerHome);
-        break;
-      default:
-    }
+  void _showPendingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          backgroundColor: ColorManager.natural50,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.s20),
+          ),
+          title: Text(
+            'تم إنشاء الحساب',
+            style: getSemiBoldStyle(
+              color: ColorManager.natural900,
+              fontSize: FontSize.s18,
+            ),
+          ),
+          content: Text(
+            'تم إنشاء حسابك بنجاح!\nحسابك قيد المراجعة من قبل الإدارة.\nسيتم إبلاغك عند الموافقة.',
+            style: getRegularStyle(
+              color: ColorManager.natural900.withValues(alpha: 0.7),
+              fontSize: FontSize.s14,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                context.go(Routes.login);
+              },
+              child: Text(
+                'العودة لتسجيل الدخول',
+                style: getBoldStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s14,
+                  color: ColorManager.primary500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -65,10 +104,8 @@ class _RegisterViewState extends State<RegisterView> {
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
         state.whenOrNull(
-          success: (user) => _navigateByRole(user.role),
-          error: (message) => ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message))),
+          registrationPending: () => _showPendingDialog(),
+          error: (message) => Toast.error.show(context, title: message),
         );
       },
       child: PrimaryScaffold(

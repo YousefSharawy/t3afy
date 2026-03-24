@@ -22,7 +22,7 @@ class ReviewDetailCard extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(AppSize.s14),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne700,
+        color: ColorManager.natural50,
         borderRadius: BorderRadius.circular(AppRadius.s12),
       ),
       child: Column(
@@ -43,7 +43,7 @@ class ReviewDetailCard extends StatelessWidget {
             style: getRegularStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s13,
-              color: Colors.white.withValues(alpha: 0.8),
+              color: ColorManager.natural500,
             ),
           ),
         ],

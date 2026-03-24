@@ -21,11 +21,11 @@ class HomeActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: AppWidth.s107,
+        width: AppWidth.s165,
         height: AppHeight.s86,
         padding: EdgeInsets.symmetric(vertical: AppHeight.s12),
         decoration: BoxDecoration(
-          color: ColorManager.blueOne900,
+          color: ColorManager.white,
           borderRadius: BorderRadius.circular(AppRadius.s12),
         ),
         child: Column(
@@ -37,7 +37,7 @@ class HomeActionCard extends StatelessWidget {
               style: getMediumStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s11,
-                color: ColorManager.blueTwo100,
+                color: ColorManager.primary600,
               ),
             ),
           ],

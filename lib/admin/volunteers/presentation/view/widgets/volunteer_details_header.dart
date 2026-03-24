@@ -6,6 +6,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/status_badge.dart';
 import 'volunteer_detail_stat_box.dart';
 
 class VolunteerDetailsHeader extends StatelessWidget {
@@ -15,12 +16,11 @@ class VolunteerDetailsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (statusColor, statusBg) = _statusColors(details.status);
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(AppWidth.s16),
+      padding: EdgeInsets.all(12.sp),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne900,
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
       child: Column(
@@ -31,16 +31,18 @@ class VolunteerDetailsHeader extends StatelessWidget {
                 children: [
                   Container(
                     width: AppWidth.s48,
-                    height: AppHeight.s43,
+                    height: AppHeight.s48,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(AppRadius.s8),
-                      color: const Color(0xFF006AB5).withValues(alpha: .39),
+                      color: ColorManager.primary50,
                       border: Border.all(
-                        color: ColorManager.blueThree600,
-                        width: 1.sp,
+                        color: ColorManager.primary500,
+                        width: 0.5.sp,
                       ),
                     ),
-                    child: Image.asset(IconAssets.volHome),
+                    child: Image.asset(
+                      IconAssets.volHome,
+                    ),
                   ),
                 ],
               ),
@@ -51,51 +53,23 @@ class VolunteerDetailsHeader extends StatelessWidget {
                 children: [
                   Text(
                     details.name,
-                    textAlign: TextAlign.center,
-                    style: getBoldStyle(
+                    style: getExtraBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s16,
-                      color: Colors.white,
+                      fontSize: FontSize.s14,
+                      color: ColorManager.natural600,
                     ),
                   ),
                   SizedBox(height: AppHeight.s7),
                   Row(
                     children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: AppWidth.s8,
-                          vertical: AppHeight.s3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusBg,
-                          borderRadius: BorderRadius.circular(AppRadius.s6),
-                        ),
-                        child: Text(
-                          details.status,
-                          style: getMediumStyle(
-                            fontFamily: FontConstants.fontFamily,
-                            fontSize: FontSize.s10,
-                            color: statusColor,
-                          ),
-                        ),
-                      ),
+                      StatusBadge(status: details.status),
                       SizedBox(width: AppWidth.s13),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: AppWidth.s8,
-                          vertical: AppHeight.s3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: ColorManager.navyLight,
-                          borderRadius: BorderRadius.circular(AppRadius.s6),
-                        ),
-                        child: Text(
-                          'المستوى ${details.level}',
-                          style: getMediumStyle(
-                            fontFamily: FontConstants.fontFamily,
-                            fontSize: FontSize.s10,
-                            color: const Color(0xFF60A5FA),
-                          ),
+                      Text(
+                        'المستوى ${details.level}',
+                        style: getRegularStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          fontSize: FontSize.s12,
+                          color: ColorManager.natural400,
                         ),
                       ),
                     ],
@@ -103,15 +77,15 @@ class VolunteerDetailsHeader extends StatelessWidget {
                   Row(
                     children: [
                       ...List.generate(5, (i) {
-                        return Image.asset(IconAssets.star);
+                        return Image.asset(i < details.rating.round() ? IconAssets.star : IconAssets.unstar);
                       }),
-                      SizedBox(width: AppWidth.s8),
+                      SizedBox(width: AppWidth.s7),
                       Text(
                         details.rating.toStringAsFixed(1),
                         style: getRegularStyle(
                           fontFamily: FontConstants.fontFamily,
                           fontSize: FontSize.s12,
-                          color: ColorManager.blueOne50,
+                          color: ColorManager.natural400,
                         ),
                       ),
                     ],
@@ -135,7 +109,7 @@ class VolunteerDetailsHeader extends StatelessWidget {
                 child: VolunteerDetailStatBox(
                   value: '${details.totalHours}',
                   label: 'ساعة',
-                  icon: IconAssets.hours,
+                  icon: IconAssets.alarm,
                 ),
               ),
               SizedBox(width: AppWidth.s8),
@@ -153,10 +127,4 @@ class VolunteerDetailsHeader extends StatelessWidget {
     );
   }
 
-  (Color, Color) _statusColors(String status) {
-    if (status == 'نشط') {
-      return (const Color(0xFF22C55E), const Color(0xFF14532D));
-    }
-    return (const Color(0xFFB2B2B2), const Color(0xFF1F2937));
-  }
 }

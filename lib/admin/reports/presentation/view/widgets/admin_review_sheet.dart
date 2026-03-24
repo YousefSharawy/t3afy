@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/reports/domain/entities/admin_report_entity.dart';
 import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
 import 'review_info_row.dart';
 import 'review_detail_card.dart';
 
@@ -48,12 +51,7 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
         listener: (context, state) {
           state.maybeWhen(
             error: (message) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('خطأ: $message'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              Toast.error.show(context, title: 'خطأ: $message');
             },
             orElse: () {},
           );
@@ -64,7 +62,7 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
           minChildSize: 0.5,
           builder: (context, scrollCtrl) => Container(
             decoration: const BoxDecoration(
-              color: ColorManager.blueOne900,
+              color: ColorManager.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
@@ -75,7 +73,7 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                     width: 40.w,
                     height: 4.h,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: ColorManager.natural200,
                       borderRadius: BorderRadius.circular(AppRadius.s2),
                     ),
                   ),
@@ -93,7 +91,7 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                         style: getBoldStyle(
                           fontFamily: FontConstants.fontFamily,
                           fontSize: FontSize.s16,
-                          color: Colors.white,
+                          color: ColorManager.natural900,
                         ),
                       ),
                       const Spacer(),
@@ -101,14 +99,13 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                         onTap: () => Navigator.of(context).pop(),
                         child: Icon(
                           Icons.close_rounded,
-                          color: Colors.white.withValues(alpha: 0.5),
+                          color: ColorManager.natural400,
                           size: 22.r,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Divider(color: ColorManager.navyLight, height: 1),
                 Expanded(
                   child: ListView(
                     controller: scrollCtrl,
@@ -120,27 +117,24 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                       SizedBox(height: AppHeight.s10),
                       Row(
                         children: [
-                          const Spacer(),
                           Text(
                             'التقييم',
                             style: getMediumStyle(
                               fontFamily: FontConstants.fontFamily,
                               fontSize: FontSize.s12,
-                              color: Colors.white.withValues(alpha: 0.5),
+                              color: ColorManager.natural400,
                             ),
                           ),
-                          SizedBox(width: AppWidth.s8),
+                          Spacer(),
                           Row(
                             children: List.generate(
                               5,
-                              (i) => Icon(
+                              (i) => Image.asset(
                                 i < report.rating
-                                    ? Icons.star_rounded
-                                    : Icons.star_outline_rounded,
-                                color: i < report.rating
-                                    ? ColorManager.amber400
-                                    : Colors.white.withValues(alpha: 0.2),
-                                size: 16.r,
+                                    ? IconAssets.star
+                                    : IconAssets.unstar,
+                                width: 16.r,
+                                height: 16.r,
                               ),
                             ),
                           ),
@@ -192,7 +186,7 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                           style: getMediumStyle(
                             fontFamily: FontConstants.fontFamily,
                             fontSize: FontSize.s13,
-                            color: Colors.white.withValues(alpha: 0.7),
+                            color: ColorManager.natural500,
                           ),
                         ),
                         SizedBox(height: AppHeight.s8),
@@ -203,17 +197,17 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                           style: getRegularStyle(
                             fontFamily: FontConstants.fontFamily,
                             fontSize: FontSize.s13,
-                            color: Colors.white,
+                            color: ColorManager.natural900,
                           ),
                           decoration: InputDecoration(
                             hintText: 'اكتب ملاحظاتك للمتطوع...',
                             hintStyle: getRegularStyle(
                               fontFamily: FontConstants.fontFamily,
                               fontSize: FontSize.s13,
-                              color: Colors.white.withValues(alpha: 0.3),
+                              color: ColorManager.natural400,
                             ),
                             filled: true,
-                            fillColor: ColorManager.blueOne700,
+                            fillColor: ColorManager.natural50,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.s12),
                               borderSide: BorderSide.none,
@@ -221,7 +215,7 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.s12),
                               borderSide: const BorderSide(
-                                color: ColorManager.navyLight,
+                                color: ColorManager.natural200,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
@@ -254,17 +248,20 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                                     child: ElevatedButton(
                                       onPressed: isProcessing
                                           ? null
-                                          : () => context
-                                              .read<AdminReportsCubit>()
-                                              .reviewReport(
-                                                reportId: report.id,
-                                                status: 'rejected',
-                                                feedback: _feedbackCtrl.text
-                                                        .trim()
-                                                        .isEmpty
-                                                    ? null
-                                                    : _feedbackCtrl.text.trim(),
-                                              ),
+                                          : () {
+                                              HapticFeedback.mediumImpact();
+                                              context
+                                                  .read<AdminReportsCubit>()
+                                                  .reviewReport(
+                                                    reportId: report.id,
+                                                    status: 'rejected',
+                                                    feedback: _feedbackCtrl.text
+                                                            .trim()
+                                                            .isEmpty
+                                                        ? null
+                                                        : _feedbackCtrl.text.trim(),
+                                                  );
+                                            },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.red,
                                         shape: RoundedRectangleBorder(
@@ -292,17 +289,20 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                                     child: ElevatedButton(
                                       onPressed: isProcessing
                                           ? null
-                                          : () => context
-                                              .read<AdminReportsCubit>()
-                                              .reviewReport(
-                                                reportId: report.id,
-                                                status: 'approved',
-                                                feedback: _feedbackCtrl.text
-                                                        .trim()
-                                                        .isEmpty
-                                                    ? null
-                                                    : _feedbackCtrl.text.trim(),
-                                              ),
+                                          : () {
+                                              HapticFeedback.mediumImpact();
+                                              context
+                                                  .read<AdminReportsCubit>()
+                                                  .reviewReport(
+                                                    reportId: report.id,
+                                                    status: 'approved',
+                                                    feedback: _feedbackCtrl.text
+                                                            .trim()
+                                                            .isEmpty
+                                                        ? null
+                                                        : _feedbackCtrl.text.trim(),
+                                                  );
+                                            },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color(0xFF4CAF50),
                                         shape: RoundedRectangleBorder(

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/volunteer/performance/domain/entities/performance_entities.dart';
 import 'package:t3afy/volunteer/performance/domain/use_cases/performance_use_cases.dart';
 
@@ -17,7 +20,47 @@ class PerformanceCubit extends Cubit<PerformanceState> {
   final GetMonthlyHours _getMonthlyHours;
   final GetLeaderboard _getLeaderboard;
 
+  RealtimeChannel? _usersChannel;
+  Timer? _debounce;
+  String? _currentUserId;
+
+  void _subscribeToRealtime(String userId) {
+    _usersChannel?.unsubscribe();
+    _usersChannel = Supabase.instance.client
+        .channel('volunteer_performance_user_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'users',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: userId,
+          ),
+          callback: (_) => _onRealtimeChange(),
+        )
+        .subscribe();
+  }
+
+  void _onRealtimeChange() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (_currentUserId != null) loadPerformance(_currentUserId!);
+    });
+  }
+
+  @override
+  Future<void> close() async {
+    _debounce?.cancel();
+    await _usersChannel?.unsubscribe();
+    return super.close();
+  }
+
   Future<void> loadPerformance(String userId) async {
+    if (_currentUserId != userId) {
+      _currentUserId = userId;
+      _subscribeToRealtime(userId);
+    }
     emit(const PerformanceState.loading());
 
     final statsResult = await _getPerformanceStats(userId);

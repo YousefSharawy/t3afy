@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -33,8 +32,8 @@ class TodayCampaignsSection extends StatelessWidget {
               'حملات اليوم',
               style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s16,
-                color: ColorManager.blueOne900,
+                fontSize: FontSize.s14,
+                color: ColorManager.natural900,
               ),
             ),
             const Spacer(),
@@ -45,13 +44,13 @@ class TodayCampaignsSection extends StatelessWidget {
                 style: getMediumStyle(
                   fontFamily: FontConstants.fontFamily,
                   fontSize: FontSize.s12,
-                  color: ColorManager.blueThree900,
+                  color: ColorManager.natural600,
                 ),
               ),
             ),
           ],
         ),
-        SizedBox(height: AppHeight.s12),
+        SizedBox(height: AppHeight.s8),
         if (campaigns.isEmpty)
           Center(
             child: Text(
@@ -59,7 +58,7 @@ class TodayCampaignsSection extends StatelessWidget {
               style: getRegularStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s14,
-                color: ColorManager.blueTwo600,
+                color: ColorManager.natural500,
               ),
             ),
           )
@@ -67,7 +66,7 @@ class TodayCampaignsSection extends StatelessWidget {
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
+            padding: EdgeInsets.zero,
             itemCount: campaigns.length,
             itemBuilder: (context, i) => CampaignCard(
               campaign: campaigns[i],

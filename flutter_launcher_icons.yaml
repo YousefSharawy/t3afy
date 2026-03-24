@@ -3,9 +3,9 @@ flutter_launcher_icons:
   min_sdk_android: 21
 
   adaptive_icon_foreground: "assets/icons/appicon.png"
-  adaptive_icon_background: "#076B8B"
+  adaptive_icon_background: "#007599"
   adaptive_icon_foreground_inset: 16
   ios: true
-  image_path: "assets/icons/applogo.png"
-  background_color_ios: "#076B8B"
+  image_path: "assets/icons/appicon.png"
+  background_color_ios: "#007599"
   remove_alpha_ios: true

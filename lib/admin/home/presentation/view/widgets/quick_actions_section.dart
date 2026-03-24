@@ -26,29 +26,32 @@ class QuickActionsSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Image.asset(IconAssets.fast, width: AppWidth.s24, height: AppHeight.s24),
-            SizedBox(width: AppWidth.s8),
             Text(
               'اجراءات سريعة',
               style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s14,
-                color: ColorManager.blueOne900,
+                color: ColorManager.natural900,
               ),
             ),
           ],
         ),
-        SizedBox(height: AppHeight.s16),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-          child: Row(
-            children: [
-              HomeActionCard(
-                icon: IconAssets.announcement,
-                label: 'إرسال إعلان',
-                onTap: onSendAnnouncement,
-              ),
-            ],
-          ),
+        SizedBox(height: AppHeight.s8),
+        Row(
+          children: [
+           
+            HomeActionCard(
+              icon: IconAssets.add2,
+              label: 'حملة جديدة',
+              onTap: onNewCampaign,
+            ),
+            SizedBox(width: AppWidth.s8),
+             HomeActionCard(
+              icon: IconAssets.announcement,
+              label: 'إرسال إعلان',
+              onTap: onSendAnnouncement,
+            ),
+          ],
         ),
       ],
     );

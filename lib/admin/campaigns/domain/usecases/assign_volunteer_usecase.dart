@@ -8,8 +8,8 @@ class AssignVolunteerUsecase {
 
   Future<Either<Failture, void>> call({
     required String taskId,
-    required String userId,
+    required List<String> userIds,
     required String adminId,
   }) =>
-      _repo.assignVolunteer(taskId: taskId, userId: userId, adminId: adminId);
+      _repo.assignVolunteers(taskId: taskId, userIds: userIds, adminId: adminId);
 }

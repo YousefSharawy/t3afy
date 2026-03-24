@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/status_badge.dart';
 
 class VolunteerTaskCard extends StatelessWidget {
   const VolunteerTaskCard({super.key, required this.task});
@@ -13,40 +15,26 @@ class VolunteerTaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isCompleted = task.status == 'completed';
-    final statusColor = isCompleted
-        ? const Color(0xFF22C55E)
-        : const Color(0xFF60A5FA);
-    final statusBg = isCompleted
-        ? const Color(0xFF14532D)
-        : ColorManager.navyLight;
-    final statusLabel = isCompleted ? 'مكتملة' : 'نشيطة';
 
     return Container(
       margin: EdgeInsets.only(bottom: AppHeight.s8),
       padding: EdgeInsets.symmetric(
         horizontal: AppWidth.s12,
-        vertical: AppHeight.s12,
+        vertical: AppHeight.s8,
       ),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne900,
-        borderRadius: BorderRadius.circular(AppRadius.s12),
+        color: ColorManager.white,
+        borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
       child: Row(
         children: [
-          Container(
-            padding: EdgeInsets.all(AppWidth.s8),
-            decoration: BoxDecoration(
-              color: ColorManager.navyCard,
-              borderRadius: BorderRadius.circular(AppRadius.s8),
-            ),
-            child: Icon(
-              Icons.task_alt_outlined,
-              color: ColorManager.blueOne300,
-              size: 18.r,
-            ),
+          Image.asset(
+            _taskIcon(task.title),
+            width: AppWidth.s24,
+            height: AppHeight.s24,
+            fit: BoxFit.cover,
           ),
-          SizedBox(width: AppWidth.s12),
+          SizedBox(width: AppWidth.s8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +44,7 @@ class VolunteerTaskCard extends StatelessWidget {
                   style: getBoldStyle(
                     fontFamily: FontConstants.fontFamily,
                     fontSize: FontSize.s12,
-                    color: ColorManager.blueOne50,
+                    color: ColorManager.natural700,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -66,36 +54,30 @@ class VolunteerTaskCard extends StatelessWidget {
                     style: getRegularStyle(
                       fontFamily: FontConstants.fontFamily,
                       fontSize: FontSize.s10,
-                      color: ColorManager.blueOne300,
+                      color: ColorManager.natural400,
                     ),
                   ),
               ],
             ),
           ),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppWidth.s8,
-              vertical: AppHeight.s3,
-            ),
-            decoration: BoxDecoration(
-              color: statusBg,
-              borderRadius: BorderRadius.circular(AppRadius.s6),
-            ),
-            child: Text(
-              statusLabel,
-              style: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s10,
-                color: statusColor,
-              ),
-            ),
-          ),
+          StatusBadge(status: task.status),
         ],
       ),
     );
   }
 
+  String _taskIcon(String title) {
+    if (title.contains('مستشفي')) return IconAssets.hospital;
+    if (title.contains('توزيع')) return IconAssets.campaigns;
+    return IconAssets.camp;
+  }
+
+  static const _months = [
+    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+  ];
+
   String _formatDate(DateTime dt) {
-    return '${dt.day}/${dt.month}/${dt.year}';
+    return '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
   }
 }

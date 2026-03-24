@@ -44,4 +44,48 @@ class CampaignDetailEntity {
     required this.objectives,
     required this.supplies,
   });
+
+  CampaignDetailEntity copyWith({
+    String? id,
+    String? title,
+    String? type,
+    String? status,
+    String? date,
+    String? timeStart,
+    String? timeEnd,
+    String? locationName,
+    String? locationAddress,
+    String? supervisorName,
+    String? supervisorPhone,
+    String? description,
+    String? notes,
+    int? targetBeneficiaries,
+    int? reachedBeneficiaries,
+    int? points,
+    List<CampaignMemberEntity>? members,
+    List<CampaignObjectiveEntity>? objectives,
+    List<CampaignSupplyEntity>? supplies,
+  }) {
+    return CampaignDetailEntity(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      type: type ?? this.type,
+      status: status ?? this.status,
+      date: date ?? this.date,
+      timeStart: timeStart ?? this.timeStart,
+      timeEnd: timeEnd ?? this.timeEnd,
+      locationName: locationName ?? this.locationName,
+      locationAddress: locationAddress ?? this.locationAddress,
+      supervisorName: supervisorName ?? this.supervisorName,
+      supervisorPhone: supervisorPhone ?? this.supervisorPhone,
+      description: description ?? this.description,
+      notes: notes ?? this.notes,
+      targetBeneficiaries: targetBeneficiaries ?? this.targetBeneficiaries,
+      reachedBeneficiaries: reachedBeneficiaries ?? this.reachedBeneficiaries,
+      points: points ?? this.points,
+      members: members ?? this.members,
+      objectives: objectives ?? this.objectives,
+      supplies: supplies ?? this.supplies,
+    );
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/local_storage.dart';
@@ -62,10 +63,11 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
       child: Container(
         padding: EdgeInsets.all(AppSize.s20),
         decoration: BoxDecoration(
-          color: ColorManager.blueOne900,
+           color: ColorManager.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
         ),
-        child: Column(
+        child: SingleChildScrollView(
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -74,7 +76,7 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
                 width: 40.w,
                 height: 4.h,
                 decoration: BoxDecoration(
-                  color: ColorManager.blueOne700,
+                   color: ColorManager.natural200,
                   borderRadius: BorderRadius.circular(2.r),
                 ),
               ),
@@ -85,7 +87,7 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
               style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s16,
-                color: Colors.white,
+                color: ColorManager.natural900,
               ),
             ),
             SizedBox(height: AppHeight.s6),
@@ -94,7 +96,7 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
               style: getRegularStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s12,
-                color: Colors.white.withValues(alpha: 0.5),
+                color: ColorManager.natural400,
               ),
             ),
             SizedBox(height: AppHeight.s20),
@@ -113,7 +115,10 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _sending ? null : _send,
+                onPressed: _sending ? null : () {
+                HapticFeedback.mediumImpact();
+                _send();
+              },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: ColorManager.cyanPrimary,
                   padding: EdgeInsets.symmetric(vertical: AppHeight.s14),
@@ -141,6 +146,7 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
               ),
             ),
           ],
+          ),
         ),
       ),
     );

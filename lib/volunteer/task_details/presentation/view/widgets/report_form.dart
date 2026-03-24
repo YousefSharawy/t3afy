@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
@@ -83,7 +84,10 @@ class ReportForm extends StatelessWidget {
             SizedBox(height: AppHeight.s24),
             PrimaryElevatedButton(
               title: 'إرسال',
-              onPress: isSubmitting ? () {} : onSubmit,
+              onPress: isSubmitting ? () {} : () {
+                HapticFeedback.mediumImpact();
+                onSubmit();
+              },
               textStyle: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s16,

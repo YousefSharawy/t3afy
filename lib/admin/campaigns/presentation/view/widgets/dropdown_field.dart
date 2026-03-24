@@ -22,36 +22,50 @@ class DropdownField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppWidth.s12),
-      decoration: BoxDecoration(
-        color: ColorManager.blueOne700,
-        borderRadius: BorderRadius.circular(AppRadius.s10),
-        border: Border.all(color: ColorManager.blueOne600),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          isExpanded: true,
-          dropdownColor: ColorManager.blueOne700,
-          style: getMediumStyle(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: getRegularStyle(
             fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s13,
-            color: ColorManager.white,
+            fontSize: FontSize.s12,
+            color: ColorManager.natural400,
           ),
-          items: items
-              .map(
-                (e) => DropdownMenuItem<String>(
-                  value: e,
-                  child: Text(
-                    style: getMediumStyle(color: ColorManager.blueOne300),
-                    itemLabel != null ? itemLabel!(e) : e),
-                ),
-              )
-              .toList(),
-          onChanged: onChanged,
         ),
-      ),
+        SizedBox(height: AppHeight.s6),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: AppWidth.s12),
+          decoration: BoxDecoration(
+            color: ColorManager.natural200,
+            borderRadius: BorderRadius.circular(AppRadius.s10),
+            border: Border.all(color: ColorManager.natural200),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              isExpanded: true,
+              dropdownColor: ColorManager.natural200,
+              style: getMediumStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s13,
+                color: ColorManager.white,
+              ),
+              items: items
+                  .map(
+                    (e) => DropdownMenuItem<String>(
+                      value: e,
+                      child: Text(
+                        style: getMediumStyle(color: ColorManager.natural400),
+                        itemLabel != null ? itemLabel!(e) : e),
+                    ),
+                  )
+                  .toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

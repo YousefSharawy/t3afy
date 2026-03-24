@@ -24,7 +24,7 @@ class VolunteerStatsBox extends StatelessWidget {
         horizontal: AppWidth.s6,
       ),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne900,
+        color: ColorManager.primary50,
         borderRadius: BorderRadius.circular(AppRadius.s10),
       ),
       child: Column(
@@ -43,7 +43,7 @@ class VolunteerStatsBox extends StatelessWidget {
             style: getRegularStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s12,
-              color: ColorManager.blueOne100,
+              color: ColorManager.natural400,
             ),
           ),
         ],

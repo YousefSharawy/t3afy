@@ -9,6 +9,7 @@ class StatCard extends StatelessWidget {
   const StatCard({
     super.key,
     required this.icon,
+    required this.iconBgColor,
     required this.value,
     required this.label,
     this.trend,
@@ -17,23 +18,18 @@ class StatCard extends StatelessWidget {
   final String value;
   final String label;
   final String? trend;
+  final Color iconBgColor;
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: AppWidth.s160,
-      height: AppHeight.s150,
+      width: AppWidth.s165,
+      height: AppHeight.s142,
       padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s35,
-        vertical: AppHeight.s12,
+        vertical: AppHeight.s8,
       ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.s12),
-        border: Border.all(color: ColorManager.blueOne700),
-        gradient: LinearGradient(
-          begin: .topCenter,
-          end: .bottomCenter,
-          colors: [ColorManager.blueOne900, ColorManager.blueOne800],
-        ),
+        borderRadius: BorderRadius.circular(AppRadius.s16),
+      color: ColorManager.white,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -41,8 +37,8 @@ class StatCard extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(10.sp),
             decoration: BoxDecoration(
-              color: ColorManager.blueOne700,
-              borderRadius: BorderRadius.circular(AppRadius.s8),
+              color: iconBgColor,
+              borderRadius: BorderRadius.circular(AppRadius.s12),
             ),
             child: Image.asset(icon),
           ),
@@ -51,7 +47,7 @@ class StatCard extends StatelessWidget {
             style: getBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s20,
-              color: Colors.white,
+              color: ColorManager.primary500,
             ),
           ),
           Text(
@@ -59,7 +55,7 @@ class StatCard extends StatelessWidget {
             style: getRegularStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s12,
-              color: ColorManager.blueOne100,
+              color: ColorManager.natural300,
             ),
           ),
           if (trend != null) ...[
@@ -68,7 +64,7 @@ class StatCard extends StatelessWidget {
               style: getRegularStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s10,
-                color: const Color(0xFF66F839),
+                color: ColorManager.success,
               ),
             ),
           ],

@@ -25,24 +25,24 @@ class AlertField extends StatelessWidget {
       style: getMediumStyle(
         fontFamily: FontConstants.fontFamily,
         fontSize: FontSize.s13,
-        color: Colors.white,
+        color: ColorManager.natural900,
       ),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: getRegularStyle(
           fontFamily: FontConstants.fontFamily,
           fontSize: FontSize.s13,
-          color: Colors.white.withValues(alpha: 0.3),
+           color: ColorManager.natural400,
         ),
         filled: true,
-        fillColor: ColorManager.blueOne800,
+         fillColor: ColorManager.natural50,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.s12),
-          borderSide: BorderSide(color: ColorManager.blueOne700),
+          borderSide: BorderSide(color: ColorManager.natural200),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.s12),
-          borderSide: BorderSide(color: ColorManager.blueOne700),
+          borderSide: BorderSide(color: ColorManager.natural200),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.s12),

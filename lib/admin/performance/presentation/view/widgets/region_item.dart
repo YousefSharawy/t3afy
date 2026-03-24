@@ -34,7 +34,7 @@ class RegionItem extends StatelessWidget {
                   style: getBoldStyle(
                     fontFamily: FontConstants.fontFamily,
                     fontSize: FontSize.s12,
-                    color: ColorManager.blueOne50,
+                    color: ColorManager.natural600,
                   ),
                 ),
               ),
@@ -43,19 +43,34 @@ class RegionItem extends StatelessWidget {
                 style: getBoldStyle(
                   fontFamily: FontConstants.fontFamily,
                   fontSize: FontSize.s12,
-                  color: const Color(0xFF0095FF),
+                  color: ColorManager.primary500,
                 ),
               ),
             ],
           ),
-          SizedBox(height: AppHeight.s6),
+          SizedBox(height: AppHeight.s4),
           ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.s4),
-            child: LinearProgressIndicator(
-              value: fraction,
-              minHeight: 6.h,
-              backgroundColor: ColorManager.navyLight,
-              valueColor: const AlwaysStoppedAnimation(ColorManager.cyanPrimary),
+            borderRadius: BorderRadius.circular(AppRadius.s8),
+            child: Stack(
+              children: [
+                Container(
+                  height: AppHeight.s6,
+                  color: ColorManager.primary50,
+                ),
+                FractionallySizedBox(
+                  widthFactor: fraction,
+                  child: Container(
+                    height: AppHeight.s6,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: .centerRight,
+                        end: .centerLeft,
+                        colors: [ColorManager.primary500, ColorManager.primary300],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

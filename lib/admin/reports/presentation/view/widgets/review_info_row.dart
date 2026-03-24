@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
@@ -18,24 +19,24 @@ class ReviewInfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: [
+      children: [ Text(
+          label,
+          style: getRegularStyle(
+            fontFamily: FontConstants.fontFamily,
+            fontSize: FontSize.s12,
+            color: ColorManager.natural400,
+          ),
+        ),
+        const Spacer(),
         Text(
           value,
           style: getSemiBoldStyle(
             fontFamily: FontConstants.fontFamily,
             fontSize: FontSize.s13,
-            color: valueColor ?? Colors.white,
+            color: valueColor ?? ColorManager.natural900,
           ),
         ),
-        const Spacer(),
-        Text(
-          label,
-          style: getRegularStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s12,
-            color: Colors.white.withValues(alpha: 0.5),
-          ),
-        ),
+       
       ],
     );
   }

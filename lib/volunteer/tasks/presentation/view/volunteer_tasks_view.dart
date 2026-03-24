@@ -7,6 +7,7 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/base/components.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
@@ -105,13 +106,23 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
                                   itemCount: tasks.length,
                                   itemBuilder: (context, index) {
                                     final taskItem = tasks[index];
+                                    final cubit = context.read<TasksCubit>();
                                     return TaskCard(
                                       task: taskItem,
-                                      onTap: () {
-                                        context.push(
+                                      onTap: () async {
+                                        final changed = await context.push<bool>(
                                           Routes.taskDetails,
                                           extra: taskItem.id,
                                         );
+                                        if (changed == true) {
+                                          final userId = LocalAppStorage.getUserId();
+                                          if (userId != null) {
+                                            await LocalAppStorage.invalidateCacheByPrefix('today_tasks_${userId}_');
+                                            await LocalAppStorage.invalidateCache('completed_tasks_$userId');
+                                            await LocalAppStorage.invalidateCache('tasks_stats_$userId');
+                                          }
+                                          cubit.loadTasks();
+                                        }
                                       },
                                     );
                                   },

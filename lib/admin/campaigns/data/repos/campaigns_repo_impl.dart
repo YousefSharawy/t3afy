@@ -83,13 +83,13 @@ class CampaignsRepoImpl implements CampaignsRepo {
   }
 
   @override
-  Future<Either<Failture, void>> assignVolunteer({
+  Future<Either<Failture, void>> assignVolunteers({
     required String taskId,
-    required String userId,
+    required List<String> userIds,
     required String adminId,
   }) async {
     try {
-      await _datasource.assignVolunteer(taskId: taskId, userId: userId, adminId: adminId);
+      await _datasource.assignVolunteers(taskId: taskId, userIds: userIds, adminId: adminId);
       return const Right(null);
     } on Failture catch (f) {
       return Left(f);

@@ -10,7 +10,7 @@ class FilterChipItem extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
-    this.selectedColor = ColorManager.cyanPrimary,
+    this.selectedColor = ColorManager.primary500,
     this.unselectedColor = ColorManager.blueOne900,
     this.borderRadius,
     this.horizontalPadding,
@@ -36,21 +36,23 @@ class FilterChipItem extends StatelessWidget {
           horizontal: horizontalPadding ?? AppWidth.s10,
         ),
         decoration: BoxDecoration(
-          color: selected ? selectedColor : unselectedColor,
-          borderRadius:
-              BorderRadius.circular(borderRadius ?? AppRadius.s8),
-          border: selected ? null : border,
+          color: selectedColor ,
+          borderRadius: BorderRadius.circular(borderRadius ?? AppRadius.s8),
         ),
         child: Center(
           child: Text(
             label,
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color: selected
-                  ? ColorManager.white
-                  : ColorManager.blueOne100,
-            ),
+            style: selected
+                ? getBoldStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    fontSize: FontSize.s10,
+                    color: ColorManager.white,
+                  )
+                : getRegularStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    fontSize: FontSize.s10,
+                    color: ColorManager.primary50,
+                  ),
           ),
         ),
       ),

@@ -28,3 +28,22 @@ class VolunteerDetailsActionError extends VolunteerDetailsState {
   final String message;
   VolunteerDetailsActionError(this.details, this.message);
 }
+
+class VolunteerDetailsActionLoading extends VolunteerDetailsState {
+  final VolunteerDetailsEntity details;
+  VolunteerDetailsActionLoading(this.details);
+}
+
+class VolunteerDetailsActionSuccess extends VolunteerDetailsState {
+  final VolunteerDetailsEntity details;
+  final String message;
+  VolunteerDetailsActionSuccess(this.details, this.message);
+}
+
+class VolunteerDetailsSuspended extends VolunteerDetailsState {}
+
+class VolunteerDetailsAvailableTasks extends VolunteerDetailsState {
+  final VolunteerDetailsEntity details;
+  final List<Map<String, dynamic>> tasks;
+  VolunteerDetailsAvailableTasks(this.details, this.tasks);
+}

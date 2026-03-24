@@ -11,11 +11,13 @@ class BarColumn extends StatelessWidget {
     required this.label,
     required this.hours,
     required this.ratio,
+    required this.barWidth,
   });
 
   final String label;
   final double hours;
   final double ratio;
+  final double barWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,7 @@ class BarColumn extends StatelessWidget {
         ),
         SizedBox(height: AppHeight.s6),
         Container(
-          width: 60.sp,
+          width: barWidth,
           height: (55 * ratio).sp,
           decoration: BoxDecoration(
         color: ColorManager.primary500,

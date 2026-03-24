@@ -6,6 +6,7 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/campaign_entity.dart';
+import 'package:t3afy/base/widgets/status_badge.dart';
 import 'badge_chip.dart';
 
 class CampaignListCard extends StatelessWidget {
@@ -18,137 +19,117 @@ class CampaignListCard extends StatelessWidget {
   final CampaignEntity campaign;
   final VoidCallback onTap;
 
-  static ({Color bg, Color text, String label}) _statusInfo(String status) {
+  static const _arabicMonths = [
+    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+  ];
+
+  static String _formatDate(String raw) {
+    try {
+      final d = DateTime.parse(raw);
+      return '${d.day} ${_arabicMonths[d.month - 1]} ${d.year}';
+    } catch (_) {
+      return raw;
+    }
+  }
+
+  static Color _topBorderColor(String status) {
     return switch (status) {
-      'active' || 'ongoing' => (
-        bg: const Color(0xFF16A34A).withValues(alpha: 0.15),
-        text: ColorManager.successLight,
-        label: 'جارية',
-      ),
-      'upcoming' => (
-        bg: ColorManager.violet700.withValues(alpha: 0.15),
-        text: ColorManager.violet300,
-        label: 'قادمة',
-      ),
-      'done' => (
-        bg: Colors.grey.withValues(alpha: 0.15),
-        text: Colors.grey,
-        label: 'مكتملة',
-      ),
-      'paused' => (
-        bg: Colors.orange.withValues(alpha: 0.15),
-        text: Colors.orange,
-        label: 'موقوفة',
-      ),
-      _ => (
-        bg: ColorManager.blueOne700,
-        text: ColorManager.blueTwo200,
-        label: status,
-      ),
+      'active' || 'ongoing' => ColorManager.info,
+      'upcoming'            => ColorManager.warning,
+      'done'                => ColorManager.success,
+      'missed'              => ColorManager.error,
+      'paused'              => ColorManager.warning,
+      _                     => ColorManager.natural400,
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    final status = _statusInfo(campaign.status);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: EdgeInsets.only(bottom: AppHeight.s8),
-        padding: EdgeInsets.all(12.sp),
         decoration: BoxDecoration(
-          color: ColorManager.blueOne800,
-          borderRadius: BorderRadius.circular(AppRadius.s12),
+          color: ColorManager.white,
+          borderRadius: BorderRadius.circular(AppRadius.s16),
+          border: BorderDirectional(
+            top: BorderSide(color: _topBorderColor(campaign.status), width: 3.w),
+          ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(6.sp),
-                  decoration: BoxDecoration(
-                    color: ColorManager.blueOne700,
-                    borderRadius: BorderRadius.circular(AppRadius.s8),
+        child: Padding(
+          padding: EdgeInsets.all(12.sp),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(6.sp),
+                    decoration: BoxDecoration(
+                      color: ColorManager.accentSand,
+                      borderRadius: BorderRadius.circular(AppRadius.s8),
+                    ),
+                    child: Image.asset(IconAssets.camp),
                   ),
-                  child: Image.asset(IconAssets.camp),
-                ),
-                SizedBox(width: AppWidth.s17),
-                Text(
-                  campaign.title,
-                  style: getBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s13,
-                    color: Colors.white,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppWidth.s8,
-                    vertical: AppHeight.s3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: status.bg,
-                    borderRadius: BorderRadius.circular(AppRadius.s6),
-                  ),
-                  child: Text(
-                    status.label,
-                    style: getBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s10,
-                      color: status.text,
+                  SizedBox(width: AppWidth.s11),
+                  Expanded(
+                    child: Text(
+                      campaign.title,
+                      style: getBoldStyle(
+                        fontFamily: FontConstants.fontFamily,
+                        fontSize: FontSize.s14,
+                        color: ColorManager.natural700,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: AppHeight.s4),
-            SizedBox(height: AppHeight.s6),
-            Row(
-              children: [
-                Image.asset(IconAssets.calendar),
-                SizedBox(width: AppWidth.s4),
-                Text(
-                  campaign.date,
-                  style: getRegularStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s10,
-                    color: ColorManager.blueOne300,
-                  ),
-                ),
-                SizedBox(width: AppWidth.s4),
-                Image.asset(IconAssets.location),
-                SizedBox(width: AppWidth.s4),
-                Expanded(
-                  child: Text(
-                    campaign.locationName ?? '—',
+                  StatusBadge(status: campaign.status),
+                ],
+              ),
+              SizedBox(height: AppHeight.s8),
+              Row(
+                children: [
+                  Image.asset(IconAssets.calendar, width: AppWidth.s16, height: AppHeight.s16),
+                  SizedBox(width: AppWidth.s4),
+                  Text(
+                    _formatDate(campaign.date),
                     style: getRegularStyle(
                       fontFamily: FontConstants.fontFamily,
                       fontSize: FontSize.s10,
-                      color: ColorManager.blueOne300,
+                      color: ColorManager.natural300,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: AppHeight.s8),
-            Row(
-              children: [
-                BadgeChip(
-                  icon: IconAssets.group,
-                  label: '${campaign.volunteerCount} متطوع',
-                ),
-                SizedBox(width: AppWidth.s6),
-                BadgeChip(
-                  icon: IconAssets.target,
-                  label: '${campaign.targetBeneficiaries} هدف',
-                ),
-              ],
-            ),
-          ],
+                  SizedBox(width: AppWidth.s4),
+                  Image.asset(IconAssets.location, width: AppWidth.s16, height: AppHeight.s16),
+                  SizedBox(width: AppWidth.s4),
+                  Expanded(
+                    child: Text(
+                      campaign.locationName ?? '—',
+                      style: getRegularStyle(
+                        fontFamily: FontConstants.fontFamily,
+                        fontSize: FontSize.s10,
+                        color: ColorManager.natural400,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: AppHeight.s8),
+              Row(
+                children: [
+                  BadgeChip(
+                    label: '${campaign.volunteerCount} متطوع',
+                  ),
+                  SizedBox(width: AppWidth.s6),
+                  BadgeChip(
+                    label: '${campaign.targetBeneficiaries} هدف',
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -7,40 +7,46 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/status_badge.dart';
 import 'volunteer_badge.dart';
 
 class VolunteerCard extends StatelessWidget {
-  const VolunteerCard({super.key, required this.volunteer});
+  const VolunteerCard({super.key, required this.volunteer, this.onTap});
 
   final AdminVolunteerEntity volunteer;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final status = volunteer.status;
-    final (statusColor, statusBg) = _statusColors(status);
     return GestureDetector(
-      onTap: () => context.push('/volunteerDetails/${volunteer.id}'),
+      onTap: onTap ?? () => context.push('/volunteerDetails/${volunteer.id}'),
       child: Container(
         margin: EdgeInsets.only(bottom: AppHeight.s8),
         decoration: BoxDecoration(
-          color: ColorManager.blueOne900,
-          borderRadius: BorderRadius.circular(AppRadius.s12),
+          color: ColorManager.white,
+          borderRadius: BorderRadius.circular(AppRadius.s16),
         ),
         child: Padding(
           padding: EdgeInsets.all(12.sp),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          child: IntrinsicHeight(
+            child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                width: AppWidth.s34,
-                height: AppHeight.s34,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(AppRadius.s8)),
-                  color: ColorManager.navyCard,
+              Align(
+                alignment: Alignment.center,
+                child: Container(
+                  width: AppWidth.s34,
+                  height: AppHeight.s34,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(AppRadius.s8)),
+                    color: ColorManager.primary50,
+                    border: Border.all(color: ColorManager.primary500)
+                  ),
+                  child: Image.asset(IconAssets.vol2),
                 ),
-                child: Image.asset(IconAssets.volHome),
               ),
-              SizedBox(width: AppWidth.s12),
+              SizedBox(width: AppWidth.s8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +56,7 @@ class VolunteerCard extends StatelessWidget {
                       style: getBoldStyle(
                         fontFamily: FontConstants.fontFamily,
                         fontSize: FontSize.s14,
-                        color: Colors.white,
+                        color: ColorManager.natural600,
                       ),
                     ),
                     SizedBox(height: AppHeight.s2),
@@ -68,7 +74,7 @@ class VolunteerCard extends StatelessWidget {
                             style: getRegularStyle(
                               fontFamily: FontConstants.fontFamily,
                               fontSize: FontSize.s10,
-                              color: ColorManager.blueOne300,
+                              color: ColorManager.natural400,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -79,13 +85,13 @@ class VolunteerCard extends StatelessWidget {
                           height: AppHeight.s16,
                           IconAssets.star,
                         ),
-                        SizedBox(width: AppWidth.s6),
+                        SizedBox(width: AppWidth.s4),
                         Text(
                           volunteer.rating.toStringAsFixed(1),
                           style: getRegularStyle(
                             fontFamily: FontConstants.fontFamily,
-                            fontSize: FontSize.s11,
-                            color: Colors.white54,
+                            fontSize: FontSize.s10,
+                            color: ColorManager.natural400,
                           ),
                         ),
                       ],
@@ -94,56 +100,31 @@ class VolunteerCard extends StatelessWidget {
                     Row(
                       children: [
                         VolunteerBadge(
-                          icon: Icons.check_circle_outline,
                           label: '${volunteer.totalTasks} مهمة',
-                          color: const Color(0xFF22C55E),
-                          bg: const Color(0xFF14532D),
+                          color:  ColorManager.primary500,
+                          bg: ColorManager.primary50,
                         ),
                         SizedBox(width: AppWidth.s8),
                         VolunteerBadge(
-                          icon: Icons.access_time,
                           label: '${volunteer.totalHours} ساعة',
-                          color: const Color(0xFF60A5FA),
-                          bg: ColorManager.navyLight,
+                           color:  ColorManager.primary500,
+                          bg: ColorManager.primary50,
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppWidth.s8,
-                  vertical: AppHeight.s4,
-                ),
-                decoration: BoxDecoration(
-                  color: statusBg,
-                  borderRadius: BorderRadius.circular(AppRadius.s6),
-                ),
-                child: Text(
-                  status,
-                  style: getMediumStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s10,
-                    color: statusColor,
-                  ),
-                ),
+              Align(
+                alignment: Alignment.topCenter,
+                child: StatusBadge(status: status),
               ),
             ],
+          ),
           ),
         ),
       ),
     );
   }
 
-  (Color, Color) _statusColors(String status) {
-    switch (status) {
-      case 'نشط':
-        return (const Color(0xFF22C55E), const Color(0xFF14532D));
-      case 'قيد المراجعة':
-        return (ColorManager.amber400, const Color(0xFF451A03));
-      default:
-        return (const Color(0xFFB2B2B2), const Color(0xFF1F2937));
-    }
-  }
 }

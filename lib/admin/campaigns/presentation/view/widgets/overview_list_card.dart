@@ -22,7 +22,7 @@ class OverviewListCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(AppSize.s16),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne800,
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s12),
       ),
       child: Column(

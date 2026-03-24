@@ -10,11 +10,11 @@ import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_detai
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_manage_tab.dart';
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_tasks_tab.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
+import 'package:t3afy/base/widgets/primary_tab_bar.dart';
 
 class VolunteerDetailsView extends StatefulWidget {
   const VolunteerDetailsView({super.key, required this.volunteerId});
@@ -55,8 +55,8 @@ class _VolunteerDetailsViewState extends State<VolunteerDetailsView>
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: ColorManager.blueOne900,
-              size: 20.sp,
+              color: ColorManager.natural900,
+              size: 24.sp,
             ),
             onPressed: () => context.pop(),
           ),
@@ -65,13 +65,10 @@ class _VolunteerDetailsViewState extends State<VolunteerDetailsView>
           listener: (context, state) {
             if (state is VolunteerDetailsDeleted) {
               context.pop(true);
+            } else if (state is VolunteerDetailsSuspended) {
+              context.pop(true);
             } else if (state is VolunteerDetailsActionError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.redAccent,
-                ),
-              );
+              Toast.error.show(context, title: state.message);
             }
           },
           builder: (context, state) {
@@ -95,59 +92,43 @@ class _VolunteerDetailsViewState extends State<VolunteerDetailsView>
               details = state.details;
             } else if (state is VolunteerDetailsActionError) {
               details = state.details;
+            } else if (state is VolunteerDetailsActionLoading) {
+              details = state.details;
+            } else if (state is VolunteerDetailsActionSuccess) {
+              details = state.details;
+            } else if (state is VolunteerDetailsAvailableTasks) {
+              details = state.details;
             }
 
             if (details == null) return const LoadingIndicator();
 
-            return Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
-                  child: VolunteerDetailsHeader(details: details),
-                ),
-                SizedBox(height: AppHeight.s12),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: AppWidth.s16),
-                  padding: EdgeInsets.all(AppWidth.s4),
-                  decoration: BoxDecoration(
-                    color: ColorManager.blueOne900,
-                    borderRadius: BorderRadius.circular(AppRadius.s12),
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
+              child: Column(
+                children: [
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    child: VolunteerDetailsHeader(details: details),
                   ),
-                  child: TabBar(
-                    padding: EdgeInsets.all(8.sp),
+                  SizedBox(height: AppHeight.s8),
+                  PrimaryTabBar(
                     controller: _tabController,
-                    indicator: BoxDecoration(
-                      color: const Color(0xFF7C3AED),
-                      borderRadius: BorderRadius.circular(AppRadius.s8),
-                    ),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
-                    dividerColor: Colors.transparent,
-                    labelStyle: getBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s12,
-                      color: ColorManager.blueOne50
-                    ),
-                    tabs: const [
-                      Tab(text: 'البيانات'),
-                      Tab(text: 'المهام'),
-                      Tab(text: 'الإجراءات'),
-                    ],
+                    labels: const ['البيانات', 'المهام', 'الإجراءات'],
                   ),
-                ),
-                SizedBox(height: AppHeight.s8),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      VolunteerDataTab(details: details),
-                      VolunteerTasksTab(details: details),
-                      VolunteerManageTab(details: details),
-                    ],
+                  SizedBox(height: AppHeight.s16),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        VolunteerDataTab(details: details),
+                        VolunteerTasksTab(details: details),
+                        VolunteerManageTab(details: details),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),

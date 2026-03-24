@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,6 +17,9 @@ class HomeCubit extends Cubit<HomeState> {
   final GetHomeTodayTasks _getTodayTasks;
   RealtimeChannel? _userChannel;
 
+  RealtimeChannel? _assignmentsChannel;
+  Timer? _debounce;
+
   void subscribeToUserUpdates(String userId) {
     _userChannel = Supabase.instance.client
         .channel('home_user_$userId')
@@ -27,14 +32,72 @@ class HomeCubit extends Cubit<HomeState> {
             column: 'id',
             value: userId,
           ),
-          callback: (_) => loadHome(userId),
+          callback: (_) => _onRealtimeChange(userId),
+        )
+        .subscribe();
+
+    _assignmentsChannel = Supabase.instance.client
+        .channel('home_assignments_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'task_assignments',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userId,
+          ),
+          callback: (_) => _onRealtimeChange(userId),
         )
         .subscribe();
   }
 
+  void _onRealtimeChange(String userId) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _checkRoleAndLoad(userId);
+    });
+  }
+
+  Future<void> _checkRoleAndLoad(String userId) async {
+    try {
+      final row = await Supabase.instance.client
+          .from('users')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+      if (row != null && row['role'] == 'suspended') {
+        emit(const HomeState.error('__suspended__'));
+        return;
+      }
+    } catch (_) {}
+    await _silentRefresh(userId);
+  }
+
+  Future<void> _silentRefresh(String userId) async {
+    final statsResult = await _getVolunteerStats(userId);
+    final tasksResult = await _getTodayTasks(userId);
+    final unreadCount = await _fetchUnreadCount(userId);
+    statsResult.fold(
+      (_) {}, // silently ignore errors on background refetch
+      (stats) {
+        tasksResult.fold(
+          (_) {},
+          (tasks) => emit(HomeState.loaded(
+            stats: stats,
+            todayTasks: tasks,
+            unreadCount: unreadCount,
+          )),
+        );
+      },
+    );
+  }
+
   @override
   Future<void> close() async {
+    _debounce?.cancel();
     await _userChannel?.unsubscribe();
+    await _assignmentsChannel?.unsubscribe();
     return super.close();
   }
 

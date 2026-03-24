@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
@@ -15,27 +14,29 @@ class CampaignStatBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.all(12.sp),
+        padding: EdgeInsets.symmetric(vertical: AppWidth.s12),
         decoration: BoxDecoration(
-          color: ColorManager.blueOne800,
+          color: ColorManager.white,
           borderRadius: BorderRadius.circular(AppRadius.s12),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               value,
               style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s16,
-                color: ColorManager.white,
+                color: ColorManager.primary500,
               ),
             ),
+            SizedBox(height: AppHeight.s4),
             Text(
               label,
               style: getMediumStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s12,
-                color: ColorManager.white,
+                color: ColorManager.natural300,
               ),
               textAlign: TextAlign.center,
             ),

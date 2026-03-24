@@ -6,6 +6,8 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/primary_tab_bar.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
@@ -52,17 +54,17 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: ColorManager.blueOne900,
-              size: 20.r,
+              color: ColorManager.natural900,
+              size: 24.sp,
             ),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(true),
           ),
           title: Text(
             'تفاصيل الحملة',
             style: getBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s16,
-              color: ColorManager.blueOne900,
+              color: ColorManager.natural900,
             ),
           ),
           centerTitle: true,
@@ -70,28 +72,12 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
         body: BlocConsumer<CampaignDetailCubit, CampaignDetailState>(
           listener: (context, state) {
             if (state is CampaignDetailDeleted) {
-              final messenger = ScaffoldMessenger.of(context);
-              messenger.showSnackBar(
-                const SnackBar(
-                  content: Text('تم حذف الحملة بنجاح'),
-                  backgroundColor: Color(0xFF10B981),
-                ),
-              );
-              if (context.mounted) context.go('/campaigns');
+              Toast.success.show(context, title: 'تم حذف الحملة بنجاح');
+              if (context.mounted) context.pop(true);
             } else if (state is CampaignDetailActionError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.redAccent,
-                ),
-              );
+              Toast.error.show(context, title: state.message);
             } else if (state is CampaignDetailAlertSent) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم إرسال التنبيه بنجاح'),
-                  backgroundColor: Color(0xFF10B981),
-                ),
-              );
+              Toast.success.show(context, title: 'تم إرسال التنبيه بنجاح');
             }
           },
           buildWhen: (previous, current) =>
@@ -118,40 +104,16 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
 
             return Column(
               children: [
-                SizedBox(height: AppHeight.s8),
+                SizedBox(height: AppHeight.s16),
                 CampaignHeroCard(detail: detail),
                 SizedBox(height: AppHeight.s16),
-                Container(
-                  padding: EdgeInsets.all(4.sp),
-                  margin: EdgeInsets.symmetric(horizontal: AppWidth.s16),
-                  decoration: BoxDecoration(
-                    color: ColorManager.blueOne800,
-                    borderRadius: BorderRadius.circular(AppRadius.s12),
-                  ),
-                  child: TabBar(
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
+                  child: PrimaryTabBar(
                     controller: _tabController,
-                    indicator: BoxDecoration(
-                      
-                      color: const Color(0xFF703DEB),
-                      borderRadius: BorderRadius.circular(AppRadius.s8),
-                    ),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white.withValues(alpha: 0.4),
-                    dividerColor: Colors.transparent,
-                    padding: EdgeInsets.all(AppSize.s4),
-                    labelStyle: getMediumStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s12,
-                    ),
-                    tabs: const [
-                      Tab(text: 'نظرة عامة'),
-                      Tab(text: 'الفريق'),
-                      Tab(text: 'الاجراءات'),
-                    ],
+                    labels: const ['نظرة عامة', 'الفريق', 'الاجراءات'],
                   ),
                 ),
-                SizedBox(height: AppHeight.s8),
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,

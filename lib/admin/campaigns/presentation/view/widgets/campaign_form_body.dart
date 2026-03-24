@@ -1,0 +1,215 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:t3afy/admin/campaigns/domain/entities/volunteer_entity.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
+import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/primary_widgets.dart';
+import 'add_item_header.dart';
+import 'campaign_form_helpers.dart';
+import 'campaign_status_chips.dart';
+import 'create_volunteer_picker_sheet.dart';
+import 'form_field_label.dart';
+import 'objective_field.dart';
+import 'supply_field.dart';
+import 'volunteer_selection_list.dart';
+
+class CampaignFormBody extends StatelessWidget {
+  const CampaignFormBody({
+    super.key,
+    required this.titleCtrl,
+    required this.descCtrl,
+    required this.locationNameCtrl,
+    required this.locationAddressCtrl,
+    required this.supervisorNameCtrl,
+    required this.supervisorPhoneCtrl,
+    required this.pointsCtrl,
+    required this.notesCtrl,
+    required this.targetCtrl,
+    required this.objectiveCtrls,
+    required this.supplyNameCtrls,
+    required this.supplyQtyCtrls,
+    required this.selectedType,
+    required this.selectedStatus,
+    required this.selectedDate,
+    required this.timeStart,
+    required this.timeEnd,
+    required this.volunteers,
+    required this.selectedIds,
+    required this.onPickDate,
+    required this.onPickCombinedTime,
+    required this.onAddObjective,
+    required this.onRemoveObjective,
+    required this.onAddSupply,
+    required this.onRemoveSupply,
+  });
+
+  final TextEditingController titleCtrl;
+  final TextEditingController descCtrl;
+  final TextEditingController locationNameCtrl;
+  final TextEditingController locationAddressCtrl;
+  final TextEditingController supervisorNameCtrl;
+  final TextEditingController supervisorPhoneCtrl;
+  final TextEditingController pointsCtrl;
+  final TextEditingController notesCtrl;
+  final TextEditingController targetCtrl;
+  final List<TextEditingController> objectiveCtrls;
+  final List<TextEditingController> supplyNameCtrls;
+  final List<TextEditingController> supplyQtyCtrls;
+  final String selectedType;
+  final String selectedStatus;
+  final DateTime? selectedDate;
+  final TimeOfDay? timeStart;
+  final TimeOfDay? timeEnd;
+  final List<VolunteerEntity> volunteers;
+  final Set<String> selectedIds;
+  final VoidCallback onPickDate;
+  final VoidCallback onPickCombinedTime;
+  final VoidCallback onAddObjective;
+  final void Function(int index) onRemoveObjective;
+  final VoidCallback onAddSupply;
+  final void Function(int index) onRemoveSupply;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedVolunteers =
+        volunteers.where((v) => selectedIds.contains(v.id)).toList();
+
+    return ListView(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppWidth.s18,
+        vertical: AppHeight.s16,
+      ),
+      children: [
+        // ── 1. Campaign name ──────────────────────────────────────────────
+        const FormFieldLabel('اسم الحملة'),
+        SizedBox(height: AppHeight.s8),
+        PrimaryTextFF(
+          textAlign: .right,
+          controller: titleCtrl,
+          hint: 'أدخل اسم الحملة',
+          validator: (v) => v == null || v.isEmpty ? 'مطلوب' : null,
+        ),
+        SizedBox(height: AppHeight.s8),
+
+        // ── 2. Location ───────────────────────────────────────────────────
+        const FormFieldLabel('المنطقة'),
+        SizedBox(height: AppHeight.s8),
+        PrimaryTextFF(
+                textAlign: .right,
+          controller: locationNameCtrl,
+          hint: 'أدخل المنطقة',
+        ),
+        SizedBox(height: AppHeight.s8),
+
+        // ── 3. Date ───────────────────────────────────────────────────────
+        const FormFieldLabel('التاريخ'),
+        SizedBox(height: AppHeight.s8),
+        PrimaryTextFF(
+                textAlign: .right,
+          controller: TextEditingController(
+            text: selectedDate != null ? formatArabicDate(selectedDate!) : '',
+          ),
+          hint: 'اختر التاريخ',
+          readOnly: true,
+          onTap: onPickDate,
+        ),
+        SizedBox(height: AppHeight.s8),
+
+        // ── 4. Time (combined) ────────────────────────────────────────────
+        const FormFieldLabel('الوقت'),
+        SizedBox(height: AppHeight.s8),
+        PrimaryTextFF(
+                textAlign: .right,
+          controller: TextEditingController(
+            text: (timeStart != null || timeEnd != null)
+                ? combinedTimeLabel(timeStart, timeEnd)
+                : '',
+          ),
+          hint: 'اختر الوقت',
+          readOnly: true,
+          onTap: onPickCombinedTime,
+        ),
+        SizedBox(height: AppHeight.s8),
+
+        // ── 5. Target beneficiaries ───────────────────────────────────────
+        const FormFieldLabel('العدد المستهدف'),
+        SizedBox(height: AppHeight.s8),
+        PrimaryTextFF(
+                textAlign: .right,
+          controller: targetCtrl,
+          hint: '0',
+          keyboardType: TextInputType.number,
+        ),
+        SizedBox(height: AppHeight.s8),
+
+        // ── 6. Objectives ─────────────────────────────────────────────────
+        AddItemHeader(label: 'الأهداف', onAdd: onAddObjective),
+        SizedBox(height: AppHeight.s8),
+        ...objectiveCtrls.asMap().entries.map(
+          (e) => ObjectiveField(
+            index: e.key,
+            controller: e.value,
+            onRemove: () => onRemoveObjective(e.key),
+          ),
+        ),
+        SizedBox(height: AppHeight.s8),
+
+        // ── 7. Supplies ───────────────────────────────────────────────────
+        AddItemHeader(label: 'المستلزمات', onAdd: onAddSupply),
+        SizedBox(height: AppHeight.s8),
+        ...supplyNameCtrls.asMap().entries.map(
+          (e) => SupplyField(
+
+            index: e.key,
+            nameController: e.value,
+            quantityController: supplyQtyCtrls[e.key],
+            onRemove: () => onRemoveSupply(e.key),
+          ),
+        ),
+        SizedBox(height: AppHeight.s8),
+
+        // ── 8. Description ────────────────────────────────────────────────
+        const FormFieldLabel('وصف الحملة'),
+        SizedBox(height: AppHeight.s8),
+        PrimaryTextFF(
+                textAlign: .right,
+          controller: descCtrl,
+          hint: 'أدخل وصف الحملة',
+          maxLines: 5,
+        ),
+        SizedBox(height: AppHeight.s8),
+
+        const FormFieldLabel('حالة الحملة'),
+        SizedBox(height: AppHeight.s8),
+        CampaignStatusChips(selectedStatus: selectedStatus),
+        SizedBox(height: AppHeight.s8),
+
+        // ── 10. Volunteers ────────────────────────────────────────────────
+        const FormFieldLabel('المتطوعون'),
+        SizedBox(height: AppHeight.s8),
+        VolunteerSelectionList(
+          volunteers: volunteers,
+          selectedIds: selectedIds,
+          onToggle: (id) => context.read<CreateCampaignCubit>().toggleVolunteer(id),
+          onAddPressed: () => _showVolunteerPicker(context),
+          selectedVolunteers: selectedVolunteers,
+        ),
+        SizedBox(height: AppHeight.s100),
+      ],
+    );
+  }
+
+  void _showVolunteerPicker(BuildContext context) {
+    final cubit = context.read<CreateCampaignCubit>();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CreateVolunteerPickerSheet(
+        volunteers: volunteers,
+        alreadySelected: selectedIds,
+        onConfirm: cubit.addVolunteers,
+      ),
+    );
+  }
+}

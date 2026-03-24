@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -37,28 +38,28 @@ class TeamTab extends StatelessWidget {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: ColorManager.blueOne800,
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+        backgroundColor: ColorManager.natural50,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s16),
+          borderRadius: BorderRadius.circular(AppRadius.s20),
         ),
         title: Text(
           'إزالة المتطوع',
-          style: getBoldStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s16,
-            color: Colors.white,
+          style: getSemiBoldStyle(
+            color: ColorManager.natural900,
+            fontSize: FontSize.s18,
           ),
-          textDirection: TextDirection.rtl,
         ),
         content: Text(
           'هل تريد إزالة $name من الحملة؟',
-          style: getMediumStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s13,
-            color: Colors.white70,
+          style: getRegularStyle(
+            color: ColorManager.natural900.withValues(alpha: 0.7),
+            fontSize: FontSize.s14,
           ),
-          textDirection: TextDirection.rtl,
         ),
         actions: [
           TextButton(
@@ -67,23 +68,35 @@ class TeamTab extends StatelessWidget {
               'إلغاء',
               style: getMediumStyle(
                 fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s13,
-                color: Colors.white54,
+                fontSize: FontSize.s14,
+                color: ColorManager.natural900.withValues(alpha: 0.6),
               ),
             ),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ColorManager.error,
+              foregroundColor: ColorManager.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.s30),
+              ),
+            ),
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              Navigator.pop(ctx, true);
+            },
             child: Text(
               'إزالة',
               style: getMediumStyle(
                 fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s13,
-                color: Colors.redAccent,
+                fontSize: FontSize.s14,
+                color: ColorManager.white,
               ),
             ),
           ),
         ],
+      ),
       ),
     );
 
@@ -100,27 +113,16 @@ class TeamTab extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.all(AppSize.s16),
       children: [
-        PrimaryElevatedButton(
-          title: "اضافه متطوع",
-
-          onPress: () => _showAddVolunteer(context),
-          textStyle: getBoldStyle(
-            fontFamily: FontConstants.fontFamily,
-            color: ColorManager.white,
-            fontSize: FontSize.s15
-          ),
-        ),
-        SizedBox(height: AppHeight.s16),
         if (detail.members.isEmpty)
           Center(
             child: Padding(
-              padding: EdgeInsets.only(top: AppHeight.s40),
+              padding: EdgeInsets.symmetric(vertical: AppHeight.s40),
               child: Text(
                 'لا يوجد متطوعون معيّنون',
                 style: getMediumStyle(
                   fontFamily: FontConstants.fontFamily,
                   fontSize: FontSize.s14,
-                  color: Colors.white.withValues(alpha: 0.4),
+                  color: ColorManager.natural400,
                 ),
               ),
             ),
@@ -132,6 +134,20 @@ class TeamTab extends StatelessWidget {
               onLongPress: () => _confirmRemove(context, m.id, m.name),
             ),
           ),
+        PrimaryElevatedButton(
+          title: "اضافه متطوع",
+          onPress: () {
+            HapticFeedback.mediumImpact();
+            _showAddVolunteer(context);
+          },
+          textStyle: getBoldStyle(
+            fontFamily: FontConstants.fontFamily,
+            color: ColorManager.white,
+            fontSize: FontSize.s15
+          ),
+        ),
+        SizedBox(height: AppHeight.s16),
+       
         SizedBox(height: AppHeight.s80),
       ],
     );

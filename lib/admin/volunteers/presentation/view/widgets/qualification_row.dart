@@ -16,10 +16,10 @@ class QualificationRow extends StatelessWidget {
       margin: EdgeInsets.only(bottom: AppHeight.s8),
       padding: EdgeInsets.symmetric(
         horizontal: AppWidth.s12,
-        vertical: AppHeight.s12,
+        vertical: AppHeight.s8,
       ),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne800,
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s12),
       ),
       child: Row(
@@ -33,18 +33,18 @@ class QualificationRow extends StatelessWidget {
                   'مجالات التطوع',
                   style: getRegularStyle(
                     fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s11,
-                    color: Colors.white70,
+                    fontSize: FontSize.s10,
+                    color: ColorManager.natural700,
                   ),
                 ),
-                SizedBox(height: 6.h),
+                SizedBox(height: AppHeight.s8),
                 values.isEmpty
                     ? Text(
                         '—',
                         style: getMediumStyle(
                           fontFamily: FontConstants.fontFamily,
                           fontSize: FontSize.s13,
-                          color: Colors.white,
+                          color: ColorManager.natural900,
                         ),
                       )
                     : Wrap(
@@ -54,21 +54,23 @@ class QualificationRow extends StatelessWidget {
                             .map(
                               (v) => Container(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 10.w,
-                                  vertical: 3.h,
+                                  horizontal: AppWidth.s10,
+                                  vertical: AppHeight.s2,
                                 ),
                                 decoration: BoxDecoration(
+                                  color: ColorManager.primary50,
                                   border: Border.all(
-                                    color: const Color(0xFF0D9488),
+                                    width: 0.5.sp,
+                                    color: ColorManager.primary500,
                                   ),
-                                  borderRadius: BorderRadius.circular(6.r),
+                                  borderRadius: BorderRadius.circular(AppRadius.s6),
                                 ),
                                 child: Text(
                                   v,
-                                  style: getRegularStyle(
+                                  style: getBoldStyle(
                                     fontFamily: FontConstants.fontFamily,
-                                    fontSize: FontSize.s11,
-                                    color: const Color(0xFF2DD4BF),
+                                    fontSize: FontSize.s10,
+                                    color: ColorManager.primary500,
                                   ),
                                 ),
                               ),

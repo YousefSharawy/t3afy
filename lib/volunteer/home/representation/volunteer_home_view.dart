@@ -41,33 +41,46 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeCubit, HomeState>(
+    return BlocConsumer<HomeCubit, HomeState>(
+      listener: (context, state) {
+        state.maybeWhen(
+          error: (message) {
+            if (message == '__suspended__') {
+              LocalAppStorage.clearUserSession();
+              context.go(Routes.login);
+            }
+          },
+          orElse: () {},
+        );
+      },
       builder: (context, state) {
         return state.when(
           initial: () => const SizedBox.shrink(),
           loading: () => const LoadingIndicator(),
-          error: (message) => ErrorState(
-            message: message,
-            onRetry: () {
-              final userId = LocalAppStorage.getUserId();
-              if (userId != null) {
-                context.read<HomeCubit>().loadHome(userId);
-              }
-            },
-          ),
+          error: (message) {
+            if (message == '__suspended__') return const SizedBox.shrink();
+            return ErrorState(
+              message: message,
+              onRetry: () {
+                final userId = LocalAppStorage.getUserId();
+                if (userId != null) {
+                  context.read<HomeCubit>().loadHome(userId);
+                }
+              },
+            );
+          },
           loaded: (stats, todayTasks, unreadCount) => Column(
             children: [
-              SizedBox(height: AppHeight.s45,),
+              SizedBox(height: AppHeight.s45),
               Padding(
                 padding: EdgeInsets.only(
                   left: AppWidth.s18,
                   right: AppWidth.s18,
                   top: AppHeight.s10,
+                  bottom: AppHeight.s10,
                 ),
                 child: HomeAppBar(
-                  onProfileTap: () {
-                    context.push(Routes.volunteerProfile);
-                  },
+                  onProfileTap: () => context.push(Routes.volunteerProfile),
                 ),
               ),
               Expanded(
@@ -117,8 +130,20 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                           onViewAll: () {
                             StatefulNavigationShell.of(context).goBranch(1);
                           },
-                          onTaskTap: (task) {
-                            context.push(Routes.taskDetails, extra: task.id);
+                          onTaskTap: (task) async {
+                            final cubit = context.read<HomeCubit>();
+                            final changed = await context.push<bool>(
+                              Routes.taskDetails,
+                              extra: task.id,
+                            );
+                            if (changed == true && context.mounted) {
+                              final userId = LocalAppStorage.getUserId();
+                              if (userId != null) {
+                                await LocalAppStorage.invalidateCacheByPrefix('today_tasks_${userId}_');
+                                await LocalAppStorage.invalidateCache('vol_stats_v2_$userId');
+                                cubit.loadHome(userId);
+                              }
+                            }
                           },
                         ),
                         SizedBox(height: AppHeight.s100),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
@@ -25,19 +26,19 @@ class VolunteerDetailStatBox extends StatelessWidget {
         horizontal: AppWidth.s32,
       ),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne700,
+        color: ColorManager.primary50,
         borderRadius: BorderRadius.circular(AppRadius.s8),
+        border: Border.all(width: 1.sp,color: ColorManager.primary200)
       ),
       child: Column(
         children: [
           Image.asset(icon, width: AppWidth.s24, height: AppHeight.s24),
-          SizedBox(height: AppHeight.s4),
           Text(
             value,
             style: getExtraBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s16,
-              color: ColorManager.blueOne50,
+              color: ColorManager.primary500,
             ),
           ),
           Text(
@@ -45,7 +46,7 @@ class VolunteerDetailStatBox extends StatelessWidget {
             style: getSemiBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s10,
-              color: ColorManager.blueOne100,
+              color: ColorManager.natural400,
             ),
           ),
         ],

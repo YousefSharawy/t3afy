@@ -8,7 +8,20 @@ class GetAdminPerformanceUsecase {
 
   GetAdminPerformanceUsecase(this._repo);
 
-  Future<Either<Failture, AdminPerformanceEntity>> call() {
-    return _repo.getPerformanceData();
+  Future<Either<Failture, AdminPerformanceEntity>> call(String period) {
+    final startDate = _startDateFor(period);
+    return _repo.getPerformanceData(startDate, period);
+  }
+
+  DateTime _startDateFor(String period) {
+    final now = DateTime.now();
+    switch (period) {
+      case 'week':
+        return now.subtract(const Duration(days: 7));
+      case 'months':
+        return now.subtract(const Duration(days: 30));
+      default:
+        return now.subtract(const Duration(days: 365));
+    }
   }
 }

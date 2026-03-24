@@ -14,7 +14,7 @@ class OverviewSectionCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(AppSize.s16),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne800,
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s12),
       ),
       child: Column(
@@ -25,7 +25,7 @@ class OverviewSectionCard extends StatelessWidget {
             style: getBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s13,
-              color: Colors.white,
+              color: ColorManager.natural900,
             ),
           ),
           SizedBox(height: AppHeight.s8),
@@ -34,7 +34,7 @@ class OverviewSectionCard extends StatelessWidget {
             style: getRegularStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s12,
-              color: Colors.white.withValues(alpha: 0.7),
+              color: ColorManager.natural500,
             ),
           ),
         ],

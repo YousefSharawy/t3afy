@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteers_cubit.dart';
@@ -7,6 +8,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
 import 'package:t3afy/base/primary_widgets.dart';
 
 class AddVolunteerSheet extends StatefulWidget {
@@ -37,6 +39,7 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
   }
 
   void _submit() {
+    HapticFeedback.mediumImpact();
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSubmitting = true);
     context.read<VolunteersCubit>().addVolunteer(
@@ -59,27 +62,16 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
     return BlocListener<VolunteersCubit, VolunteersState>(
       listener: (context, state) {
         state.maybeWhen(
-          loaded: (_, _, _) {
+          loaded: (_, filter, searchQuery, pendingUsers, pendingLoading) {
             if (_isSubmitting) {
-              final messenger = ScaffoldMessenger.of(context);
               Navigator.of(context).pop();
-              messenger.showSnackBar(
-                const SnackBar(
-                  content: Text('تم إضافة المتطوع بنجاح'),
-                  backgroundColor: ColorManager.success,
-                ),
-              );
+              Toast.success.show(context, title: 'تم إضافة المتطوع بنجاح');
             }
           },
           error: (message) {
             if (_isSubmitting) {
               setState(() => _isSubmitting = false);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                  backgroundColor: ColorManager.error,
-                ),
-              );
+              Toast.error.show(context, title: message);
             }
           },
           orElse: () {},
@@ -89,7 +81,7 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
         textDirection: TextDirection.rtl,
         child: Container(
           decoration: BoxDecoration(
-            color: ColorManager.blueOne900,
+            color: ColorManager.white,
             borderRadius: BorderRadius.vertical(
               top: Radius.circular(AppRadius.s12),
             ),
@@ -99,7 +91,7 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
           ),
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 24),
+              padding:  EdgeInsetsDirectional.fromSTEB(18.sp, 18.sp, 18.sp, 26.sp),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -108,11 +100,11 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
                   children: [
                     Center(
                       child: Container(
-                        width: AppWidth.s40,
+                        width: AppWidth.s39,
                         height: AppHeight.s3,
                         decoration: BoxDecoration(
-                          color: ColorManager.blueOne100,
-                          borderRadius: BorderRadius.circular(2),
+                          color: ColorManager.natural400,
+                          borderRadius: BorderRadius.circular(AppRadius.s49),
                         ),
                       ),
                     ),
@@ -121,14 +113,14 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
                       child: Row(
                         mainAxisAlignment: .center,
                         children: [
-                          Image.asset(IconAssets.add),
+                          Image.asset(IconAssets.add3),
                           SizedBox(width: AppWidth.s4),
                           Text(
                             'إضافة متطوع جديد',
                             style: getBoldStyle(
                               fontFamily: FontConstants.fontFamily,
                               fontSize: FontSize.s14,
-                              color: ColorManager.blueOne50,
+                              color: ColorManager.natural700,
                             ),
                           ),
                         ],
@@ -141,77 +133,116 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
                         style: getRegularStyle(
                           fontFamily: FontConstants.fontFamily,
                           fontSize: FontSize.s10,
-                          color: ColorManager.blueOne100,
+                          color: ColorManager.natural600,
                         ),
                       ),
                     ),
                     SizedBox(height: AppHeight.s16),
-                    _buildField(
-                      label: 'الاسم الكامل',
-                      controller: _nameController,
+                    Text(
+                      'الاسم الكامل',
+                      style: getBoldStyle(
+                        fontFamily: FontConstants.fontFamily,
+                        fontSize: FontSize.s14,
+                        color: ColorManager.natural600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    PrimaryTextFF(
+                      textAlign: TextAlign.right,
                       hint: 'مثال: ماريو عماد عزت',
-                      icon: IconAssets.volHome,
+                      controller: _nameController,
                       validator: (v) => (v == null || v.trim().isEmpty)
                           ? 'الاسم مطلوب'
                           : null,
                     ),
                     SizedBox(height: AppHeight.s8),
-                    _buildField(
-                      label: 'رقم الهاتف',
-                      controller: _phoneController,
+                    Text(
+                      'رقم الهاتف',
+                      style: getBoldStyle(
+                        fontFamily: FontConstants.fontFamily,
+                        fontSize: FontSize.s14,
+                        color: ColorManager.natural600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    PrimaryTextFF(
+                      textAlign: TextAlign.right,
                       hint: 'مثال: 012-345-678',
-                      icon: IconAssets.phone,
+                      controller: _phoneController,
                       keyboardType: TextInputType.phone,
                     ),
                     SizedBox(height: AppHeight.s8),
-                    _buildField(
-                      label: 'البريد الإلكتروني',
+                    Text(
+                      'البريد الإلكتروني',
+                      style: getBoldStyle(
+                        fontFamily: FontConstants.fontFamily,
+                        fontSize: FontSize.s14,
+                        color: ColorManager.natural600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    PrimaryTextFF(
+                      textAlign: TextAlign.right,
+                      hint: 'example@gmail.com:مثال',
                       controller: _emailController,
-                      hint: 'مثال: example@gmail.com',
-                      icon: IconAssets.email2,
                       keyboardType: TextInputType.emailAddress,
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty)
+                        if (v == null || v.trim().isEmpty) {
                           return 'البريد الإلكتروني مطلوب';
+                        }
                         if (!v.contains('@')) return 'بريد إلكتروني غير صالح';
                         return null;
                       },
                     ),
                     SizedBox(height: AppHeight.s8),
-                    _buildField(
-                      label: 'المنطقة',
-                      controller: _regionController,
+                    Text(
+                      'المنطقة',
+                      style: getBoldStyle(
+                       fontFamily: FontConstants.fontFamily,
+                        fontSize: FontSize.s14,
+                        color: ColorManager.natural600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    PrimaryTextFF(
+                      textAlign: TextAlign.right,
                       hint: 'مثال: مدينة نصر',
-                      icon: IconAssets.location,
+                      controller: _regionController,
                     ),
                     SizedBox(height: AppHeight.s8),
-                    _buildField(
-                      label: 'مجالات التطوع',
-                      controller: _qualificationController,
+                    Text(
+                      'مجالات التطوع',
+                      style: getBoldStyle(
+                          fontFamily: FontConstants.fontFamily,
+                        fontSize: FontSize.s14,
+                        color: ColorManager.natural600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    PrimaryTextFF(
+                      textAlign: TextAlign.right,
                       hint: 'مثال: توعية, إعلام, دعم نفسي',
-                      icon: IconAssets.target,
+                      controller: _qualificationController,
                     ),
                     SizedBox(height: AppHeight.s16),
                     Row(
                       children: [
-                         Expanded(
-                           child: TextButton(
-                             onPressed: () => Navigator.of(context).pop(),
-                             child: Text(
-                               'إلغاء',
-                               style: getBoldStyle(
-                                 fontFamily: FontConstants.fontFamily,
-                                 fontSize: FontSize.s16,
-                                 color: ColorManager.white,
-                               ),
-                             ),
-                           ),
-                         ),
-                           SizedBox(width: AppWidth.s8),
                         Expanded(
                           child: PrimaryElevatedButton(
-                            height: AppHeight.s50,
-                            title: 'إضافة متطوع',
+                            backGroundColor: ColorManager.natural200,
+                            title: 'إلغاء',
+                            onPress: () => Navigator.of(context).pop(),
+                            textStyle: getBoldStyle(
+                              fontFamily: FontConstants.fontFamily,
+                              fontSize: FontSize.s16,
+                              color: ColorManager.natural600,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: AppWidth.s8),
+                        Expanded(
+                          child: PrimaryElevatedButton(
+                            title: 'إضافة',
                             onPress: _submit,
                             isLoading: _isSubmitting,
                             textStyle: getBoldStyle(
@@ -221,8 +252,6 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
                             ),
                           ),
                         ),
-                     
-                       
                       ],
                     ),
                   ],
@@ -232,77 +261,6 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildField({
-    required String label,
-    required TextEditingController controller,
-    required String hint,
-    required String icon,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: getBoldStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s14,
-            color: ColorManager.blueOne100,
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          validator: validator,
-          style: getMediumStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s14,
-            color: Colors.white,
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s14,
-              color: ColorManager.blueOne100,
-            ),
-            prefixIcon: Image.asset(icon),
-            filled: true,
-            fillColor: ColorManager.blueOne800,
-            contentPadding: const EdgeInsetsDirectional.fromSTEB(
-              12,
-              14,
-              12,
-              14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF1E3A5F)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF00ABD2)),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: ColorManager.error),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: ColorManager.error),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

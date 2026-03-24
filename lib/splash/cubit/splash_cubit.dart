@@ -15,11 +15,16 @@ class SplashCubit extends Cubit<SplashState> {
 
     if (LocalAppStorage.isLoggedIn()) {
       final role = LocalAppStorage.getUserRole();
-      emit(
-        SplashState.success(
-          route: role == 'admin' ? Routes.adminHome : Routes.volunteerHome,
-        ),
-      );
+      if (role == 'user') {
+        await LocalAppStorage.clearUserSession();
+        emit(SplashState.success(route: Routes.login));
+      } else {
+        emit(
+          SplashState.success(
+            route: role == 'admin' ? Routes.adminHome : Routes.volunteerHome,
+          ),
+        );
+      }
     } else {
       emit(SplashState.success(route: Routes.onboarding1));
     }

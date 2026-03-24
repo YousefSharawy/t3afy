@@ -1,40 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 class BadgeChip extends StatelessWidget {
-  const BadgeChip({super.key, required this.icon, required this.label});
+  const BadgeChip({super.key, required this.label});
 
-  final String icon;
   final String label;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s6,
+        horizontal: AppWidth.s8,
         vertical: AppHeight.s2,
       ),
       decoration: BoxDecoration(
-        color: ColorManager.blueOne700,
-        borderRadius: BorderRadius.circular(AppRadius.s20),
+        color: ColorManager.primary50,
+        borderRadius: BorderRadius.circular(AppRadius.s6),
+        border: Border.all(color: ColorManager.primary500,width: 0.5.sp)
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(icon, width: AppWidth.s14, height: AppHeight.s14),
-          SizedBox(width: AppWidth.s4),
-          Text(
-            label,
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s10,
-              color: ColorManager.blueTwo100,
-            ),
-          ),
-        ],
+      child: Text(
+        label,
+        style: getSemiBoldStyle(
+          fontFamily: FontConstants.fontFamily,
+          fontSize: FontSize.s10,
+          color: ColorManager.primary500,
+        ),
       ),
     );
   }

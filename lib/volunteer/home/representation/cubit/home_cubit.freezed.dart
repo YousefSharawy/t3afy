@@ -258,7 +258,7 @@ String toString() {
 
 class _Loaded implements HomeState {
   const _Loaded({required this.stats, required final  List<TaskEntity> todayTasks, required this.unreadCount}): _todayTasks = todayTasks;
-
+  
 
  final  VolunteerStatsEntity stats;
  final  List<TaskEntity> _todayTasks;
@@ -267,8 +267,8 @@ class _Loaded implements HomeState {
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_todayTasks);
 }
- final  int unreadCount;
 
+ final  int unreadCount;
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.

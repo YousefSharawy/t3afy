@@ -6,6 +6,7 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/base/widgets/chip_badge.dart';
+import 'package:t3afy/base/widgets/status_badge.dart';
 import 'package:t3afy/volunteer/tasks/domain/entities/home_enities.dart';
 
 class TaskCard extends StatelessWidget {
@@ -16,23 +17,19 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final badgeColor = task.assignmentStatus == 'completed'
-        ? ColorManager.successLight
-        : task.status == 'active'
-        ? ColorManager.infoLight
-        : ColorManager.warningLight;
+    final effectiveStatus = task.assignmentStatus == 'completed'
+        ? 'completed'
+        : task.assignmentStatus == 'missed'
+        ? 'missed'
+        : task.status;
 
-    final borderColor = task.assignmentStatus == 'completed'
+    final topBorderColor = task.assignmentStatus == 'completed'
         ? ColorManager.success
+        : task.assignmentStatus == 'missed'
+        ? ColorManager.error
         : task.status == 'active'
         ? ColorManager.info
         : ColorManager.warning;
-
-    final badgeText = task.assignmentStatus == 'completed'
-        ? 'مكتملة'
-        : task.status == 'active'
-        ? 'جارية'
-        : 'قادمة';
 
     return GestureDetector(
       onTap: onTap,
@@ -43,7 +40,7 @@ class TaskCard extends StatelessWidget {
           color: ColorManager.white,
           borderRadius: BorderRadius.circular(AppRadius.s16),
           border: BorderDirectional(
-            top: BorderSide(color: borderColor, width: AppWidth.s3),
+            top: BorderSide(color: topBorderColor, width: AppWidth.s3),
           ),
         ),
         child: Column(
@@ -62,25 +59,7 @@ class TaskCard extends StatelessWidget {
                   ),
                 ),
                 Spacer(),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppWidth.s12,
-                    vertical: AppHeight.s2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: badgeColor,
-                    borderRadius: BorderRadius.circular(AppRadius.s6),
-                    border: Border.all(color: borderColor),
-                  ),
-                  child: Text(
-                    badgeText,
-                    style: getBoldStyle(
-                      fontSize: FontSize.s10,
-                      fontFamily: FontConstants.fontFamily,
-                      color: borderColor,
-                    ),
-                  ),
-                ),
+                StatusBadge(status: effectiveStatus),
               ],
             ),
 

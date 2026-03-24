@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/local_storage.dart';
@@ -42,6 +43,7 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
   }
 
   void _logout() async {
+    HapticFeedback.mediumImpact();
     await context.read<AuthCubit>().logout();
     if (mounted) {
       context.go(Routes.login);

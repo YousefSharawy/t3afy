@@ -13,9 +13,9 @@ abstract class CampaignsRepo {
   Future<Either<Failture, String>> createCampaign(Map<String, dynamic> data);
   Future<Either<Failture, void>> updateCampaign(String id, Map<String, dynamic> data);
   Future<Either<Failture, void>> deleteCampaign(String id);
-  Future<Either<Failture, void>> assignVolunteer({
+  Future<Either<Failture, void>> assignVolunteers({
     required String taskId,
-    required String userId,
+    required List<String> userIds,
     required String adminId,
   });
   Future<Either<Failture, void>> removeVolunteer({

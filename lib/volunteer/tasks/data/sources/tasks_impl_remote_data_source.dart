@@ -36,11 +36,32 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
           .eq('user_id', userId)
           .eq('tasks.date', today);
 
+      final now = DateTime.now();
       final tasks = response.map<TaskModel>((row) {
         final task = row['tasks'] as Map<String, dynamic>;
+        String assignmentStatus = row['status'] as String? ?? 'assigned';
+        // Client-side override: if cron hasn't run yet, detect missed locally
+        if (assignmentStatus == 'assigned') {
+          final dateStr = task['date'] as String?;
+          final timeEndStr = task['time_end'] as String?;
+          if (dateStr != null) {
+            try {
+              final date = DateTime.parse(dateStr);
+              int endHour = 23, endMinute = 59;
+              if (timeEndStr != null && timeEndStr.contains(':')) {
+                final parts = timeEndStr.split(':');
+                endHour = int.tryParse(parts[0]) ?? 23;
+                endMinute = int.tryParse(parts[1]) ?? 59;
+              }
+              final deadline = DateTime(
+                  date.year, date.month, date.day, endHour, endMinute);
+              if (now.isAfter(deadline)) assignmentStatus = 'missed';
+            } catch (_) {}
+          }
+        }
         return TaskModel.fromJson({
           ...task,
-          'assignment_status': row['status'] ?? 'assigned',
+          'assignment_status': assignmentStatus,
         });
       }).toList();
 
@@ -77,14 +98,14 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
             )
           ''')
           .eq('user_id', userId)
-          .eq('status', 'completed')
+          .inFilter('status', ['completed', 'missed'])
           .order('assigned_at', ascending: false);
 
       final tasks = response.map<TaskModel>((row) {
         final task = row['tasks'] as Map<String, dynamic>;
         return TaskModel.fromJson({
           ...task,
-          'assignment_status': 'completed',
+          'assignment_status': row['status'] as String? ?? 'completed',
         });
       }).toList();
 

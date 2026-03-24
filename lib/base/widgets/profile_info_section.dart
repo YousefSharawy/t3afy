@@ -17,9 +17,8 @@ class ProfileInfoSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s16,
-        vertical: AppHeight.s8,
+      padding: EdgeInsets.all(
+        16.sp,
       ),
       decoration: BoxDecoration(
       color: ColorManager.white,
@@ -28,7 +27,6 @@ class ProfileInfoSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-         
           for (int i = 0; i < items.length; i++) ...[
             Padding(
               padding: EdgeInsets.only(bottom: AppHeight.s10),

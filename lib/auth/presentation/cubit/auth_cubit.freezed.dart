@@ -55,13 +55,14 @@ extension AuthStatePatterns on AuthState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Success value)?  success,TResult Function( _Error value)?  error,TResult Function( _RoleChanged value)?  roleChanged,TResult Function( _GenderChanged value)?  genderChanged,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Success value)?  success,TResult Function( _RegistrationPending value)?  registrationPending,TResult Function( _Error value)?  error,TResult Function( _RoleChanged value)?  roleChanged,TResult Function( _GenderChanged value)?  genderChanged,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial(_that);case _Loading() when loading != null:
 return loading(_that);case _Success() when success != null:
-return success(_that);case _Error() when error != null:
+return success(_that);case _RegistrationPending() when registrationPending != null:
+return registrationPending(_that);case _Error() when error != null:
 return error(_that);case _RoleChanged() when roleChanged != null:
 return roleChanged(_that);case _GenderChanged() when genderChanged != null:
 return genderChanged(_that);case _:
@@ -82,13 +83,14 @@ return genderChanged(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Success value)  success,required TResult Function( _Error value)  error,required TResult Function( _RoleChanged value)  roleChanged,required TResult Function( _GenderChanged value)  genderChanged,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Success value)  success,required TResult Function( _RegistrationPending value)  registrationPending,required TResult Function( _Error value)  error,required TResult Function( _RoleChanged value)  roleChanged,required TResult Function( _GenderChanged value)  genderChanged,}){
 final _that = this;
 switch (_that) {
 case _Initial():
 return initial(_that);case _Loading():
 return loading(_that);case _Success():
-return success(_that);case _Error():
+return success(_that);case _RegistrationPending():
+return registrationPending(_that);case _Error():
 return error(_that);case _RoleChanged():
 return roleChanged(_that);case _GenderChanged():
 return genderChanged(_that);case _:
@@ -108,13 +110,14 @@ return genderChanged(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Success value)?  success,TResult? Function( _Error value)?  error,TResult? Function( _RoleChanged value)?  roleChanged,TResult? Function( _GenderChanged value)?  genderChanged,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Success value)?  success,TResult? Function( _RegistrationPending value)?  registrationPending,TResult? Function( _Error value)?  error,TResult? Function( _RoleChanged value)?  roleChanged,TResult? Function( _GenderChanged value)?  genderChanged,}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial(_that);case _Loading() when loading != null:
 return loading(_that);case _Success() when success != null:
-return success(_that);case _Error() when error != null:
+return success(_that);case _RegistrationPending() when registrationPending != null:
+return registrationPending(_that);case _Error() when error != null:
 return error(_that);case _RoleChanged() when roleChanged != null:
 return roleChanged(_that);case _GenderChanged() when genderChanged != null:
 return genderChanged(_that);case _:
@@ -134,12 +137,13 @@ return genderChanged(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( UserEntity user)?  success,TResult Function( String message)?  error,TResult Function( bool isVolunteer)?  roleChanged,TResult Function( String gender)?  genderChanged,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( UserEntity user)?  success,TResult Function()?  registrationPending,TResult Function( String message)?  error,TResult Function( bool isVolunteer)?  roleChanged,TResult Function( String gender)?  genderChanged,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Success() when success != null:
-return success(_that.user);case _Error() when error != null:
+return success(_that.user);case _RegistrationPending() when registrationPending != null:
+return registrationPending();case _Error() when error != null:
 return error(_that.message);case _RoleChanged() when roleChanged != null:
 return roleChanged(_that.isVolunteer);case _GenderChanged() when genderChanged != null:
 return genderChanged(_that.gender);case _:
@@ -160,12 +164,13 @@ return genderChanged(_that.gender);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( UserEntity user)  success,required TResult Function( String message)  error,required TResult Function( bool isVolunteer)  roleChanged,required TResult Function( String gender)  genderChanged,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( UserEntity user)  success,required TResult Function()  registrationPending,required TResult Function( String message)  error,required TResult Function( bool isVolunteer)  roleChanged,required TResult Function( String gender)  genderChanged,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading();case _Success():
-return success(_that.user);case _Error():
+return success(_that.user);case _RegistrationPending():
+return registrationPending();case _Error():
 return error(_that.message);case _RoleChanged():
 return roleChanged(_that.isVolunteer);case _GenderChanged():
 return genderChanged(_that.gender);case _:
@@ -185,12 +190,13 @@ return genderChanged(_that.gender);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( UserEntity user)?  success,TResult? Function( String message)?  error,TResult? Function( bool isVolunteer)?  roleChanged,TResult? Function( String gender)?  genderChanged,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( UserEntity user)?  success,TResult? Function()?  registrationPending,TResult? Function( String message)?  error,TResult? Function( bool isVolunteer)?  roleChanged,TResult? Function( String gender)?  genderChanged,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Success() when success != null:
-return success(_that.user);case _Error() when error != null:
+return success(_that.user);case _RegistrationPending() when registrationPending != null:
+return registrationPending();case _Error() when error != null:
 return error(_that.message);case _RoleChanged() when roleChanged != null:
 return roleChanged(_that.isVolunteer);case _GenderChanged() when genderChanged != null:
 return genderChanged(_that.gender);case _:
@@ -330,6 +336,38 @@ as UserEntity,
 
 
 }
+
+/// @nodoc
+
+
+class _RegistrationPending implements AuthState {
+  const _RegistrationPending();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RegistrationPending);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'AuthState.registrationPending()';
+}
+
+
+}
+
+
+
 
 /// @nodoc
 

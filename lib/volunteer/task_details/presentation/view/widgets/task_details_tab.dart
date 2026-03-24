@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/font_manager.dart';
+import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 import '../../../domain/entities/task_details_entity.dart';
@@ -41,7 +44,30 @@ class TaskDetailsTab extends StatelessWidget {
           NotesCard(notes: task.notes!),
           SizedBox(height: AppHeight.s16),
         ],
-        ReportButton(taskId: task.id, taskTitle: task.title),
+        if (task.assignmentStatus != 'missed')
+          ReportButton(taskId: task.id, taskTitle: task.title)
+        else
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: AppWidth.s16,
+              vertical: AppHeight.s12,
+            ),
+            decoration: BoxDecoration(
+              color: ColorManager.errorLight,
+              borderRadius: BorderRadius.circular(AppRadius.s12),
+              border: Border.all(color: ColorManager.error, width: 0.5),
+            ),
+            child: Text(
+              'انتهت مدة هذه المهمة',
+              textAlign: TextAlign.center,
+              style: getRegularStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s14,
+                color: ColorManager.error,
+              ),
+            ),
+          ),
         SizedBox(height: AppHeight.s24),
       ],
     );

@@ -1,111 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/widgets/status_badge.dart';
 import 'package:t3afy/admin/reports/domain/entities/admin_report_entity.dart';
 
 class AdminReportCard extends StatelessWidget {
-  const AdminReportCard({
-    super.key,
-    required this.report,
-    required this.onTap,
-  });
+  const AdminReportCard({super.key, required this.report, required this.onTap});
 
   final AdminReportEntity report;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final (statusLabel, statusColor) = switch (report.status) {
-      'approved' => ('موافق عليه', const Color(0xFF4CAF50)),
-      'rejected' => ('مرفوض', Colors.red),
-      _ => ('قيد المراجعة', const Color(0xFFFBBF24)),
-    };
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: EdgeInsets.only(bottom: AppHeight.s12),
         padding: EdgeInsets.all(AppSize.s16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0C203B), Color(0xFF143764)],
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-          ),
+          color: ColorManager.white,
           borderRadius: BorderRadius.circular(AppRadius.s16),
+          border: Border.all(color: ColorManager.natural200),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Row(
               children: [
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppWidth.s10,
-                    vertical: AppHeight.s4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(AppRadius.s20),
-                    border: Border.all(
-                      color: statusColor.withValues(alpha: 0.4),
-                    ),
-                  ),
+                Expanded(
                   child: Text(
-                    statusLabel,
-                    style: getMediumStyle(
+                    report.taskTitle,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: getBoldStyle(
                       fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s11,
-                      color: statusColor,
+                      fontSize: FontSize.s14,
+                      color: ColorManager.natural900,
                     ),
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  report.taskTitle,
-                  style: getBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s14,
-                    color: Colors.white,
-                  ),
-                ),
+                const SizedBox(width: 8),
+                StatusBadge(status: report.status),
               ],
             ),
             SizedBox(height: AppHeight.s8),
             Row(
               children: [
-                Text(
-                  '${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
-                  style: getRegularStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s11,
-                    color: Colors.white.withValues(alpha: 0.4),
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  children: List.generate(
-                    5,
-                    (i) => Icon(
-                      i < report.rating
-                          ? Icons.star_rounded
-                          : Icons.star_outline_rounded,
-                      color: i < report.rating
-                          ? const Color(0xFFFBBF24)
-                          : Colors.white.withValues(alpha: 0.2),
-                      size: 14.r,
+                Flexible(
+                  child: Text(
+                    report.volunteerName,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: getMediumStyle(
+                      fontFamily: FontConstants.fontFamily,
+                      fontSize: FontSize.s13,
+                      color: ColorManager.natural500,
                     ),
                   ),
                 ),
                 SizedBox(width: AppWidth.s8),
+                Row(
+                  children: List.generate(
+                    5,
+                    (i) => Image.asset(
+                      i < report.rating
+                          ? IconAssets.star
+                          : IconAssets.unstar,
+                      width: 14.r,
+                      height: 14.r,
+                    ),
+                  ),
+                ),
+                const Spacer(),
                 Text(
-                  report.volunteerName,
-                  style: getMediumStyle(
+                  '${report.createdAt.day} ${const ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'][report.createdAt.month - 1]} ${report.createdAt.year}',
+                  style: getRegularStyle(
                     fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s13,
-                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: FontSize.s11,
+                    color: ColorManager.natural400,
                   ),
                 ),
               ],

@@ -7,9 +7,15 @@ class ReportImplRemoteDataSource implements ReportRemoteDataSource {
   @override
   Future<void> submitReport(TaskReportModel model) async {
     try {
-      await Supabase.instance.client
-          .from('task_reports')
-          .insert(model.toJson());
+      final client = Supabase.instance.client;
+      await client.from('task_reports').insert(model.toJson());
+      // Always mark assignment as completed after report submission,
+      // even if cron already flipped it to 'missed' during writing.
+      await client
+          .from('task_assignments')
+          .update({'status': 'completed'})
+          .eq('task_id', model.taskId)
+          .eq('user_id', model.userId);
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

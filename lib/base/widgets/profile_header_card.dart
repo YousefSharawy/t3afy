@@ -47,7 +47,7 @@ class ProfileHeaderCard extends StatelessWidget {
             name,
             style: getBoldStyle(
               fontFamily: FontConstants.fontFamily,
-              color: ColorManager.natural700,
+              color: ColorManager.natural600,
               fontSize: FontSize.s14,
             ),
           ),
@@ -56,22 +56,11 @@ class ProfileHeaderCard extends StatelessWidget {
             subtitle,
             style: getRegularStyle(
               fontFamily: FontConstants.fontFamily,
-              color: ColorManager.natural600,
+              color: ColorManager.natural500,
               fontSize: FontSize.s14,
             ),
           ),
-          if (badges.isNotEmpty) ...[
-            SizedBox(height: AppHeight.s4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (int i = 0; i < badges.length; i++) ...[
-                  badges[i],
-                  if (i < badges.length - 1) SizedBox(width: AppWidth.s8),
-                ],
-              ],
-            ),
-          ],
+       
         ],
       ),
     );

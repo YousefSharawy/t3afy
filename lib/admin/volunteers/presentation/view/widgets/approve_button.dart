@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_cubit.dart';
@@ -15,7 +16,10 @@ class ApproveButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _confirmApprove(context),
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        _confirmApprove(context);
+      },
       child: Container(
         margin: EdgeInsets.only(bottom: AppHeight.s8),
         padding: EdgeInsets.symmetric(
@@ -27,7 +31,7 @@ class ApproveButton extends StatelessWidget {
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
             colors: [
-              Color(0xFF14532D),
+              ColorManager.successLight,
               Color(0xFF166534),
             ],
           ),
@@ -69,21 +73,24 @@ class ApproveButton extends StatelessWidget {
       builder: (ctx) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          backgroundColor: ColorManager.blueOne800,
+          backgroundColor: ColorManager.natural50,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.s20),
+          ),
           title: Text(
             'قبول المتطوع',
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s16,
-              color: Colors.white,
+            style: getSemiBoldStyle(
+              color: ColorManager.natural900,
+              fontSize: FontSize.s18,
             ),
           ),
           content: Text(
             'هل أنت متأكد من قبول هذا المتطوع؟',
             style: getRegularStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: ColorManager.blueOne300,
+              color: ColorManager.natural900.withValues(alpha: 0.7),
+              fontSize: FontSize.s14,
             ),
           ),
           actions: [
@@ -93,13 +100,22 @@ class ApproveButton extends StatelessWidget {
                 'إلغاء',
                 style: getMediumStyle(
                   fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s13,
-                  color: ColorManager.blueOne300,
+                  fontSize: FontSize.s14,
+                  color: ColorManager.natural900.withValues(alpha: 0.6),
                 ),
               ),
             ),
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ColorManager.primary500,
+                foregroundColor: ColorManager.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.s30),
+                ),
+              ),
               onPressed: () {
+                HapticFeedback.mediumImpact();
                 Navigator.of(ctx).pop();
                 context.read<VolunteerDetailsCubit>().approveVolunteer(
                   volunteerId,
@@ -109,8 +125,8 @@ class ApproveButton extends StatelessWidget {
                 'قبول',
                 style: getMediumStyle(
                   fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s13,
-                  color: ColorManager.successLight,
+                  fontSize: FontSize.s14,
+                  color: ColorManager.white,
                 ),
               ),
             ),

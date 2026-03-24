@@ -22,7 +22,7 @@ class PrimaryElevatedButton extends StatelessWidget {
     this.value,
     this.iconPath,
     this.buttonRadius,
-    required this.textStyle,
+    this.textStyle,
     this.borderColor,
   });
   final String title;
@@ -37,7 +37,7 @@ class PrimaryElevatedButton extends StatelessWidget {
   final String? iconPath;
   final Color? borderColor;
 
-  final TextStyle textStyle;
+  final TextStyle? textStyle;
   final double? buttonRadius;
 
   @override
@@ -46,7 +46,7 @@ class PrimaryElevatedButton extends StatelessWidget {
       alignment: Alignment.center,
       child: Container(
         width: width ?? 1.sw,
-        height: height ?? AppHeight.s50,
+        height: height ?? AppHeight.s46,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s24),
         ),
@@ -73,7 +73,7 @@ class PrimaryElevatedButton extends StatelessWidget {
                       ),
                     ],
                     SizedBox(width: AppWidth.s8),
-                    Center(child: Text(title, style: textStyle)),
+                    Center(child: Text(title, style: textStyle ?? getBoldStyle(fontFamily: FontConstants.fontFamily, fontSize: FontSize.s14, color: ColorManager.white))),
                   ],
                 ),
               ),
@@ -176,7 +176,9 @@ class _PrimaryTextFFState extends State<PrimaryTextFF> {
         color: widget.filledColor ?? ColorManager.natural100,
         borderRadius: BorderRadius.circular(AppRadius.s12),
       ),
-      child: TextFormField(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.s12),
+        child: TextFormField(
         maxLines: widget.maxLines,
         expands: false,
         keyboardType: widget.keyboardType,
@@ -238,6 +240,7 @@ class _PrimaryTextFFState extends State<PrimaryTextFF> {
               : widget.icon != null
               ? PrimaryIcon(icon: widget.icon!, color: ColorManager.blueOne700)
               : null,
+        ),
         ),
       ),
     );
