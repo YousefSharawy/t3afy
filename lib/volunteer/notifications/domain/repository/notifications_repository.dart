@@ -7,4 +7,5 @@ abstract class NotificationsRepository {
       String volunteerId);
   Future<Either<Failture, void>> markAsRead(String noteId);
   Future<Either<Failture, void>> markAllAsRead(String volunteerId);
+  Future<Either<Failture, void>> clearAllNotifications(String volunteerId);
 }

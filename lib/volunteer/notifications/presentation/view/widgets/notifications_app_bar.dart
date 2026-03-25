@@ -8,7 +8,11 @@ import 'package:t3afy/app/resources/style_manager.dart';
 class NotificationsAppBar {
   NotificationsAppBar._();
 
-  static AppBar build(BuildContext context, {VoidCallback? onMarkAllRead}) {
+  static AppBar build(
+    BuildContext context, {
+    VoidCallback? onMarkAllRead,
+    VoidCallback? onClearAll,
+  }) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -33,6 +37,17 @@ class NotificationsAppBar {
             child: Text(
               'قراءة الكل',
               style: getMediumStyle(color: Colors.white, fontSize: 14.sp),
+            ),
+          ),
+        if (onClearAll != null)
+          TextButton(
+            onPressed: onClearAll,
+            child: Text(
+              'مسح الكل',
+              style: getMediumStyle(
+                color: ColorManager.error,
+                fontSize: 13.sp,
+              ),
             ),
           ),
       ],

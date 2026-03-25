@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:t3afy/app/fcm_service.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/auth/data/mappers/user_mapper.dart';
 import 'package:t3afy/auth/domain/entity/user_entity.dart';
@@ -38,6 +39,7 @@ class AuthCubit extends Cubit<AuthState> {
     ) async {
       final entity = user.toEntity();
       await LocalAppStorage.saveUserSession(entity.role, entity.id);
+      FcmService.saveTokenForUser(entity.id);
       emit(AuthState.success(entity));
     });
   }

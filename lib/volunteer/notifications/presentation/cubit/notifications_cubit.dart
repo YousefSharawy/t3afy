@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/volunteer/notifications/data/models/admin_note_model.dart';
+import 'package:t3afy/volunteer/notifications/domain/use_cases/clear_all_notifications_use_case.dart';
 import 'package:t3afy/volunteer/notifications/domain/use_cases/get_notifications_use_case.dart';
 import 'package:t3afy/volunteer/notifications/domain/use_cases/mark_all_as_read_use_case.dart';
 import 'package:t3afy/volunteer/notifications/domain/use_cases/mark_as_read_use_case.dart';
@@ -13,6 +14,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   final GetNotificationsUseCase _getNotificationsUseCase;
   final MarkAsReadUseCase _markAsReadUseCase;
   final MarkAllAsReadUseCase _markAllAsReadUseCase;
+  final ClearAllNotificationsUseCase _clearAllNotificationsUseCase;
 
   RealtimeChannel? _notesChannel;
   Timer? _debounce;
@@ -22,6 +24,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     this._getNotificationsUseCase,
     this._markAsReadUseCase,
     this._markAllAsReadUseCase,
+    this._clearAllNotificationsUseCase,
   ) : super(NotificationsStateInitial());
 
   void _subscribeToRealtime(String volunteerId) {
@@ -117,6 +120,15 @@ class NotificationsCubit extends Cubit<NotificationsState> {
           emit(NotificationsStateLoaded(updatedNotes));
         }
       },
+    );
+  }
+
+  Future<void> clearAllNotifications(String volunteerId) async {
+    emit(NotificationsStateLoading());
+    final result = await _clearAllNotificationsUseCase(volunteerId);
+    result.fold(
+      (failure) => emit(NotificationsStateError(failure.message)),
+      (_) => emit(NotificationsStateLoaded(const [])),
     );
   }
 }

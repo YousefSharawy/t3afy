@@ -4,4 +4,5 @@ abstract class NotificationsRemoteDataSource {
   Future<List<AdminNote>> getNotifications(String volunteerId);
   Future<void> markAsRead(String noteId);
   Future<void> markAllAsRead(String volunteerId);
+  Future<void> clearAllNotifications(String volunteerId);
 }

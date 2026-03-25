@@ -54,6 +54,7 @@ import 'package:t3afy/volunteer/notifications/data/repository/notifications_impl
 import 'package:t3afy/volunteer/notifications/domain/repository/notifications_repository.dart';
 import 'package:t3afy/volunteer/notifications/domain/use_cases/get_notifications_use_case.dart';
 import 'package:t3afy/volunteer/notifications/domain/use_cases/mark_as_read_use_case.dart';
+import 'package:t3afy/volunteer/notifications/domain/use_cases/clear_all_notifications_use_case.dart';
 import 'package:t3afy/volunteer/notifications/domain/use_cases/mark_all_as_read_use_case.dart';
 import 'package:t3afy/volunteer/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:t3afy/admin/reports/data/datasources/admin_reports_remote_datasource.dart';
@@ -279,11 +280,15 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton(
     () => MarkAllAsReadUseCase(getIt<NotificationsRepository>()),
   );
+  getIt.registerLazySingleton(
+    () => ClearAllNotificationsUseCase(getIt<NotificationsRepository>()),
+  );
   getIt.registerFactory(
     () => NotificationsCubit(
       getIt<GetNotificationsUseCase>(),
       getIt<MarkAsReadUseCase>(),
       getIt<MarkAllAsReadUseCase>(),
+      getIt<ClearAllNotificationsUseCase>(),
     ),
   );
 

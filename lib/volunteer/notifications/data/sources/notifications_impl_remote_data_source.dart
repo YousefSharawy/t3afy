@@ -42,4 +42,16 @@ class NotificationsImplRemoteDataSource implements NotificationsRemoteDataSource
       throw ErrorHandler.handle(e).failture;
     }
   }
+
+  @override
+  Future<void> clearAllNotifications(String volunteerId) async {
+    try {
+      await Supabase.instance.client
+          .from('admin_notes')
+          .delete()
+          .eq('volunteer_id', volunteerId);
+    } catch (e) {
+      throw ErrorHandler.handle(e).failture;
+    }
+  }
 }

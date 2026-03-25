@@ -39,4 +39,15 @@ class NotificationsImplRepository implements NotificationsRepository {
       return Left(f);
     }
   }
+
+  @override
+  Future<Either<Failture, void>> clearAllNotifications(
+      String volunteerId) async {
+    try {
+      await _dataSource.clearAllNotifications(volunteerId);
+      return const Right(null);
+    } on Failture catch (f) {
+      return Left(f);
+    }
+  }
 }

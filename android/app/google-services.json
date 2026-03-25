@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "576971789337",
+    "project_id": "todoist-fcm",
+    "storage_bucket": "todoist-fcm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:576971789337:android:c5cf2a569af744fa580688",
+        "android_client_info": {
+          "package_name": "com.example.t3afy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-AmDASJVenH8NF6eqpZAMVE7NZqIZ2m8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:576971789337:android:b5df68445d36b3ac580688",
+        "android_client_info": {
+          "package_name": "com.example.todo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-AmDASJVenH8NF6eqpZAMVE7NZqIZ2m8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
