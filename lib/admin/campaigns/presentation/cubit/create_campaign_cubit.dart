@@ -6,16 +6,46 @@ import 'package:t3afy/admin/campaigns/domain/usecases/get_campaign_detail_usecas
 import 'package:t3afy/admin/campaigns/domain/usecases/create_campaign_usecase.dart';
 import 'package:t3afy/admin/campaigns/domain/usecases/update_campaign_usecase.dart';
 import 'package:t3afy/app/local_storage.dart';
-
 part 'create_campaign_state.dart';
 
 // ── Static campaign config ─────────────────────────────────────────────────
-const campaignTypes = ['توعية مدرسية', 'توعية جامعية', 'زيارة ميدانية'];
-const campaignStatuses = ['ongoing', 'upcoming', 'completed', 'suspended'];
+const campaignTypes = [
+  'توعية مدرسية',
+  'توعية جامعية',
+  'زيارة ميدانية',
+  'حملة توعوية',
+  'ورشة عمل',
+  'فعالية مجتمعية',
+  'تدريب',
+  'أخرى',
+];
+
+/// Returns the Material icon that best represents a campaign/task type.
+IconData taskTypeIcon(String type) {
+  switch (type) {
+    case 'توعية مدرسية':
+      return Icons.school_outlined;
+    case 'توعية جامعية':
+      return Icons.account_balance_outlined;
+    case 'زيارة ميدانية':
+      return Icons.map_outlined;
+    case 'حملة توعوية':
+      return Icons.campaign_outlined;
+    case 'ورشة عمل':
+      return Icons.handyman_outlined;
+    case 'فعالية مجتمعية':
+      return Icons.people_outline;
+    case 'تدريب':
+      return Icons.school_outlined;
+    default:
+      return Icons.volunteer_activism_outlined;
+  }
+}
 const campaignStatusLabels = {
   'ongoing':   'جارية',
   'upcoming':  'قادمة',
   'completed': 'مكتملة',
+  'active':    'نشطة',
   'suspended': 'موقوفة',
 };
 
@@ -42,8 +72,8 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
   void setType(String type) =>
       emit(_ready.copyWith(selectedType: type, clearTaskData: true));
 
-  void setStatus(String status) =>
-      emit(_ready.copyWith(selectedStatus: status, clearTaskData: true));
+  void setForceCompleted(bool value) =>
+      emit(_ready.copyWith(isForceCompleted: value));
 
   void setDate(DateTime date) =>
       emit(_ready.copyWith(selectedDate: date, clearTaskData: true));
@@ -140,14 +170,13 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
               .toList(),
         };
 
+        final existingStatus = detail.status == 'done' ? 'completed' : detail.status;
         emit(CreateCampaignReady(
           volunteers: List.from(_volunteers),
           selectedIds: Set.from(_selectedIds),
           taskData: taskData,
           selectedType: campaignTypes.contains(detail.type) ? detail.type : campaignTypes.first,
-          selectedStatus: campaignStatuses.contains(detail.status)
-              ? detail.status
-              : (detail.status == 'done' ? 'completed' : campaignStatuses.first),
+          isForceCompleted: existingStatus == 'completed',
           selectedDate: DateTime.tryParse(detail.date),
           timeStart: timeStart,
           timeEnd: timeEnd,
@@ -170,7 +199,7 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
       selectedIds: Set.from(_selectedIds),
       taskData: current?.taskData,
       selectedType: current?.selectedType ?? campaignTypes.first,
-      selectedStatus: current?.selectedStatus ?? campaignStatuses.first,
+      isForceCompleted: current?.isForceCompleted ?? false,
       selectedDate: current?.selectedDate,
       timeStart: current?.timeStart,
       timeEnd: current?.timeEnd,
@@ -185,7 +214,7 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
       selectedIds: Set.from(_selectedIds),
       taskData: current?.taskData,
       selectedType: current?.selectedType ?? campaignTypes.first,
-      selectedStatus: current?.selectedStatus ?? campaignStatuses.first,
+      isForceCompleted: current?.isForceCompleted ?? false,
       selectedDate: current?.selectedDate,
       timeStart: current?.timeStart,
       timeEnd: current?.timeEnd,
@@ -196,6 +225,34 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
 
   static String formatTime(TimeOfDay t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  static String resolveNewCampaignStatus(
+    String date,
+    String timeStart,
+    String timeEnd,
+    bool forceCompleted,
+  ) {
+    if (forceCompleted) return 'completed';
+    final now = DateTime.now();
+    final campaignDate = DateTime.parse(date);
+    final today = DateTime(now.year, now.month, now.day);
+    final campDay = DateTime(campaignDate.year, campaignDate.month, campaignDate.day);
+
+    if (campDay.isAfter(today)) return 'upcoming';
+    if (campDay.isBefore(today)) return 'completed';
+
+    // Same day — check time
+    final startParts = timeStart.split(':');
+    final endParts = timeEnd.split(':');
+    final startDT = DateTime(now.year, now.month, now.day,
+        int.parse(startParts[0]), int.parse(startParts[1]));
+    final endDT = DateTime(now.year, now.month, now.day,
+        int.parse(endParts[0]), int.parse(endParts[1]));
+
+    if (now.isBefore(startDT)) return 'upcoming';
+    if (now.isAfter(endDT)) return 'completed';
+    return 'active';
+  }
 
   /// Validates date/time, assembles formData, and saves. Returns the error
   /// message if validation fails (so the view can show a snackbar), otherwise
@@ -231,14 +288,20 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
     emit(const CreateCampaignSaving());
 
     final adminId = LocalAppStorage.getUserId() ?? '';
+    final dateStr = ready.selectedDate!.toIso8601String().split('T')[0];
+    final timeStartStr = formatTime(ready.timeStart!);
+    final timeEndStr = formatTime(ready.timeEnd!);
+    final resolvedStatus = resolveNewCampaignStatus(
+      dateStr, timeStartStr, timeEndStr, ready.isForceCompleted,
+    );
     final formData = <String, dynamic>{
       'title': title,
       'type': ready.selectedType,
       'description': description,
-      'status': ready.selectedStatus,
-      'date': ready.selectedDate!.toIso8601String().split('T')[0],
-      'time_start': formatTime(ready.timeStart!),
-      'time_end': formatTime(ready.timeEnd!),
+      'status': resolvedStatus,
+      'date': dateStr,
+      'time_start': timeStartStr,
+      'time_end': timeEndStr,
       'location_name': locationName,
       'location_address': locationAddress,
       'supervisor_name': supervisorName,

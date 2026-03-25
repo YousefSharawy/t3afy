@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 class DropdownField extends StatelessWidget {
@@ -27,41 +27,70 @@ class DropdownField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: getRegularStyle(
+          style: TextStyle(
             fontFamily: FontConstants.fontFamily,
             fontSize: FontSize.s12,
             color: ColorManager.natural400,
           ),
         ),
         SizedBox(height: AppHeight.s6),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: AppWidth.s12),
-          decoration: BoxDecoration(
-            color: ColorManager.natural200,
-            borderRadius: BorderRadius.circular(AppRadius.s10),
-            border: Border.all(color: ColorManager.natural200),
+        PopupMenuButton<String>(
+          onSelected: onChanged,
+          offset: Offset(0.sp, 2.sp),
+          position: PopupMenuPosition.under,
+          color: ColorManager.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.s8),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              isExpanded: true,
-              dropdownColor: ColorManager.natural200,
-              style: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s13,
-                color: ColorManager.white,
-              ),
-              items: items
-                  .map(
-                    (e) => DropdownMenuItem<String>(
-                      value: e,
-                      child: Text(
-                        style: getMediumStyle(color: ColorManager.natural400),
-                        itemLabel != null ? itemLabel!(e) : e),
+          itemBuilder: (context) => items
+              .map(
+                (e) => PopupMenuItem<String>(
+                  value: e,
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      itemLabel != null ? itemLabel!(e) : e,
+                      style: TextStyle(
+                        fontFamily: FontConstants.fontFamily,
+                        fontWeight: FontWeightManager.bold,
+                        color: ColorManager.natural900,
+                        fontSize: FontSize.s14,
+                      ),
                     ),
-                  )
-                  .toList(),
-              onChanged: onChanged,
+                  ),
+                ),
+              )
+              .toList(),
+          child: Container(
+            constraints: BoxConstraints(minHeight: AppHeight.s42),
+            decoration: BoxDecoration(
+              border: Border.all(
+                width: 1.sp,
+                color: ColorManager.natural200,
+              ),
+              color: ColorManager.natural100,
+              borderRadius: BorderRadius.circular(AppRadius.s12),
+            ),
+            child: Row(
+              children: [
+                SizedBox(width: AppWidth.s15),
+                Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 24.sp,
+                  color: ColorManager.blueOne900,
+                ),
+                SizedBox(width: AppWidth.s12),
+                Text(
+                  itemLabel != null ? itemLabel!(value) : value,
+                  style: TextStyle(
+                    fontSize: FontSize.s14,
+                    fontWeight: FontWeightManager.bold,
+                    color: ColorManager.natural900,
+                    fontFamily: FontConstants.fontFamily,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

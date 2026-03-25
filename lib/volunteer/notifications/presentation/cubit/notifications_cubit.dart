@@ -52,7 +52,9 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   @override
   Future<void> close() async {
     _debounce?.cancel();
-    await _notesChannel?.unsubscribe();
+    if (_notesChannel != null) {
+      Supabase.instance.client.removeChannel(_notesChannel!);
+    }
     return super.close();
   }
 

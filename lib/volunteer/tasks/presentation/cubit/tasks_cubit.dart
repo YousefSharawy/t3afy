@@ -88,8 +88,9 @@ class TasksCubit extends Cubit<TasksState> {
   @override
   Future<void> close() async {
     _debounce?.cancel();
-    await _assignmentsChannel?.unsubscribe();
-    await _tasksChannel?.unsubscribe();
+    final client = Supabase.instance.client;
+    if (_assignmentsChannel != null) client.removeChannel(_assignmentsChannel!);
+    if (_tasksChannel != null) client.removeChannel(_tasksChannel!);
     return super.close();
   }
 
@@ -101,6 +102,11 @@ class TasksCubit extends Cubit<TasksState> {
       emit(const TasksState.error('User not found'));
       return;
     }
+
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    await LocalAppStorage.invalidateCache('today_tasks_${userId}_$today');
+    await LocalAppStorage.invalidateCache('completed_tasks_$userId');
+    await LocalAppStorage.invalidateCache('tasks_stats_$userId');
 
     final todayResult = await _getTodayTasks(userId);
     final completedResult = await _getCompletedTasks(userId);

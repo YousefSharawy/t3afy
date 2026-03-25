@@ -5,6 +5,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 import 'package:t3afy/base/widgets/status_badge.dart';
 import 'package:t3afy/admin/home/domain/entities/today_campaign_entity.dart';
 
@@ -158,6 +159,38 @@ class CampaignCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (campaign.type.isNotEmpty) ...[
+                        SizedBox(width: AppWidth.s8),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: AppWidth.s8,
+                            vertical: AppHeight.s2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: ColorManager.natural100,
+                            borderRadius: BorderRadius.circular(AppRadius.s6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                taskTypeIcon(campaign.type),
+                                size: 10,
+                                color: ColorManager.natural500,
+                              ),
+                              SizedBox(width: AppWidth.s4),
+                              Text(
+                                campaign.type,
+                                style: getSemiBoldStyle(
+                                  fontFamily: FontConstants.fontFamily,
+                                  fontSize: FontSize.s10,
+                                  color: ColorManager.natural500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],

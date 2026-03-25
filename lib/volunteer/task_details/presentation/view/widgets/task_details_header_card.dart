@@ -5,6 +5,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 
 import '../../../domain/entities/task_details_entity.dart';
 import 'task_info_row.dart';
@@ -30,10 +31,18 @@ class TaskDetailsHeaderCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Image.asset(
-                IconAssets.camp,
+              Container(
                 width: AppWidth.s36,
                 height: AppHeight.s36,
+                decoration: BoxDecoration(
+                  color: ColorManager.natural100,
+                  borderRadius: BorderRadius.circular(AppRadius.s8),
+                ),
+                child: Icon(
+                  taskTypeIcon(task.type),
+                  size: 20,
+                  color: ColorManager.natural600,
+                ),
               ),
               Column(
                 children: [

@@ -6,6 +6,7 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/campaign_entity.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 import 'package:t3afy/base/widgets/status_badge.dart';
 import 'badge_chip.dart';
 
@@ -126,6 +127,38 @@ class CampaignListCard extends StatelessWidget {
                   BadgeChip(
                     label: '${campaign.targetBeneficiaries} هدف',
                   ),
+                  if (campaign.type.isNotEmpty) ...[
+                    SizedBox(width: AppWidth.s6),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppWidth.s8,
+                        vertical: AppHeight.s2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ColorManager.natural100,
+                        borderRadius: BorderRadius.circular(AppRadius.s6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            taskTypeIcon(campaign.type),
+                            size: 10,
+                            color: ColorManager.natural500,
+                          ),
+                          SizedBox(width: AppWidth.s4),
+                          Text(
+                            campaign.type,
+                            style: getSemiBoldStyle(
+                              fontFamily: FontConstants.fontFamily,
+                              fontSize: FontSize.s10,
+                              color: ColorManager.natural500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ],

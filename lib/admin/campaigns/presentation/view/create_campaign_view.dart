@@ -278,8 +278,7 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
                       supplyNameCtrls: _supplyNameCtrls,
                       supplyQtyCtrls: _supplyQtyCtrls,
                       selectedType: ready?.selectedType ?? campaignTypes.first,
-                      selectedStatus:
-                          ready?.selectedStatus ?? campaignStatuses.first,
+                      isForceCompleted: ready?.isForceCompleted ?? false,
                       selectedDate: ready?.selectedDate,
                       timeStart: ready?.timeStart,
                       timeEnd: ready?.timeEnd,

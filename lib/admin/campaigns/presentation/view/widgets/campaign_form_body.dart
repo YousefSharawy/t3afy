@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/volunteer_entity.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/base/primary_widgets.dart';
 import 'add_item_header.dart';
 import 'campaign_form_helpers.dart';
-import 'campaign_status_chips.dart';
 import 'create_volunteer_picker_sheet.dart';
+import 'dropdown_field.dart';
 import 'form_field_label.dart';
 import 'objective_field.dart';
 import 'supply_field.dart';
@@ -29,7 +32,7 @@ class CampaignFormBody extends StatelessWidget {
     required this.supplyNameCtrls,
     required this.supplyQtyCtrls,
     required this.selectedType,
-    required this.selectedStatus,
+    required this.isForceCompleted,
     required this.selectedDate,
     required this.timeStart,
     required this.timeEnd,
@@ -56,7 +59,7 @@ class CampaignFormBody extends StatelessWidget {
   final List<TextEditingController> supplyNameCtrls;
   final List<TextEditingController> supplyQtyCtrls;
   final String selectedType;
-  final String selectedStatus;
+  final bool isForceCompleted;
   final DateTime? selectedDate;
   final TimeOfDay? timeStart;
   final TimeOfDay? timeEnd;
@@ -89,9 +92,22 @@ class CampaignFormBody extends StatelessWidget {
           hint: 'أدخل اسم الحملة',
           validator: (v) => v == null || v.isEmpty ? 'مطلوب' : null,
         ),
-        SizedBox(height: AppHeight.s8),
+        SizedBox(height: AppHeight.s16),
 
-        // ── 2. Location ───────────────────────────────────────────────────
+        // ── 2. Campaign type ──────────────────────────────────────────────
+        DropdownField(
+          label: 'نوع الحملة',
+          value: campaignTypes.contains(selectedType)
+              ? selectedType
+              : campaignTypes.first,
+          items: campaignTypes,
+          onChanged: (v) {
+            if (v != null) context.read<CreateCampaignCubit>().setType(v);
+          },
+        ),
+        SizedBox(height: AppHeight.s16),
+
+        // ── 4. Location ───────────────────────────────────────────────────
         const FormFieldLabel('المنطقة'),
         SizedBox(height: AppHeight.s8),
         PrimaryTextFF(
@@ -179,9 +195,69 @@ class CampaignFormBody extends StatelessWidget {
         ),
         SizedBox(height: AppHeight.s8),
 
-        const FormFieldLabel('حالة الحملة'),
-        SizedBox(height: AppHeight.s8),
-        CampaignStatusChips(selectedStatus: selectedStatus),
+        // ── 9. Force-completed toggle ─────────────────────────────────────
+        Container(
+          decoration: BoxDecoration(
+            color: isForceCompleted
+                ? ColorManager.primary500.withValues(alpha: 0.06)
+                : ColorManager.white,
+            borderRadius: BorderRadius.circular(AppRadius.s12),
+            border: Border.all(
+              color: isForceCompleted
+                  ? ColorManager.primary500
+                  : ColorManager.natural200,
+              width: 1,
+            ),
+          ),
+          padding: EdgeInsetsDirectional.fromSTEB(
+            AppWidth.s14, AppHeight.s12, AppWidth.s8, AppHeight.s12,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'احتساب الحملة كمكتملة مباشرة',
+                      style: TextStyle(
+                        fontFamily: FontConstants.fontFamily,
+                        fontSize: FontSize.s13,
+                        fontWeight: FontWeightManager.semiBold,
+                        color: isForceCompleted
+                            ? ColorManager.primary500
+                            : ColorManager.natural900,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      isForceCompleted
+                          ? 'سيتم احتساب النقاط للمتطوعين المعينين فوراً'
+                          : 'سيتم احتساب النقاط والساعات للمتطوعين فوراً',
+                      style: TextStyle(
+                        fontFamily: FontConstants.fontFamily,
+                        fontSize: FontSize.s11,
+                        color: isForceCompleted
+                            ? ColorManager.primary500
+                            : ColorManager.natural400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: isForceCompleted,
+                onChanged: (v) =>
+                    context.read<CreateCampaignCubit>().setForceCompleted(v),
+                activeThumbColor: ColorManager.primary500,
+                activeTrackColor:
+                    ColorManager.primary500.withValues(alpha: 0.25),
+                inactiveThumbColor: ColorManager.natural400,
+                inactiveTrackColor: ColorManager.natural200,
+              ),
+            ],
+          ),
+        ),
         SizedBox(height: AppHeight.s8),
 
         // ── 10. Volunteers ────────────────────────────────────────────────

@@ -21,7 +21,7 @@ class CreateCampaignReady extends CreateCampaignState {
 
   // Form field state owned by the cubit
   final String selectedType;
-  final String selectedStatus;
+  final bool isForceCompleted;
   final DateTime? selectedDate;
   final TimeOfDay? timeStart;
   final TimeOfDay? timeEnd;
@@ -31,7 +31,7 @@ class CreateCampaignReady extends CreateCampaignState {
     required this.selectedIds,
     this.taskData,
     this.selectedType = 'توعية مدرسية',
-    this.selectedStatus = 'ongoing',
+    this.isForceCompleted = false,
     this.selectedDate,
     this.timeStart,
     this.timeEnd,
@@ -42,7 +42,7 @@ class CreateCampaignReady extends CreateCampaignState {
     Set<String>? selectedIds,
     Map<String, dynamic>? taskData,
     String? selectedType,
-    String? selectedStatus,
+    bool? isForceCompleted,
     DateTime? selectedDate,
     TimeOfDay? timeStart,
     TimeOfDay? timeEnd,
@@ -53,7 +53,7 @@ class CreateCampaignReady extends CreateCampaignState {
       selectedIds: selectedIds ?? this.selectedIds,
       taskData: clearTaskData ? null : (taskData ?? this.taskData),
       selectedType: selectedType ?? this.selectedType,
-      selectedStatus: selectedStatus ?? this.selectedStatus,
+      isForceCompleted: isForceCompleted ?? this.isForceCompleted,
       selectedDate: selectedDate ?? this.selectedDate,
       timeStart: timeStart ?? this.timeStart,
       timeEnd: timeEnd ?? this.timeEnd,

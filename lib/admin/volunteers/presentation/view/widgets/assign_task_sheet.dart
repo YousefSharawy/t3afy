@@ -15,6 +15,7 @@ import 'package:t3afy/base/primary_widgets.dart';
 import 'package:t3afy/base/widgets/app_form_field.dart';
 import 'package:t3afy/base/widgets/chip_badge.dart';
 import 'package:t3afy/base/widgets/confirm_dialog.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 import 'package:t3afy/admin/campaigns/presentation/view/widgets/dropdown_field.dart';
 import 'package:t3afy/base/widgets/empty_state_text.dart';
 import 'package:t3afy/admin/campaigns/presentation/view/widgets/form_field_label.dart';
@@ -258,7 +259,7 @@ class _ExistingTaskItem extends StatelessWidget {
 
 // ─── Tab 2: create new task ───────────────────────────────────────────────────
 
-const _taskTypes = ['توعية مدرسية', 'توعية جامعية', 'زيارة ميدانية', 'مهمة فردية'];
+// campaignTypes is imported from create_campaign_cubit.dart
 
 class _NewTaskForm extends StatefulWidget {
   const _NewTaskForm({super.key});
@@ -281,7 +282,7 @@ class _NewTaskFormState extends State<_NewTaskForm> {
   final _supervisorPhoneCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
 
-  String _selectedType = _taskTypes.first;
+  String _selectedType = campaignTypes.first;
   DateTime? _selectedDate;
   TimeOfDay _timeStart = const TimeOfDay(hour: 9, minute: 0);
   TimeOfDay _timeEnd = const TimeOfDay(hour: 10, minute: 0);
@@ -415,7 +416,7 @@ class _NewTaskFormState extends State<_NewTaskForm> {
             DropdownField(
               label: 'نوع المهمة',
               value: _selectedType,
-              items: _taskTypes,
+              items: campaignTypes,
               onChanged: (v) => setState(() => _selectedType = v ?? _selectedType),
             ),
             SizedBox(height: AppHeight.s12),

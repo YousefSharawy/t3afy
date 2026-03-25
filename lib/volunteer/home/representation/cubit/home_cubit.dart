@@ -24,8 +24,11 @@ class HomeCubit extends Cubit<HomeState> {
   RealtimeChannel? _assignmentsChannel;
   RealtimeChannel? _notesChannel;
   Timer? _debounce;
+  bool _subscribed = false;
 
   void subscribeToUserUpdates(String userId) {
+    if (_subscribed) return;
+    _subscribed = true;
     _userChannel = Supabase.instance.client
         .channel('home_user_$userId')
         .onPostgresChanges(
@@ -119,14 +122,19 @@ class HomeCubit extends Cubit<HomeState> {
   @override
   Future<void> close() async {
     _debounce?.cancel();
-    await _userChannel?.unsubscribe();
-    await _assignmentsChannel?.unsubscribe();
-    await _notesChannel?.unsubscribe();
+    final client = Supabase.instance.client;
+    if (_userChannel != null) client.removeChannel(_userChannel!);
+    if (_assignmentsChannel != null) client.removeChannel(_assignmentsChannel!);
+    if (_notesChannel != null) client.removeChannel(_notesChannel!);
     return super.close();
   }
 
   Future<void> loadHome(String userId) async {
     emit(const HomeState.loading());
+
+    final today = DateTime.now().toIso8601String().split('T').first;
+    await LocalAppStorage.invalidateCache('vol_stats_v2_$userId');
+    await LocalAppStorage.invalidateCache('today_tasks_${userId}_$today');
 
     final statsResult = await _getVolunteerStats(userId);
     final tasksResult = await _getTodayTasks(userId);

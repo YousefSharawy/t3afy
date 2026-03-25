@@ -6,6 +6,7 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/campaign_detail_entity.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 import 'package:t3afy/base/widgets/status_badge.dart';
 
 class CampaignHeroCard extends StatelessWidget {
@@ -72,6 +73,27 @@ class CampaignHeroCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (detail.type.isNotEmpty) ...[
+                  SizedBox(height: AppHeight.s4),
+                  Row(
+                    children: [
+                      Icon(
+                        taskTypeIcon(detail.type),
+                        size: 12,
+                        color: ColorManager.natural400,
+                      ),
+                      SizedBox(width: AppWidth.s4),
+                      Text(
+                        detail.type,
+                        style: getLightStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          fontSize: FontSize.s10,
+                          color: ColorManager.natural400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

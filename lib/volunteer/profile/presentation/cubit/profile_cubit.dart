@@ -50,7 +50,9 @@ class ProfileCubit extends Cubit<ProfileState> {
   @override
   Future<void> close() async {
     _debounce?.cancel();
-    await _usersChannel?.unsubscribe();
+    if (_usersChannel != null) {
+      Supabase.instance.client.removeChannel(_usersChannel!);
+    }
     return super.close();
   }
 

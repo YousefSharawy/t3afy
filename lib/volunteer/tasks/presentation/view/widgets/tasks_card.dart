@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
@@ -50,7 +51,11 @@ class TaskCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Image.asset(IconAssets.camp),
+                Icon(
+                  taskTypeIcon(task.type),
+                  size: 14,
+                  color: ColorManager.natural400,
+                ),
                 SizedBox(width: AppWidth.s4),
                 Text(
                   task.type,

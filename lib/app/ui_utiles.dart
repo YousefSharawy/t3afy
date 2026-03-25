@@ -1,17 +1,29 @@
 /// Resolves the assignment status for a volunteer task.
-/// If [rawStatus] is 'assigned' and the task deadline has passed, returns 'missed'.
+/// Delegates to [resolveCampaignStatus] — single source of truth for both sides.
 String resolveAssignmentStatus(
     String rawStatus, String? date, String? timeEnd) {
-  if (rawStatus != 'assigned') return rawStatus;
-  return _resolveMissed(rawStatus, date, timeEnd);
+  return resolveCampaignStatus(rawStatus, date, timeEnd);
 }
 
 /// Resolves the status for an admin campaign task.
-/// If [rawStatus] is 'upcoming' and the task deadline has passed, returns 'missed'.
+/// Terminal statuses ('completed', 'pending_review', 'cancelled', 'missed') are never overridden.
+/// Statuses 'upcoming', 'active', and 'assigned' are checked against the deadline
+/// and converted to 'missed' if the deadline has passed.
 String resolveCampaignStatus(
     String rawStatus, String? date, String? timeEnd) {
-  if (rawStatus != 'upcoming') return rawStatus;
-  return _resolveMissed(rawStatus, date, timeEnd);
+  switch (rawStatus) {
+    case 'completed':
+    case 'pending_review':
+    case 'cancelled':
+    case 'missed':
+      return rawStatus;
+    case 'upcoming':
+    case 'active':
+    case 'assigned':
+      return _resolveMissed(rawStatus, date, timeEnd);
+    default:
+      return rawStatus;
+  }
 }
 
 String _resolveMissed(String rawStatus, String? date, String? timeEnd) {

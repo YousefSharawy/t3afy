@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:t3afy/app/local_storage.dart';
 
 import 'package:t3afy/volunteer/task_details/data/sources/task_details_impl_remote_data_source.dart';
 import 'package:t3afy/volunteer/task_details/domain/entities/task_details_entity.dart';
@@ -18,6 +21,7 @@ class TaskDetailsCubit extends Cubit<TaskDetailsState> {
 
   RealtimeChannel? _taskChannel;
   RealtimeChannel? _assignmentChannel;
+  Timer? _debounce;
   String? _currentTaskId;
 
   Future<void> loadTaskDetails(String taskId) async {
@@ -35,14 +39,20 @@ class TaskDetailsCubit extends Cubit<TaskDetailsState> {
   }
 
   void _subscribeToRealtime(String taskId) {
-    _taskChannel = _dataSource.subscribeToTask(taskId, (_) => _refetch());
+    _taskChannel = _dataSource.subscribeToTask(taskId, (_) => _onRealtimeEvent());
     _assignmentChannel =
-        _dataSource.subscribeToAssignment(taskId, (_) => _refetch());
+        _dataSource.subscribeToAssignment(taskId, (_) => _onRealtimeEvent());
+  }
+
+  void _onRealtimeEvent() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), _refetch);
   }
 
   Future<void> _refetch() async {
     final taskId = _currentTaskId;
     if (taskId == null) return;
+    await LocalAppStorage.invalidateCache('task_details_$taskId');
     final result = await _getTaskDetails(taskId);
     result.fold(
       (failure) => emit(TaskDetailsState.error(failure.message)),
@@ -52,6 +62,7 @@ class TaskDetailsCubit extends Cubit<TaskDetailsState> {
 
   @override
   Future<void> close() async {
+    _debounce?.cancel();
     if (_taskChannel != null) {
       await _dataSource.unsubscribe(_taskChannel!);
     }

@@ -5,6 +5,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 import 'package:t3afy/base/widgets/status_badge.dart';
 import 'package:t3afy/volunteer/tasks/domain/entities/home_enities.dart';
 
@@ -14,8 +15,14 @@ class TodayTaskCard extends StatelessWidget {
   final TaskEntity task;
   final VoidCallback? onTap;
 
+  String get _effectiveStatus {
+    final assignment = task.assignmentStatus;
+    if (assignment == 'completed' || assignment == 'missed') return assignment;
+    return task.status;
+  }
+
   Color get _statusTextColor {
-    switch (task.status) {
+    switch (_effectiveStatus) {
       case 'ongoing':
       case 'active':
         return ColorManager.info;
@@ -62,6 +69,27 @@ class TodayTaskCard extends StatelessWidget {
                       fontSize: FontSize.s14,
                     ),
                   ),
+                  if (task.type.isNotEmpty) ...[
+                    SizedBox(height: AppHeight.s2),
+                    Row(
+                      children: [
+                        Icon(
+                          taskTypeIcon(task.type),
+                          size: 10,
+                          color: ColorManager.natural400,
+                        ),
+                        SizedBox(width: AppWidth.s4),
+                        Text(
+                          task.type,
+                          style: getSemiBoldStyle(
+                            fontFamily: FontConstants.fontFamily,
+                            color: ColorManager.natural400,
+                            fontSize: FontSize.s10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   Row(
                     children: [
                       Image.asset(
@@ -105,7 +133,7 @@ class TodayTaskCard extends StatelessWidget {
             ),
             Column(
               children: [
-                StatusBadge(status: task.status),
+                StatusBadge(status: _effectiveStatus),
                 Text(
                   '${task.points} +نقطة',
                   style: getSemiBoldStyle(

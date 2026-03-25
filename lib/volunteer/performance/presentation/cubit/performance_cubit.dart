@@ -74,8 +74,9 @@ class PerformanceCubit extends Cubit<PerformanceState> {
   @override
   Future<void> close() async {
     _debounce?.cancel();
-    await _usersChannel?.unsubscribe();
-    await _assignmentsChannel?.unsubscribe();
+    final client = Supabase.instance.client;
+    if (_usersChannel != null) client.removeChannel(_usersChannel!);
+    if (_assignmentsChannel != null) client.removeChannel(_assignmentsChannel!);
     return super.close();
   }
 
