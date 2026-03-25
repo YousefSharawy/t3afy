@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/volunteer/home/domain/use_case/home_use_case.dart';
 import 'package:t3afy/volunteer/tasks/domain/entities/home_enities.dart';
 
@@ -10,21 +11,25 @@ part 'home_state.dart';
 part 'home_cubit.freezed.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit(this._getVolunteerStats, this._getTodayTasks)
-      : super(const HomeState.initial());
+  HomeCubit(
+    this._getVolunteerStats,
+    this._getTodayTasks,
+    this._getUnreadNotificationsCount,
+  ) : super(const HomeState.initial());
 
   final GetVolunteerStats _getVolunteerStats;
   final GetHomeTodayTasks _getTodayTasks;
+  final GetUnreadNotificationsCount _getUnreadNotificationsCount;
   RealtimeChannel? _userChannel;
-
   RealtimeChannel? _assignmentsChannel;
+  RealtimeChannel? _notesChannel;
   Timer? _debounce;
 
   void subscribeToUserUpdates(String userId) {
     _userChannel = Supabase.instance.client
         .channel('home_user_$userId')
         .onPostgresChanges(
-          event: PostgresChangeEvent.update,
+          event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'users',
           filter: PostgresChangeFilter(
@@ -45,6 +50,21 @@ class HomeCubit extends Cubit<HomeState> {
           filter: PostgresChangeFilter(
             type: PostgresChangeFilterType.eq,
             column: 'user_id',
+            value: userId,
+          ),
+          callback: (_) => _onRealtimeChange(userId),
+        )
+        .subscribe();
+
+    _notesChannel = Supabase.instance.client
+        .channel('home_notes_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'admin_notes',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'volunteer_id',
             value: userId,
           ),
           callback: (_) => _onRealtimeChange(userId),
@@ -75,6 +95,9 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<void> _silentRefresh(String userId) async {
+    final today = DateTime.now().toIso8601String().split('T').first;
+    await LocalAppStorage.invalidateCache('today_tasks_${userId}_$today');
+    await LocalAppStorage.invalidateCache('vol_stats_v2_$userId');
     final statsResult = await _getVolunteerStats(userId);
     final tasksResult = await _getTodayTasks(userId);
     final unreadCount = await _fetchUnreadCount(userId);
@@ -98,6 +121,7 @@ class HomeCubit extends Cubit<HomeState> {
     _debounce?.cancel();
     await _userChannel?.unsubscribe();
     await _assignmentsChannel?.unsubscribe();
+    await _notesChannel?.unsubscribe();
     return super.close();
   }
 
@@ -124,15 +148,7 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<int> _fetchUnreadCount(String userId) async {
-    try {
-      final res = await Supabase.instance.client
-          .from('admin_notes')
-          .select('id')
-          .eq('volunteer_id', userId)
-          .eq('is_read', false);
-      return res.length;
-    } catch (_) {
-      return 0;
-    }
+    final result = await _getUnreadNotificationsCount(userId);
+    return result.fold((_) => 0, (count) => count);
   }
 }

@@ -22,3 +22,13 @@ class GetHomeTodayTasks {
     return _repository.getTodayTasks(userId);
   }
 }
+
+class GetUnreadNotificationsCount {
+  final VolunteerHomeRepository _repository;
+
+  GetUnreadNotificationsCount(this._repository);
+
+  Future<Either<Failture, int>> call(String userId) {
+    return _repository.getUnreadNotificationsCount(userId);
+  }
+}

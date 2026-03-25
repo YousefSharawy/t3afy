@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/volunteer/profile/domain/entity/profile_entity.dart';
 import 'package:t3afy/volunteer/profile/domain/use_cases/profile_use_case.dart';
 
@@ -23,7 +24,7 @@ class ProfileCubit extends Cubit<ProfileState> {
     _usersChannel = Supabase.instance.client
         .channel('volunteer_profile_user_$userId')
         .onPostgresChanges(
-          event: PostgresChangeEvent.update,
+          event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'users',
           filter: PostgresChangeFilter(
@@ -38,8 +39,11 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   void _onRealtimeChange() {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      if (_currentUserId != null) loadProfile(_currentUserId!);
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      if (_currentUserId != null) {
+        await LocalAppStorage.invalidateCache('vol_profile_$_currentUserId');
+        await loadProfile(_currentUserId!);
+      }
     });
   }
 

@@ -56,7 +56,7 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
       await LocalAppStorage.setCache(
         cacheKey,
         {'stats': stats.toJson(), 'commitment': commitmentPct},
-        ttl: const Duration(minutes: 5),
+        ttl: const Duration(minutes: 1),
       );
 
       return (stats, commitmentPct);
@@ -112,7 +112,7 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
 
       await LocalAppStorage.setCache(
           cacheKey, result.map((m) => m.toJson()).toList(),
-          ttl: const Duration(minutes: 10));
+          ttl: const Duration(minutes: 1));
       return result;
     } catch (error) {
       throw ErrorHandler.handle(error).failture;
@@ -167,7 +167,7 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
       final result = entries.take(3).toList();
       await LocalAppStorage.setCache(
           cacheKey, result.map((e) => e.toJson()).toList(),
-          ttl: const Duration(minutes: 10));
+          ttl: const Duration(minutes: 1));
       return result;
     } catch (error) {
       throw ErrorHandler.handle(error).failture;

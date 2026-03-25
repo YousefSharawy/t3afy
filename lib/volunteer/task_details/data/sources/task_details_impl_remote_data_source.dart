@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/app/ui_utiles.dart';
 
 import '../models/task_details_model.dart';
 import '../models/task_objective_model.dart';
@@ -22,29 +23,17 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
           .single();
 
       final assignments = response['task_assignments'] as List?;
-      String? assignmentStatus = (assignments != null && assignments.isNotEmpty)
+      final rawStatus = (assignments != null && assignments.isNotEmpty)
           ? assignments[0]['status'] as String?
           : null;
 
-      // Client-side override: if cron hasn't run yet, detect missed locally
-      if (assignmentStatus == 'assigned') {
-        final dateStr = response['date'] as String?;
-        final timeEndStr = response['time_end'] as String?;
-        if (dateStr != null) {
-          try {
-            final date = DateTime.parse(dateStr);
-            int endHour = 23, endMinute = 59;
-            if (timeEndStr != null && timeEndStr.contains(':')) {
-              final parts = timeEndStr.split(':');
-              endHour = int.tryParse(parts[0]) ?? 23;
-              endMinute = int.tryParse(parts[1]) ?? 59;
-            }
-            final deadline = DateTime(
-                date.year, date.month, date.day, endHour, endMinute);
-            if (DateTime.now().isAfter(deadline)) assignmentStatus = 'missed';
-          } catch (_) {}
-        }
-      }
+      final assignmentStatus = rawStatus != null
+          ? resolveAssignmentStatus(
+              rawStatus,
+              response['date'] as String?,
+              response['time_end'] as String?,
+            )
+          : null;
 
       final map = Map<String, dynamic>.from(response);
       map['assignment_status'] = assignmentStatus;

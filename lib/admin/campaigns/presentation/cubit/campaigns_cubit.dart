@@ -27,6 +27,11 @@ class CampaignsCubit extends Cubit<CampaignsState> {
           .where((c) => c.status == 'active' || c.status == 'ongoing')
           .toList();
     }
+    if (_filter == 'done') {
+      return _allCampaigns
+          .where((c) => c.status == 'done' || c.status == 'completed')
+          .toList();
+    }
     return _allCampaigns.where((c) => c.status == _filter).toList();
   }
 

@@ -24,7 +24,7 @@ class ProfileImplRemoteDataSource implements ProfileRemoteDataSource {
           .eq('id', userId)
           .single();
       await LocalAppStorage.setCache(cacheKey, response,
-          ttl: const Duration(minutes: 10));
+          ttl: const Duration(minutes: 1));
       return ProfileModel.fromJson(response);
     } catch (error) {
       throw ErrorHandler.handle(error).failture;

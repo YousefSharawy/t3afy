@@ -183,6 +183,28 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
     }
   }
 
+  Future<void> _creditVolunteer({
+    required String volunteerId,
+    required int points,
+    required double durationHours,
+  }) async {
+    final userRow = await _client
+        .from('users')
+        .select('total_points, total_hours, total_tasks, places_visited')
+        .eq('id', volunteerId)
+        .single();
+    final currentPoints = (userRow['total_points'] as num?)?.toInt() ?? 0;
+    final currentHours = (userRow['total_hours'] as num?)?.toInt() ?? 0;
+    final currentTasks = (userRow['total_tasks'] as num?)?.toInt() ?? 0;
+    final currentPlaces = (userRow['places_visited'] as num?)?.toInt() ?? 0;
+    await _client.from('users').update({
+      'total_points': currentPoints + points,
+      'total_hours': currentHours + durationHours.round(),
+      'total_tasks': currentTasks + 1,
+      'places_visited': currentPlaces + 1,
+    }).eq('id', volunteerId);
+  }
+
   @override
   Future<void> assignTask({
     required String volunteerId,
@@ -190,14 +212,44 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
     required String adminId,
   }) async {
     try {
+      final task = await _client
+          .from('tasks')
+          .select('status, points, duration_hours')
+          .eq('id', taskId)
+          .single();
+      final isCompleted = (task['status'] as String?) == 'completed';
+      final assignmentStatus = isCompleted ? 'completed' : 'assigned';
+
       await _client.from('task_assignments').insert({
         'task_id': taskId,
         'user_id': volunteerId,
         'assigned_by': adminId,
-        'status': 'assigned',
+        'status': assignmentStatus,
         'assigned_at': DateTime.now().toUtc().toIso8601String(),
       });
+
+      if (isCompleted) {
+        await _creditVolunteer(
+          volunteerId: volunteerId,
+          points: (task['points'] as num?)?.toInt() ?? 10,
+          durationHours: (task['duration_hours'] as num?)?.toDouble() ?? 0.0,
+        );
+      }
+
+      // Notify volunteer
+      await _client.from('admin_notes').insert({
+        'admin_id': adminId,
+        'volunteer_id': volunteerId,
+        'task_id': taskId,
+        'title': 'تم تعيين مهمة لك',
+        'body': 'تم تعيينك في مهمة جديدة من قبل المشرف',
+        'is_read': false,
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      });
+
       await LocalAppStorage.invalidateCache('admin_volunteers');
+      await LocalAppStorage.invalidateCache('today_tasks_$volunteerId');
+      await LocalAppStorage.invalidateCache('tasks_stats_$volunteerId');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -242,19 +294,9 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
         'created_at': DateTime.now().toUtc().toIso8601String(),
       });
 
-      // Recalculate average rating
-      final assessments = await _client
-          .from('assessments')
-          .select('rating')
-          .eq('volunteer_id', volunteerId);
-      final ratings =
-          (assessments as List).map((e) => (e['rating'] as num).toDouble());
-      final avg = ratings.isEmpty
-          ? 0.0
-          : ratings.reduce((a, b) => a + b) / ratings.length;
       await _client
           .from('users')
-          .update({'rating': avg}).eq('id', volunteerId);
+          .update({'rating': rating.toDouble()}).eq('id', volunteerId);
       await LocalAppStorage.invalidateCache('admin_volunteers');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
@@ -310,6 +352,26 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
   }) async {
     try {
       final now = DateTime.now().toUtc().toIso8601String();
+
+      // Calculate duration from time fields if not provided
+      double computedDuration = durationHours;
+      if (durationHours <= 0) {
+        try {
+          final startParts = timeStart.split(':');
+          final endParts = timeEnd.split(':');
+          final startMinutes =
+              int.parse(startParts[0]) * 60 + int.parse(startParts[1]);
+          final endMinutes =
+              int.parse(endParts[0]) * 60 + int.parse(endParts[1]);
+          final diff = endMinutes - startMinutes;
+          computedDuration = (diff > 0 ? diff : diff + 24 * 60) / 60.0;
+        } catch (_) {
+          computedDuration = 1.0;
+        }
+      }
+
+      final effectivePoints = points == 0 ? 10 : points;
+
       final response = await _client
           .from('tasks')
           .insert({
@@ -321,8 +383,8 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
             'date': date,
             'time_start': timeStart,
             'time_end': timeEnd,
-            'duration_hours': durationHours,
-            'points': points,
+            'duration_hours': computedDuration,
+            'points': effectivePoints,
             'location_name': locationName,
             if (locationAddress != null && locationAddress.isNotEmpty)
               'location_address': locationAddress,
@@ -345,7 +407,22 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
         'status': 'assigned',
         'assigned_at': now,
       });
+
+      // Notify volunteer
+      await _client.from('admin_notes').insert({
+        'admin_id': adminId,
+        'volunteer_id': volunteerId,
+        'task_id': taskId,
+        'title': 'تم تعيين مهمة لك',
+        'body': 'تم تعيينك في مهمة جديدة: $title',
+        'is_read': false,
+        'created_at': now,
+      });
+
       await LocalAppStorage.invalidateCache('admin_volunteers');
+      await LocalAppStorage.invalidateCache('campaigns_list');
+      await LocalAppStorage.invalidateCache('campaigns_stats');
+      await LocalAppStorage.invalidateCache('today_tasks_$volunteerId');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

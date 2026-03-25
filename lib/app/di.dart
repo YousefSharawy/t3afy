@@ -155,7 +155,7 @@ Future<void> initAppModule() async {
 
   // Cubits
   getIt.registerFactory<AuthCubit>(() => AuthCubit(getIt(), getIt(),getIt()));
-getIt.registerFactory(() => HomeCubit(getIt(), getIt()));
+getIt.registerFactory(() => HomeCubit(getIt(), getIt(), getIt()));
 
 
   getIt.registerLazySingleton<VolunteerHomeRemoteDataSource>(
@@ -168,6 +168,7 @@ getIt.registerFactory(() => HomeCubit(getIt(), getIt()));
 
   getIt.registerLazySingleton(() => GetVolunteerStats(getIt()));
   getIt.registerLazySingleton(() => GetHomeTodayTasks(getIt()));
+  getIt.registerLazySingleton(() => GetUnreadNotificationsCount(getIt()));
 getIt.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileImplRemoteDataSource(),
   );

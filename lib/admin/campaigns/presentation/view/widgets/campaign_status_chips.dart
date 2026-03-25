@@ -16,12 +16,14 @@ class CampaignStatusChips extends StatelessWidget {
     'ongoing':   ColorManager.info,
     'upcoming':  ColorManager.warning,
     'done':      ColorManager.success,
+    'completed': ColorManager.success,
     'suspended': ColorManager.error,
   };
   static const _statusLightColors = {
     'ongoing':   ColorManager.infoLight,
     'upcoming':  ColorManager.warningLight,
     'done':      ColorManager.successLight,
+    'completed': ColorManager.successLight,
     'suspended': ColorManager.errorLight,
   };
 

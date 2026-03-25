@@ -1,3 +1,35 @@
+/// Resolves the assignment status for a volunteer task.
+/// If [rawStatus] is 'assigned' and the task deadline has passed, returns 'missed'.
+String resolveAssignmentStatus(
+    String rawStatus, String? date, String? timeEnd) {
+  if (rawStatus != 'assigned') return rawStatus;
+  return _resolveMissed(rawStatus, date, timeEnd);
+}
+
+/// Resolves the status for an admin campaign task.
+/// If [rawStatus] is 'upcoming' and the task deadline has passed, returns 'missed'.
+String resolveCampaignStatus(
+    String rawStatus, String? date, String? timeEnd) {
+  if (rawStatus != 'upcoming') return rawStatus;
+  return _resolveMissed(rawStatus, date, timeEnd);
+}
+
+String _resolveMissed(String rawStatus, String? date, String? timeEnd) {
+  if (date == null) return rawStatus;
+  try {
+    final d = DateTime.parse(date);
+    int endHour = 23, endMinute = 59;
+    if (timeEnd != null && timeEnd.contains(':')) {
+      final parts = timeEnd.split(':');
+      endHour = int.tryParse(parts[0]) ?? 23;
+      endMinute = int.tryParse(parts[1]) ?? 59;
+    }
+    final deadline = DateTime(d.year, d.month, d.day, endHour, endMinute);
+    if (DateTime.now().isAfter(deadline)) return 'missed';
+  } catch (_) {}
+  return rawStatus;
+}
+
 // import 'package:flutter/material.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
 // import 'package:flutter_screenutil/flutter_screenutil.dart';

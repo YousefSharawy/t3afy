@@ -39,7 +39,7 @@ class TaskDetailsHeaderCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      StatusBadge(status: task.status),
+                      StatusBadge(status: task.assignmentStatus ?? task.status),
                       SizedBox(width: AppWidth.s3),
                       TaskTypeBadge(type: task.type),
                     ],

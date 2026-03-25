@@ -7,4 +7,5 @@ abstract class VolunteerHomeRepository {
     String userId,
   );
   Future<Either<Failture, List<TaskEntity>>> getTodayTasks(String userId);
+  Future<Either<Failture, int>> getUnreadNotificationsCount(String userId);
 }

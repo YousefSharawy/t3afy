@@ -116,7 +116,7 @@ class AdminPerformanceRemoteDatasourceImpl
       final allTasks = results[5] as List;
       final totalCampaigns = allTasks.length;
       final completedCampaigns =
-          allTasks.where((t) => t['status'] == 'done').length;
+          allTasks.where((t) => t['status'] == 'done' || t['status'] == 'completed').length;
       final campaignCompletionPercent = totalCampaigns > 0
           ? (completedCampaigns / totalCampaigns * 100)
           : 0.0;
@@ -130,7 +130,7 @@ class AdminPerformanceRemoteDatasourceImpl
       final prevDoneRaw = await _client
           .from('tasks')
           .select('id')
-          .eq('status', 'done')
+          .inFilter('status', ['completed', 'done'])
           .gte('date', prevStart)
           .lt('date', prevEnd);
       final prevCount = (prevDoneRaw as List).length;

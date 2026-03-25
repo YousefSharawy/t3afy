@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/app/ui_utiles.dart';
 import 'package:t3afy/volunteer/tasks/data/models/task_models.dart';
 import 'package:t3afy/volunteer/tasks/data/sources/tasks_remote_data_source.dart';
 
@@ -34,31 +35,16 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
           )
         ''')
           .eq('user_id', userId)
-          .eq('tasks.date', today);
+          .eq('tasks.date', today)
+          .not('status', 'in', '("completed","missed")');
 
-      final now = DateTime.now();
       final tasks = response.map<TaskModel>((row) {
         final task = row['tasks'] as Map<String, dynamic>;
-        String assignmentStatus = row['status'] as String? ?? 'assigned';
-        // Client-side override: if cron hasn't run yet, detect missed locally
-        if (assignmentStatus == 'assigned') {
-          final dateStr = task['date'] as String?;
-          final timeEndStr = task['time_end'] as String?;
-          if (dateStr != null) {
-            try {
-              final date = DateTime.parse(dateStr);
-              int endHour = 23, endMinute = 59;
-              if (timeEndStr != null && timeEndStr.contains(':')) {
-                final parts = timeEndStr.split(':');
-                endHour = int.tryParse(parts[0]) ?? 23;
-                endMinute = int.tryParse(parts[1]) ?? 59;
-              }
-              final deadline = DateTime(
-                  date.year, date.month, date.day, endHour, endMinute);
-              if (now.isAfter(deadline)) assignmentStatus = 'missed';
-            } catch (_) {}
-          }
-        }
+        final assignmentStatus = resolveAssignmentStatus(
+          row['status'] as String? ?? 'assigned',
+          task['date'] as String?,
+          task['time_end'] as String?,
+        );
         return TaskModel.fromJson({
           ...task,
           'assignment_status': assignmentStatus,
@@ -67,7 +53,7 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
 
       await LocalAppStorage.setCache(
           cacheKey, tasks.map((t) => t.toJson()).toList(),
-          ttl: const Duration(minutes: 2));
+          ttl: const Duration(seconds: 30));
       return tasks;
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
@@ -111,7 +97,7 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
 
       await LocalAppStorage.setCache(
           cacheKey, tasks.map((t) => t.toJson()).toList(),
-          ttl: const Duration(minutes: 5));
+          ttl: const Duration(minutes: 1));
       return tasks;
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
@@ -138,7 +124,8 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
           .from('task_assignments')
           .select('id, tasks!inner(date)')
           .eq('user_id', userId)
-          .eq('tasks.date', today);
+          .eq('tasks.date', today)
+          .not('status', 'in', '("completed","missed")');
       final todayCount = todayResponse.length;
 
       final completedResponse = await _client
@@ -165,7 +152,7 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
           'completed_count': completedCount,
           'earned_points': earnedPoints,
         },
-        ttl: const Duration(minutes: 5),
+        ttl: const Duration(minutes: 1),
       );
 
       return TasksStatsModel(

@@ -12,9 +12,12 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/base/primary_widgets.dart';
+import 'package:t3afy/base/widgets/app_form_field.dart';
 import 'package:t3afy/base/widgets/chip_badge.dart';
 import 'package:t3afy/base/widgets/confirm_dialog.dart';
+import 'package:t3afy/admin/campaigns/presentation/view/widgets/dropdown_field.dart';
 import 'package:t3afy/base/widgets/empty_state_text.dart';
+import 'package:t3afy/admin/campaigns/presentation/view/widgets/form_field_label.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
 
 class AssignTaskSheet extends StatefulWidget {
@@ -50,7 +53,7 @@ class _AssignTaskSheetState extends State<AssignTaskSheet> {
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: Container(
-          height: 0.72.sh,
+          height: 0.92.sh,
           padding: EdgeInsetsDirectional.fromSTEB(
             AppWidth.s20,
             AppHeight.s12,
@@ -255,6 +258,8 @@ class _ExistingTaskItem extends StatelessWidget {
 
 // ─── Tab 2: create new task ───────────────────────────────────────────────────
 
+const _taskTypes = ['توعية مدرسية', 'توعية جامعية', 'زيارة ميدانية', 'مهمة فردية'];
+
 class _NewTaskForm extends StatefulWidget {
   const _NewTaskForm({super.key});
 
@@ -265,14 +270,21 @@ class _NewTaskForm extends StatefulWidget {
 class _NewTaskFormState extends State<_NewTaskForm> {
   final _formKey = GlobalKey<FormState>();
   final _titleCtrl = TextEditingController();
+  final _descriptionCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
+  final _locationAddressCtrl = TextEditingController();
   final _dateCtrl = TextEditingController();
-  final _timeCtrl = TextEditingController();
+  final _timeStartCtrl = TextEditingController();
+  final _timeEndCtrl = TextEditingController();
+  final _pointsCtrl = TextEditingController(text: '10');
+  final _supervisorNameCtrl = TextEditingController();
+  final _supervisorPhoneCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
 
+  String _selectedType = _taskTypes.first;
   DateTime? _selectedDate;
-  TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
-  bool _submitting = false;
+  TimeOfDay _timeStart = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay _timeEnd = const TimeOfDay(hour: 10, minute: 0);
 
   @override
   void initState() {
@@ -280,15 +292,22 @@ class _NewTaskFormState extends State<_NewTaskForm> {
     final tomorrow = DateTime.now().add(const Duration(days: 1));
     _selectedDate = tomorrow;
     _dateCtrl.text = _fmtDate(tomorrow);
-    _timeCtrl.text = '09:00';
+    _timeStartCtrl.text = '09:00';
+    _timeEndCtrl.text = '10:00';
   }
 
   @override
   void dispose() {
     _titleCtrl.dispose();
+    _descriptionCtrl.dispose();
     _locationCtrl.dispose();
+    _locationAddressCtrl.dispose();
     _dateCtrl.dispose();
-    _timeCtrl.dispose();
+    _timeStartCtrl.dispose();
+    _timeEndCtrl.dispose();
+    _pointsCtrl.dispose();
+    _supervisorNameCtrl.dispose();
+    _supervisorPhoneCtrl.dispose();
     _notesCtrl.dispose();
     super.dispose();
   }
@@ -315,124 +334,273 @@ class _NewTaskFormState extends State<_NewTaskForm> {
     }
   }
 
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-    );
+  Future<void> _pickTimeStart() async {
+    final picked = await showTimePicker(context: context, initialTime: _timeStart);
     if (picked != null) {
       setState(() {
-        _selectedTime = picked;
-        _timeCtrl.text = _fmtTime(picked);
+        _timeStart = picked;
+        _timeStartCtrl.text = _fmtTime(picked);
       });
     }
   }
 
-  void _submit() {
+  Future<void> _pickTimeEnd() async {
+    final picked = await showTimePicker(context: context, initialTime: _timeEnd);
+    if (picked != null) {
+      setState(() {
+        _timeEnd = picked;
+        _timeEndCtrl.text = _fmtTime(picked);
+      });
+    }
+  }
+
+  void _submit(BuildContext context) {
     HapticFeedback.mediumImpact();
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _submitting = true);
 
     final adminId = LocalAppStorage.getUserId() ?? '';
     final dateStr =
         '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
-    final timeStart = _fmtTime(_selectedTime);
-    final endHour = (_selectedTime.hour + 1) % 24;
-    final timeEnd =
-        '${endHour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}';
 
     context.read<VolunteerDetailsCubit>().assignCustomTask(
           adminId: adminId,
           title: _titleCtrl.text.trim(),
-          type: 'مهمة فردية',
+          type: _selectedType,
+          description: _descriptionCtrl.text.trim().isEmpty
+              ? null
+              : _descriptionCtrl.text.trim(),
           locationName: _locationCtrl.text.trim(),
+          locationAddress: _locationAddressCtrl.text.trim().isEmpty
+              ? null
+              : _locationAddressCtrl.text.trim(),
           date: dateStr,
-          timeStart: timeStart,
-          timeEnd: timeEnd,
-          durationHours: 1.0,
-          points: 10,
-          notes:
-              _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+          timeStart: _fmtTime(_timeStart),
+          timeEnd: _fmtTime(_timeEnd),
+          durationHours: 0.0, // calculated in datasource from timeStart/timeEnd
+          points: int.tryParse(_pointsCtrl.text.trim()) ?? 10,
+          supervisorName: _supervisorNameCtrl.text.trim().isEmpty
+              ? null
+              : _supervisorNameCtrl.text.trim(),
+          supervisorPhone: _supervisorPhoneCtrl.text.trim().isEmpty
+              ? null
+              : _supervisorPhoneCtrl.text.trim(),
+          notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
         );
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<VolunteerDetailsCubit, VolunteerDetailsState>(
-      listener: (context, state) {
-        if (state is VolunteerDetailsActionError ||
-            state is VolunteerDetailsActionSuccess) {
-          if (mounted) setState(() => _submitting = false);
-        }
-      },
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              PrimaryTextFF(
-                hint: 'عنوان المهمة',
-                controller: _titleCtrl,
-                textAlign: TextAlign.right,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
-              ),
-              SizedBox(height: AppHeight.s12),
-              PrimaryTextFF(
-                hint: 'المكان',
-                controller: _locationCtrl,
-                textAlign: TextAlign.right,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
-              ),
-              SizedBox(height: AppHeight.s12),
-              PrimaryTextFF(
-                hint: 'التاريخ',
-                controller: _dateCtrl,
-                readOnly: true,
-                onTap: _pickDate,
-                icon: IconAssets.calendar,
-                textAlign: TextAlign.right,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
-              ),
-              SizedBox(height: AppHeight.s12),
-              PrimaryTextFF(
-                hint: 'الوقت',
-                controller: _timeCtrl,
-                readOnly: true,
-                onTap: _pickTime,
-                icon: IconAssets.alarm,
-                textAlign: TextAlign.right,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
-              ),
-              SizedBox(height: AppHeight.s12),
-              PrimaryTextFF(
-                hint: 'ملاحظات (اختياري)',
-                controller: _notesCtrl,
-                maxLines: 2,
-                textAlign: TextAlign.right,
-              ),
-              SizedBox(height: AppHeight.s24),
-              PrimaryElevatedButton(
-                title: _submitting ? '' : 'تعيين المهمة',
-                titleWidget: _submitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : null,
-                onPress: _submitting ? () {} : _submit,
-              ),
-              SizedBox(height: AppHeight.s8),
-            ],
-          ),
+    return SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title
+            const FormFieldLabel('عنوان المهمة'),
+            SizedBox(height: AppHeight.s6),
+            AppFormField(
+              controller: _titleCtrl,
+              hint: 'أدخل عنوان المهمة',
+              fillColor: ColorManager.white,
+              borderColor: ColorManager.natural200,
+              focusedBorderColor: ColorManager.cyanPrimary,
+              textColor: ColorManager.natural900,
+              hintColor: ColorManager.natural400,
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
+            ),
+            SizedBox(height: AppHeight.s12),
+
+            // Type dropdown
+            DropdownField(
+              label: 'نوع المهمة',
+              value: _selectedType,
+              items: _taskTypes,
+              onChanged: (v) => setState(() => _selectedType = v ?? _selectedType),
+            ),
+            SizedBox(height: AppHeight.s12),
+
+            // Description
+            const FormFieldLabel('وصف المهمة'),
+            SizedBox(height: AppHeight.s6),
+            AppFormField(
+              controller: _descriptionCtrl,
+              hint: 'اختياري',
+              maxLines: 2,
+              fillColor: ColorManager.white,
+              borderColor: ColorManager.natural200,
+              focusedBorderColor: ColorManager.cyanPrimary,
+              textColor: ColorManager.natural900,
+              hintColor: ColorManager.natural400,
+            ),
+            SizedBox(height: AppHeight.s12),
+
+            // Location name
+            const FormFieldLabel('اسم الموقع'),
+            SizedBox(height: AppHeight.s6),
+            AppFormField(
+              controller: _locationCtrl,
+              hint: 'اسم الموقع',
+              fillColor: ColorManager.white,
+              borderColor: ColorManager.natural200,
+              focusedBorderColor: ColorManager.cyanPrimary,
+              textColor: ColorManager.natural900,
+              hintColor: ColorManager.natural400,
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
+            ),
+            SizedBox(height: AppHeight.s12),
+
+            // Location address
+            const FormFieldLabel('العنوان التفصيلي'),
+            SizedBox(height: AppHeight.s6),
+            AppFormField(
+              controller: _locationAddressCtrl,
+              hint: 'اختياري',
+              fillColor: ColorManager.white,
+              borderColor: ColorManager.natural200,
+              focusedBorderColor: ColorManager.cyanPrimary,
+              textColor: ColorManager.natural900,
+              hintColor: ColorManager.natural400,
+            ),
+            SizedBox(height: AppHeight.s12),
+
+            // Date
+            const FormFieldLabel('التاريخ'),
+            SizedBox(height: AppHeight.s6),
+            PrimaryTextFF(
+              controller: _dateCtrl,
+              hint: 'اختر التاريخ',
+              readOnly: true,
+              onTap: _pickDate,
+              icon: IconAssets.calendar,
+              textAlign: TextAlign.right,
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
+            ),
+            SizedBox(height: AppHeight.s12),
+
+            // Start / End time row
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const FormFieldLabel('وقت البداية'),
+                      SizedBox(height: AppHeight.s6),
+                      PrimaryTextFF(
+                        controller: _timeStartCtrl,
+                        hint: '09:00',
+                        readOnly: true,
+                        onTap: _pickTimeStart,
+                        icon: IconAssets.alarm,
+                        textAlign: TextAlign.right,
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: AppWidth.s12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const FormFieldLabel('وقت النهاية'),
+                      SizedBox(height: AppHeight.s6),
+                      PrimaryTextFF(
+                        controller: _timeEndCtrl,
+                        hint: '10:00',
+                        readOnly: true,
+                        onTap: _pickTimeEnd,
+                        icon: IconAssets.alarm,
+                        textAlign: TextAlign.right,
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: AppHeight.s12),
+
+            // Points
+            const FormFieldLabel('النقاط'),
+            SizedBox(height: AppHeight.s6),
+            AppFormField(
+              controller: _pointsCtrl,
+              hint: '10',
+              keyboardType: TextInputType.number,
+              fillColor: ColorManager.white,
+              borderColor: ColorManager.natural200,
+              focusedBorderColor: ColorManager.cyanPrimary,
+              textColor: ColorManager.natural900,
+              hintColor: ColorManager.natural400,
+            ),
+            SizedBox(height: AppHeight.s12),
+
+            // Supervisor name
+            const FormFieldLabel('اسم المشرف'),
+            SizedBox(height: AppHeight.s6),
+            AppFormField(
+              controller: _supervisorNameCtrl,
+              hint: 'اختياري',
+              fillColor: ColorManager.white,
+              borderColor: ColorManager.natural200,
+              focusedBorderColor: ColorManager.cyanPrimary,
+              textColor: ColorManager.natural900,
+              hintColor: ColorManager.natural400,
+            ),
+            SizedBox(height: AppHeight.s12),
+
+            // Supervisor phone
+            const FormFieldLabel('هاتف المشرف'),
+            SizedBox(height: AppHeight.s6),
+            AppFormField(
+              controller: _supervisorPhoneCtrl,
+              hint: 'اختياري',
+              keyboardType: TextInputType.phone,
+              fillColor: ColorManager.white,
+              borderColor: ColorManager.natural200,
+              focusedBorderColor: ColorManager.cyanPrimary,
+              textColor: ColorManager.natural900,
+              hintColor: ColorManager.natural400,
+            ),
+            SizedBox(height: AppHeight.s12),
+
+            // Notes
+            const FormFieldLabel('ملاحظات'),
+            SizedBox(height: AppHeight.s6),
+            AppFormField(
+              controller: _notesCtrl,
+              hint: 'اختياري',
+              maxLines: 2,
+              fillColor: ColorManager.white,
+              borderColor: ColorManager.natural200,
+              focusedBorderColor: ColorManager.cyanPrimary,
+              textColor: ColorManager.natural900,
+              hintColor: ColorManager.natural400,
+            ),
+            SizedBox(height: AppHeight.s24),
+
+            BlocBuilder<VolunteerDetailsCubit, VolunteerDetailsState>(
+              buildWhen: (_, curr) =>
+                  curr is VolunteerDetailsActionLoading ||
+                  curr is VolunteerDetailsActionSuccess ||
+                  curr is VolunteerDetailsActionError,
+              builder: (context, state) {
+                final isLoading = state is VolunteerDetailsActionLoading;
+                return PrimaryElevatedButton(
+                  title: isLoading ? '' : 'تعيين المهمة',
+                  height: AppHeight.s52,
+                  buttonRadius: AppRadius.s12,
+                  isLoading: isLoading,
+                  onPress: isLoading ? () {} : () => _submit(context),
+                );
+              },
+            ),
+            SizedBox(height: AppHeight.s8),
+          ],
         ),
       ),
     );

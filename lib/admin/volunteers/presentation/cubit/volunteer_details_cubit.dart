@@ -213,7 +213,7 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       (f) => emit(VolunteerDetailsActionError(details, f.message)),
       (_) {
         final updated = details.copyWith(rating: rating.toDouble());
-        emit(VolunteerDetailsLoaded(updated));
+        emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث التقييم'));
         _refresh(details.id);
       },
     );
@@ -235,7 +235,7 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       (f) => emit(VolunteerDetailsActionError(details, f.message)),
       (_) {
         final updated = details.copyWith(level: level, levelTitle: levelTitle);
-        emit(VolunteerDetailsLoaded(updated));
+        emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث المستوى'));
         _refresh(details.id);
       },
     );
@@ -258,7 +258,7 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
           region: fields['region'] as String? ?? details.region,
           qualification: fields['qualification'] as String? ?? details.qualification,
         );
-        emit(VolunteerDetailsLoaded(updated));
+        emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث البيانات'));
         _refresh(details.id);
       },
     );

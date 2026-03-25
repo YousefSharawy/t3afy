@@ -8,12 +8,24 @@ class ReportImplRemoteDataSource implements ReportRemoteDataSource {
   Future<void> submitReport(TaskReportModel model) async {
     try {
       final client = Supabase.instance.client;
+      final existing = await client
+          .from('task_reports')
+          .select('id')
+          .eq('task_id', model.taskId)
+          .eq('user_id', model.userId)
+          .maybeSingle();
+      if (existing != null) {
+        throw const PostgrestException(
+          message: 'لقد قمت برفع تقرير لهذه المهمة من قبل',
+          code: '23505',
+        );
+      }
       await client.from('task_reports').insert(model.toJson());
-      // Always mark assignment as completed after report submission,
-      // even if cron already flipped it to 'missed' during writing.
+      // Mark assignment as pending_review — credit is granted only after
+      // admin approves the report.
       await client
           .from('task_assignments')
-          .update({'status': 'completed'})
+          .update({'status': 'pending_review'})
           .eq('task_id', model.taskId)
           .eq('user_id', model.userId);
     } catch (e) {

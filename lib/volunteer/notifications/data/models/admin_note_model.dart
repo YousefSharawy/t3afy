@@ -20,7 +20,7 @@ class AdminNote {
       id: json['id'] as String,
       volunteerId: json['volunteer_id'] as String,
       title: json['title'] as String? ?? '',
-      message: json['message'] as String? ?? '',
+      message: json['body'] as String? ?? '',
       isRead: json['is_read'] as bool? ?? false,
       createdAt: DateTime.parse(json['created_at'] as String),
     );

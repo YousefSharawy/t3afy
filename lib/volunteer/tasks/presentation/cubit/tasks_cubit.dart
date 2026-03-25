@@ -15,6 +15,7 @@ class TasksCubit extends Cubit<TasksState> {
   final GetTasksStats _getTasksStats;
 
   RealtimeChannel? _assignmentsChannel;
+  RealtimeChannel? _tasksChannel;
   Timer? _debounce;
 
   TasksCubit(this._getTodayTasks, this._getCompletedTasks, this._getTasksStats)
@@ -38,6 +39,16 @@ class TasksCubit extends Cubit<TasksState> {
           callback: (_) => _onRealtimeChange(),
         )
         .subscribe();
+
+    _tasksChannel = Supabase.instance.client
+        .channel('tasks_table_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'tasks',
+          callback: (_) => _onRealtimeChange(),
+        )
+        .subscribe();
   }
 
   void _onRealtimeChange() {
@@ -48,6 +59,10 @@ class TasksCubit extends Cubit<TasksState> {
   Future<void> _silentRefresh() async {
     final userId = LocalAppStorage.getUserId();
     if (userId == null) return;
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    await LocalAppStorage.invalidateCache('today_tasks_${userId}_$today');
+    await LocalAppStorage.invalidateCache('completed_tasks_$userId');
+    await LocalAppStorage.invalidateCache('tasks_stats_$userId');
     final todayResult = await _getTodayTasks(userId);
     final completedResult = await _getCompletedTasks(userId);
     final statsResult = await _getTasksStats(userId);
@@ -74,6 +89,7 @@ class TasksCubit extends Cubit<TasksState> {
   Future<void> close() async {
     _debounce?.cancel();
     await _assignmentsChannel?.unsubscribe();
+    await _tasksChannel?.unsubscribe();
     return super.close();
   }
 

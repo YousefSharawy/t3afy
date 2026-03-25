@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/app/ui_utiles.dart';
 import 'package:t3afy/volunteer/home/data/sources/volunteer_home_remote_data_source.dart';
 import 'package:t3afy/volunteer/models/volunteer_stats_model.dart';
 import 'package:t3afy/volunteer/tasks/data/models/task_models.dart';
@@ -11,7 +12,7 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
   @override
   Future<VolunteerStatsModel> getVolunteerStats(String userId) async {
     try {
-      const ttl = Duration(minutes: 5);
+      const ttl = Duration(seconds: 30);
       final cacheKey = 'vol_stats_v2_$userId';
       final cached = LocalAppStorage.getCache(cacheKey);
       if (cached != null) {
@@ -36,7 +37,7 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
   @override
   Future<List<TaskModel>> getTodayTasks(String userId) async {
     try {
-      const ttl = Duration(minutes: 2);
+      const ttl = Duration(seconds: 30);
       final today = DateTime.now().toIso8601String().split('T').first;
       final cacheKey = 'today_tasks_${userId}_$today';
       final cached = LocalAppStorage.getCache(cacheKey);
@@ -59,13 +60,19 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
             )
           ''')
           .eq('user_id', userId)
-          .eq('tasks.date', today);
+          .eq('tasks.date', today)
+          .not('status', 'in', '("completed","missed")');
 
       final tasks = (response as List).map<TaskModel>((row) {
         final task = row['tasks'] as Map<String, dynamic>;
+        final assignmentStatus = resolveAssignmentStatus(
+          row['status'] as String? ?? 'assigned',
+          task['date'] as String?,
+          task['time_end'] as String?,
+        );
         return TaskModel.fromJson({
           ...task,
-          'assignment_status': row['status'] ?? 'assigned',
+          'assignment_status': assignmentStatus,
         });
       }).toList();
 
@@ -73,6 +80,20 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
           cacheKey, tasks.map((t) => t.toJson()).toList(),
           ttl: ttl);
       return tasks;
+    } catch (error) {
+      throw ErrorHandler.handle(error).failture;
+    }
+  }
+
+  @override
+  Future<int> getUnreadNotificationsCount(String userId) async {
+    try {
+      final res = await _client
+          .from('admin_notes')
+          .select('id')
+          .eq('volunteer_id', userId)
+          .eq('is_read', false);
+      return (res as List).length;
     } catch (error) {
       throw ErrorHandler.handle(error).failture;
     }

@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
+import 'package:t3afy/app/ui_utiles.dart';
 import 'package:t3afy/admin/home/domain/entities/admin_home_data_entity.dart'
     show AdminHomeDataEntity, MonthlyTaskCount;
 import 'package:t3afy/admin/home/domain/entities/today_campaign_entity.dart';
@@ -43,19 +44,17 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
       final completedRes = await _client
           .from('tasks')
           .select('id')
-          .eq('status', 'done');
+          .inFilter('status', ['completed', 'done']);
       final completedCampaigns = (completedRes as List).length;
 
       final hoursRes = await _client
-          .from('users')
-          .select('total_hours')
-          .inFilter('role', ['volunteer', 'user']);
+          .from('tasks')
+          .select('duration_hours, task_assignments!inner(status)')
+          .eq('task_assignments.status', 'completed');
       double totalHours = 0;
       for (final row in hoursRes as List) {
-        final hours = row['total_hours'] as num?;
-        if (hours != null) {
-          totalHours += hours.toDouble();
-        }
+        final h = row['duration_hours'] as num?;
+        if (h != null) totalHours += h.toDouble();
       }
 
       final now = DateTime.now();
@@ -122,7 +121,7 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
       final monthlyRaw = await _client
           .from('tasks')
           .select('date')
-          .eq('status', 'done')
+          .inFilter('status', ['completed', 'done'])
           .gte('date', twelveMonthsAgo);
       final monthMap = <String, int>{};
       for (final row in monthlyRaw as List) {
@@ -159,7 +158,11 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
             id: taskId,
             title: taskMap['title'] as String? ?? '',
             type: taskMap['type'] as String? ?? '',
-            status: taskMap['status'] as String? ?? 'active',
+            status: resolveCampaignStatus(
+              taskMap['status'] as String? ?? 'upcoming',
+              taskMap['date'] as String?,
+              taskMap['time_end'] as String?,
+            ),
             timeStart: taskMap['time_start'] as String? ?? '',
             timeEnd: taskMap['time_end'] as String? ?? '',
             locationName: taskMap['location_name'] as String?,

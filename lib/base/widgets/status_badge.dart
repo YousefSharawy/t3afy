@@ -43,7 +43,7 @@ class StatusBadge extends StatelessWidget {
         textColor: ColorManager.natural500,
         fillColor: ColorManager.natural200,
       ),
-      'pending' || 'user' || 'قيد المراجعة' => (
+      'pending' || 'pending_review' || 'user' || 'قيد المراجعة' => (
         label: 'قيد المراجعة',
         textColor: ColorManager.warning,
         fillColor: ColorManager.warningLight,

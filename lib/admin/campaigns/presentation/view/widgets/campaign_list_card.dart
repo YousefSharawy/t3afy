@@ -35,12 +35,12 @@ class CampaignListCard extends StatelessWidget {
 
   static Color _topBorderColor(String status) {
     return switch (status) {
-      'active' || 'ongoing' => ColorManager.info,
-      'upcoming'            => ColorManager.warning,
-      'done'                => ColorManager.success,
-      'missed'              => ColorManager.error,
-      'paused'              => ColorManager.warning,
-      _                     => ColorManager.natural400,
+      'active' || 'ongoing'    => ColorManager.info,
+      'upcoming'               => ColorManager.warning,
+      'done' || 'completed'    => ColorManager.success,
+      'missed'                 => ColorManager.error,
+      'paused'                 => ColorManager.warning,
+      _                        => ColorManager.natural400,
     };
   }
 

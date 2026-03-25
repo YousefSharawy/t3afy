@@ -5,4 +5,5 @@ import 'package:t3afy/volunteer/tasks/data/models/task_models.dart';
 abstract class VolunteerHomeRemoteDataSource {
   Future<VolunteerStatsModel> getVolunteerStats(String userId);
   Future<List<TaskModel>> getTodayTasks(String userId);
+  Future<int> getUnreadNotificationsCount(String userId);
 }

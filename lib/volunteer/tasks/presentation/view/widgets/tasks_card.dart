@@ -29,6 +29,8 @@ class TaskCard extends StatelessWidget {
         ? ColorManager.error
         : task.status == 'active'
         ? ColorManager.info
+        : task.status == 'completed' || task.status == 'done'
+        ? ColorManager.success
         : ColorManager.warning;
 
     return GestureDetector(

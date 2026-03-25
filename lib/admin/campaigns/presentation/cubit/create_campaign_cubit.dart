@@ -11,11 +11,11 @@ part 'create_campaign_state.dart';
 
 // ── Static campaign config ─────────────────────────────────────────────────
 const campaignTypes = ['توعية مدرسية', 'توعية جامعية', 'زيارة ميدانية'];
-const campaignStatuses = ['ongoing', 'upcoming', 'done', 'suspended'];
+const campaignStatuses = ['ongoing', 'upcoming', 'completed', 'suspended'];
 const campaignStatusLabels = {
   'ongoing':   'جارية',
   'upcoming':  'قادمة',
-  'done':      'مكتملة',
+  'completed': 'مكتملة',
   'suspended': 'موقوفة',
 };
 
@@ -145,7 +145,9 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
           selectedIds: Set.from(_selectedIds),
           taskData: taskData,
           selectedType: campaignTypes.contains(detail.type) ? detail.type : campaignTypes.first,
-          selectedStatus: campaignStatuses.contains(detail.status) ? detail.status : campaignStatuses.first,
+          selectedStatus: campaignStatuses.contains(detail.status)
+              ? detail.status
+              : (detail.status == 'done' ? 'completed' : campaignStatuses.first),
           selectedDate: DateTime.tryParse(detail.date),
           timeStart: timeStart,
           timeEnd: timeEnd,
@@ -241,7 +243,7 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
       'location_address': locationAddress,
       'supervisor_name': supervisorName,
       'supervisor_phone': supervisorPhone,
-      'points': points,
+      'points': points == 0 ? 10 : points,
       'notes': notes,
       'target_beneficiaries': targetBeneficiaries,
       'objective_titles': objectiveTitles,

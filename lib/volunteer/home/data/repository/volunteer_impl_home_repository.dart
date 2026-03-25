@@ -33,4 +33,16 @@ class HomeImplRepository implements VolunteerHomeRepository {
       return Left(failture);
     }
   }
+
+  @override
+  Future<Either<Failture, int>> getUnreadNotificationsCount(
+    String userId,
+  ) async {
+    try {
+      final result = await _dataSource.getUnreadNotificationsCount(userId);
+      return Right(result);
+    } on Failture catch (failture) {
+      return Left(failture);
+    }
+  }
 }
