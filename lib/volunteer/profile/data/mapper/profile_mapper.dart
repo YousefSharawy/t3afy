@@ -19,6 +19,7 @@ extension ProfileMapper on ProfileModel {
       placesVisited: placesVisited,
       totalPoints: totalPoints,
       joinedAt: joinedAt,
+      idFileUrl: idFileUrl,
     );
   }
 }

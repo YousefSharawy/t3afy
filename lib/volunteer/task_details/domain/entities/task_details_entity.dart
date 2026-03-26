@@ -1,3 +1,5 @@
+import 'package:t3afy/admin/campaigns/domain/entities/campaign_paper_entity.dart';
+
 import 'task_objective_entity.dart';
 import 'task_supply_entity.dart';
 
@@ -20,8 +22,13 @@ class TaskDetailsEntity {
   final String? supervisorPhone;
   final String? notes;
   final String? assignmentStatus;
+  final DateTime? checkedInAt;
+  final DateTime? checkedOutAt;
+  final double? verifiedHours;
+  final bool isVerified;
   final List<TaskObjectiveEntity> objectives;
   final List<TaskSupplyEntity> supplies;
+  final List<CampaignPaperEntity> papers;
 
   TaskDetailsEntity({
     required this.id,
@@ -42,7 +49,12 @@ class TaskDetailsEntity {
     this.supervisorPhone,
     this.notes,
     this.assignmentStatus,
+    this.checkedInAt,
+    this.checkedOutAt,
+    this.verifiedHours,
+    this.isVerified = false,
     required this.objectives,
     required this.supplies,
+    this.papers = const [],
   });
 }

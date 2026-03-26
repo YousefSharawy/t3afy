@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/volunteer_entity.dart';
@@ -84,6 +86,12 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
   void setTimeEnd(TimeOfDay time) =>
       emit(_ready.copyWith(timeEnd: time, clearTaskData: true));
 
+  void setLocation(double lat, double lng) =>
+      emit(_ready.copyWith(locationLat: lat, locationLng: lng));
+
+  void clearLocation() =>
+      emit(_ready.copyWith(clearLocation: true));
+
   // ── Load ──────────────────────────────────────────────────────────────────
 
   Future<void> loadVolunteers() async {
@@ -159,6 +167,8 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
           'time_end': detail.timeEnd,
           'location_name': detail.locationName,
           'location_address': detail.locationAddress,
+          'location_lat': detail.locationLat,
+          'location_lng': detail.locationLng,
           'supervisor_name': detail.supervisorName,
           'supervisor_phone': detail.supervisorPhone,
           'points': detail.points,
@@ -180,6 +190,8 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
           selectedDate: DateTime.tryParse(detail.date),
           timeStart: timeStart,
           timeEnd: timeEnd,
+          locationLat: detail.locationLat,
+          locationLng: detail.locationLng,
         ));
       },
     );
@@ -269,7 +281,10 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
     required int targetBeneficiaries,
     required List<String> objectiveTitles,
     required List<Map<String, dynamic>> suppliesData,
+    required List<File> paperFiles,
     String? taskId,
+    double? locationLat,
+    double? locationLng,
   }) async {
     if (state is! CreateCampaignReady) return;
     final ready = _ready;
@@ -304,6 +319,8 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
       'time_end': timeEndStr,
       'location_name': locationName,
       'location_address': locationAddress,
+      'location_lat': locationLat,
+      'location_lng': locationLng,
       'supervisor_name': supervisorName,
       'supervisor_phone': supervisorPhone,
       'points': points == 0 ? 10 : points,
@@ -312,8 +329,13 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
       'objective_titles': objectiveTitles,
       'supplies_data': suppliesData,
       'volunteer_ids': _selectedIds.toList(),
+      'paper_files': paperFiles,
     };
-    if (taskId == null) formData['created_by'] = adminId;
+    if (taskId == null) {
+      formData['created_by'] = adminId;
+    } else {
+      formData['updated_by'] = adminId;
+    }
 
     if (taskId != null) {
       final result = await _updateCampaign(taskId, formData);

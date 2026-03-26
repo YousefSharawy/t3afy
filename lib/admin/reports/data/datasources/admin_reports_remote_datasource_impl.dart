@@ -54,8 +54,24 @@ class AdminReportsRemoteDatasourceImpl
             .select('duration_hours, location_name, points')
             .eq('id', taskId)
             .single();
-        final durationHours =
+
+        // Prefer verified_hours from assignment if the task was GPS-verified
+        final assignmentRow = await _client
+            .from('task_assignments')
+            .select('verified_hours, is_verified')
+            .eq('task_id', taskId)
+            .eq('user_id', volunteerId)
+            .maybeSingle();
+        final isVerifiedAssignment =
+            (assignmentRow?['is_verified'] as bool?) ?? false;
+        final assignmentVerifiedHours =
+            ((assignmentRow?['verified_hours'] as num?) ?? 0).toDouble();
+        final plannedHours =
             ((task['duration_hours'] as num?) ?? 0).toDouble();
+        final durationHours = (isVerifiedAssignment && assignmentVerifiedHours > 0)
+            ? assignmentVerifiedHours
+            : plannedHours;
+
         final taskPoints = (task['points'] as int?) ?? 0;
         final locationName = task['location_name'] as String?;
 

@@ -21,6 +21,7 @@ abstract class ProfileModel with _$ProfileModel {
     @JsonKey(name: 'places_visited') @Default(0) int placesVisited,
     @JsonKey(name: 'total_points') @Default(0) int totalPoints,
     @JsonKey(name: 'joined_at') @Default('') String joinedAt,
+    @JsonKey(name: 'id_file_url') String? idFileUrl,
   }) = _ProfileModel;
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) =>

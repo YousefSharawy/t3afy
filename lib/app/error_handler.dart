@@ -52,6 +52,8 @@ class ErrorHandler implements Exception {
         return DataSource.forbidden.toFailture();
       case 'PGRST301': // JWT expired
         return DataSource.unautorised.toFailture();
+      case '23505': // unique_violation
+        return Failture(409, 'هذا البريد مسجل بالفعل');
       default:
         return DataSource.unknown.toFailture();
     }

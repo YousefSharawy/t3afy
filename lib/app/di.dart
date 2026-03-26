@@ -41,6 +41,8 @@ import 'package:t3afy/volunteer/task_details/data/repository/task_details_impl_r
 import 'package:t3afy/volunteer/task_details/domain/repository/task_details_repository.dart';
 import 'package:t3afy/volunteer/task_details/domain/use_cases/get_task_details_use_case.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/task_details_cubit.dart';
+import 'package:t3afy/volunteer/task_details/data/sources/check_in_data_source.dart';
+import 'package:t3afy/volunteer/task_details/data/sources/check_in_impl_data_source.dart';
 import 'package:t3afy/volunteer/task_details/data/sources/report_remote_data_source.dart';
 import 'package:t3afy/volunteer/task_details/data/sources/report_impl_remote_data_source.dart';
 import 'package:t3afy/volunteer/task_details/data/repository/report_impl_repository.dart';
@@ -155,7 +157,7 @@ Future<void> initAppModule() async {
   getIt.registerLazySingleton<Register>(() => Register(getIt()));
 
   // Cubits
-  getIt.registerFactory<AuthCubit>(() => AuthCubit(getIt(), getIt(),getIt()));
+  getIt.registerFactory<AuthCubit>(() => AuthCubit(getIt(), getIt(),getIt(),getIt()));
 getIt.registerFactory(() => HomeCubit(getIt(), getIt(), getIt()));
 
 
@@ -231,8 +233,14 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton<TaskDetailsImplRemoteDataSource>(
     () => getIt<TaskDetailsRemoteDataSource>() as TaskDetailsImplRemoteDataSource,
   );
+  getIt.registerLazySingleton<CheckInDataSource>(
+    () => CheckInImplDataSource(),
+  );
   getIt.registerLazySingleton<TaskDetailsRepository>(
-    () => TaskDetailsImplRepository(getIt<TaskDetailsRemoteDataSource>()),
+    () => TaskDetailsImplRepository(
+      getIt<TaskDetailsRemoteDataSource>(),
+      checkInDataSource: getIt<CheckInDataSource>(),
+    ),
   );
   getIt.registerLazySingleton(
     () => GetTaskDetailsUseCase(getIt<TaskDetailsRepository>()),

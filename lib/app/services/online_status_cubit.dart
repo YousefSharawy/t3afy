@@ -11,38 +11,54 @@ class OnlineStatusCubit extends Cubit<OnlineStatusState>
     with WidgetsBindingObserver {
   final SupabaseClient _client;
   Timer? _heartbeat;
+  bool _observerAdded = false;
 
   OnlineStatusCubit(this._client) : super(OnlineStatusState()) {
-  _initOnline();
-}
+    _initOnline();
+  }
 
-Future<void> _initOnline() async {
-  final role = LocalAppStorage.getUserRole();
-  final userId = LocalAppStorage.getUserId();
-  debugPrint('🔍 OnlineStatus init — role: $role, userId: $userId');
-  if (role == null || role == 'admin') return;
-  WidgetsBinding.instance.addObserver(this);
-
-  for (int i = 0; i < 5; i++) {
+  Future<void> _initOnline() async {
+    final role = LocalAppStorage.getUserRole();
     final userId = LocalAppStorage.getUserId();
+    debugPrint('🔍 OnlineStatus init — role: $role, userId: $userId');
+    if (role == null || role == 'admin') return;
+    if (!_observerAdded) {
+      WidgetsBinding.instance.addObserver(this);
+      _observerAdded = true;
+    }
     if (userId != null) {
       await _setOnline(true);
-      _heartbeat = Timer.periodic(
-        const Duration(minutes: 1),
-        (_) {
-          final currentRole = LocalAppStorage.getUserRole();
-          if (currentRole == 'admin' || currentRole == null) {
-            _heartbeat?.cancel();
-            return;
-          }
-          _setOnline(true);
-        },
-      );
-      return;
+      _startHeartbeat();
     }
-    await Future.delayed(const Duration(milliseconds: 500));
   }
-}
+
+  Future<void> reinitOnline() async {
+    final role = LocalAppStorage.getUserRole();
+    final userId = LocalAppStorage.getUserId();
+    debugPrint('🔍 OnlineStatus reinit — role: $role, userId: $userId');
+    if (role == null || role == 'admin') return;
+    if (!_observerAdded) {
+      WidgetsBinding.instance.addObserver(this);
+      _observerAdded = true;
+    }
+    _heartbeat?.cancel();
+    await _setOnline(true);
+    _startHeartbeat();
+  }
+
+  void _startHeartbeat() {
+    _heartbeat = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) {
+        final currentRole = LocalAppStorage.getUserRole();
+        if (currentRole == 'admin' || currentRole == null) {
+          _heartbeat?.cancel();
+          return;
+        }
+        _setOnline(true);
+      },
+    );
+  }
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -73,7 +89,9 @@ Future<void> _initOnline() async {
   Future<void> close() {
     _heartbeat?.cancel();
     _setOnline(false);
-    WidgetsBinding.instance.removeObserver(this);
+    if (_observerAdded) {
+      WidgetsBinding.instance.removeObserver(this);
+    }
     return super.close();
   }
 }

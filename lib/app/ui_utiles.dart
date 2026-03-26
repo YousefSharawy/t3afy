@@ -16,6 +16,7 @@ String resolveCampaignStatus(
     case 'pending_review':
     case 'cancelled':
     case 'missed':
+    case 'in_progress': // Never override — volunteer is actively checked in
       return rawStatus;
     case 'upcoming':
     case 'active':

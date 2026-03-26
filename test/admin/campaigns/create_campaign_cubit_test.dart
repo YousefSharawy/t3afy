@@ -134,6 +134,7 @@ void main() {
           targetBeneficiaries: 100,
           objectiveTitles: ['هدف 1'],
           suppliesData: [],
+          paperFiles: [],
         );
         await Future<void>.delayed(Duration.zero);
         await sub.cancel();
@@ -165,6 +166,7 @@ void main() {
           targetBeneficiaries: 50,
           objectiveTitles: [],
           suppliesData: [],
+          paperFiles: [],
         );
         await Future<void>.delayed(Duration.zero);
         await sub.cancel();
@@ -203,6 +205,7 @@ void main() {
           targetBeneficiaries: 80,
           objectiveTitles: [],
           suppliesData: [],
+          paperFiles: [],
           taskId: 'camp-1',
         );
         await Future<void>.delayed(Duration.zero);

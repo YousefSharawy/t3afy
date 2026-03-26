@@ -7,16 +7,43 @@ import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
+Future<void> openDirections(double lat, double lng) async {
+  final googleMapsUrl =
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving';
+  final appleMapsUrl = 'https://maps.apple.com/?daddr=$lat,$lng&dirflg=d';
+  final geoUrl = 'geo:$lat,$lng?q=$lat,$lng';
+
+  if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+    await launchUrl(Uri.parse(googleMapsUrl),
+        mode: LaunchMode.externalApplication);
+  } else if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
+    await launchUrl(Uri.parse(appleMapsUrl),
+        mode: LaunchMode.externalApplication);
+  } else {
+    await launchUrl(Uri.parse(geoUrl), mode: LaunchMode.externalApplication);
+  }
+}
+
 class MapButton extends StatelessWidget {
-  const MapButton({super.key, required this.lat, required this.lng});
+  const MapButton({
+    super.key,
+    this.lat,
+    this.lng,
+    this.locationName,
+    this.locationAddress,
+  });
 
   final double? lat;
   final double? lng;
+  final String? locationName;
+  final String? locationAddress;
+
+  bool get _hasCoords => lat != null && lng != null && lat != 0.0 && lng != 0.0;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _openMap,
+      onTap: _openDirections,
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: AppWidth.s10,
@@ -29,10 +56,10 @@ class MapButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-           Image.asset(IconAssets.map),
+            Image.asset(IconAssets.map),
             SizedBox(width: AppWidth.s4),
             Text(
-              'فتح في الخريطة',
+              _hasCoords ? 'الاتجاهات إلى الموقع 🧭' : 'بحث في الخريطة 🔍',
               style: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s12,
@@ -45,12 +72,17 @@ class MapButton extends StatelessWidget {
     );
   }
 
-  Future<void> _openMap() async {
-    if (lat != null && lng != null) {
-      final uri = Uri.parse(
-        'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
-      );
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Future<void> _openDirections() async {
+    if (_hasCoords) {
+      await openDirections(lat!, lng!);
+    } else {
+      final query = locationName ?? locationAddress ?? '';
+      if (query.isEmpty) return;
+      final searchUrl = Uri.parse(
+          'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}');
+      if (await canLaunchUrl(searchUrl)) {
+        await launchUrl(searchUrl, mode: LaunchMode.externalApplication);
+      }
     }
   }
 }

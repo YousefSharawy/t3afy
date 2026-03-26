@@ -7,6 +7,10 @@ class CampaignMemberEntity {
   final bool isOnline;
   final DateTime? lastSeenAt;
   final String role;
+  final DateTime? checkedInAt;
+  final DateTime? checkedOutAt;
+  final double? verifiedHours;
+  final bool isVerified;
 
   const CampaignMemberEntity({
     required this.id,
@@ -17,6 +21,10 @@ class CampaignMemberEntity {
     required this.isOnline,
     this.lastSeenAt,
     required this.role,
+    this.checkedInAt,
+    this.checkedOutAt,
+    this.verifiedHours,
+    this.isVerified = false,
   });
 
   bool get isActiveNow {

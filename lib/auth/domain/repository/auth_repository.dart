@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import 'package:t3afy/auth/data/models/user_model.dart';
 
@@ -10,6 +12,7 @@ abstract class AuthRepository {
     required String name,
     required String password,
     required String role,
+    File? idFile,
   });
   Future<Either<Failture, void>> logout();
 }

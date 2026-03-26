@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/volunteer_entity.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
@@ -36,8 +39,11 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
   final List<TextEditingController> _objectiveCtrls = [];
   final List<TextEditingController> _supplyNameCtrls = [];
   final List<TextEditingController> _supplyQtyCtrls = [];
+  final List<File> _selectedPapers = [];
 
   bool _prefilled = false;
+
+  final _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -144,6 +150,18 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
     cubit.setTimeEnd(end);
   }
 
+  // ── Papers ────────────────────────────────────────────────────────────────
+
+  Future<void> _pickPapers() async {
+    final picked = await _imagePicker.pickMultiImage();
+    if (picked.isEmpty) return;
+    setState(() {
+      for (final xf in picked) {
+        _selectedPapers.add(File(xf.path));
+      }
+    });
+  }
+
   // ── Save (assembles text from controllers → delegates to cubit) ───────────
 
   void _save() {
@@ -178,7 +196,14 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
           'quantity': int.tryParse(_supplyQtyCtrls[i].text) ?? 1,
         },
       ).where((s) => (s['name'] as String).isNotEmpty).toList(),
+      paperFiles: List.from(_selectedPapers),
       taskId: widget.taskId,
+      locationLat: (context.read<CreateCampaignCubit>().state is CreateCampaignReady)
+          ? (context.read<CreateCampaignCubit>().state as CreateCampaignReady).locationLat
+          : null,
+      locationLng: (context.read<CreateCampaignCubit>().state is CreateCampaignReady)
+          ? (context.read<CreateCampaignCubit>().state as CreateCampaignReady).locationLng
+          : null,
     );
   }
 
@@ -284,6 +309,8 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
                       timeEnd: ready?.timeEnd,
                       volunteers: ready?.volunteers ?? <VolunteerEntity>[],
                       selectedIds: ready?.selectedIds ?? const <String>{},
+                      selectedLat: ready?.locationLat,
+                      selectedLng: ready?.locationLng,
                       onPickDate: _pickDate,
                       onPickCombinedTime: _pickCombinedTime,
                       onAddObjective: () => setState(
@@ -303,6 +330,9 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
                         _supplyNameCtrls.removeAt(i);
                         _supplyQtyCtrls.removeAt(i);
                       }),
+                      selectedPapers: _selectedPapers,
+                      onAddPaper: _pickPapers,
+                      onRemovePaper: (i) => setState(() => _selectedPapers.removeAt(i)),
                     ),
                   ),
                 if (isSaving)

@@ -60,8 +60,16 @@ class PrimaryElevatedButton extends StatelessWidget {
             fixedSize: Size(width ?? 1.sw, height ?? AppHeight.s50),
           ),
           onPressed: onPress,
-          child:
-              titleWidget ??
+          child: isLoading
+              ? SizedBox(
+                  width: AppHeight.s24,
+                  height: AppHeight.s24,
+                  child: CircularProgressIndicator(
+                    color: ColorManager.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : titleWidget ??
               FittedBox(
                 child: Row(
                   children: [
@@ -72,7 +80,8 @@ class PrimaryElevatedButton extends StatelessWidget {
                         height: AppHeight.s16,
                       ),
                     ],
-                    SizedBox(width: AppWidth.s8),
+                    // We only want spacing if there's an icon
+                    if (iconPath != null) SizedBox(width: AppWidth.s8),
                     Center(child: Text(title, style: textStyle ?? getBoldStyle(fontFamily: FontConstants.fontFamily, fontSize: FontSize.s14, color: ColorManager.white))),
                   ],
                 ),

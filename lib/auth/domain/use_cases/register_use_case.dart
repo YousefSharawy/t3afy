@@ -1,5 +1,6 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
-import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/app/failture.dart';
 import 'package:t3afy/auth/data/models/user_model.dart';
 import 'package:t3afy/auth/domain/repository/auth_repository.dart';
@@ -14,12 +15,14 @@ class Register {
     required String name,
     required String password,
     required String role,
+    File? idFile,
   }) {
     return _repository.register(
       email: email,
       name: name,
       password: password,
       role: role,
+      idFile: idFile,
     );
   }
 }

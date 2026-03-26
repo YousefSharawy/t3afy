@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:t3afy/admin/campaigns/domain/entities/campaign_paper_entity.dart';
 import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/ui_utiles.dart';
@@ -70,6 +71,27 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
           .eq('task_id', taskId);
       return (response as List)
           .map((e) => TaskSupplyModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (error) {
+      throw ErrorHandler.handle(error).failture;
+    }
+  }
+
+  @override
+  Future<List<CampaignPaperEntity>> getTaskPapers(String taskId) async {
+    try {
+      final response = await _client
+          .from('task_papers')
+          .select()
+          .eq('task_id', taskId);
+      return (response as List)
+          .map(
+            (p) => CampaignPaperEntity(
+              id: p['id'] as String,
+              fileUrl: p['file_url'] as String? ?? '',
+              fileName: p['file_name'] as String? ?? '',
+            ),
+          )
           .toList();
     } catch (error) {
       throw ErrorHandler.handle(error).failture;

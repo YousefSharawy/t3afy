@@ -13,10 +13,10 @@ class StatusBadge extends StatelessWidget {
     String status,
   ) {
     return switch (status) {
-      'active' || 'ongoing' => (
+      'active' || 'ongoing' || 'in_progress' => (
         label: 'جارية',
-        textColor: ColorManager.info,
-        fillColor: ColorManager.infoLight,
+        textColor: ColorManager.primary500,
+        fillColor: ColorManager.primary50,
       ),
       'upcoming' => (
         label: 'قادمة',

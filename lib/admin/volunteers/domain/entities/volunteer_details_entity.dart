@@ -47,6 +47,7 @@ class VolunteerDetailsEntity {
   final String role;
   final List<VolunteerTaskAssignmentEntity> tasks;
   final List<String> volunteerAreas;
+  final String? idFileUrl;
 
   const VolunteerDetailsEntity({
     required this.id,
@@ -69,6 +70,7 @@ class VolunteerDetailsEntity {
     required this.role,
     required this.tasks,
     this.volunteerAreas = const [],
+    this.idFileUrl,
   });
 
   VolunteerDetailsEntity copyWith({
@@ -92,6 +94,7 @@ class VolunteerDetailsEntity {
     String? role,
     List<VolunteerTaskAssignmentEntity>? tasks,
     List<String>? volunteerAreas,
+    String? idFileUrl,
   }) {
     return VolunteerDetailsEntity(
       id: id ?? this.id,
@@ -114,6 +117,7 @@ class VolunteerDetailsEntity {
       role: role ?? this.role,
       tasks: tasks ?? this.tasks,
       volunteerAreas: volunteerAreas ?? this.volunteerAreas,
+      idFileUrl: idFileUrl ?? this.idFileUrl,
     );
   }
 
@@ -164,6 +168,7 @@ class VolunteerDetailsEntity {
       role: json['role'] as String? ?? 'user',
       tasks: tasks,
       volunteerAreas: volunteerAreas,
+      idFileUrl: json['id_file_url'] as String?,
     );
   }
 

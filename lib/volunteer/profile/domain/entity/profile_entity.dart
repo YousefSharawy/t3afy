@@ -14,6 +14,7 @@ class ProfileEntity {
   final int placesVisited;
   final int totalPoints;
   final String joinedAt;
+  final String? idFileUrl;
 
   ProfileEntity({
     required this.id,
@@ -31,5 +32,6 @@ class ProfileEntity {
     required this.placesVisited,
     required this.totalPoints,
     required this.joinedAt,
+    this.idFileUrl,
   });
 }

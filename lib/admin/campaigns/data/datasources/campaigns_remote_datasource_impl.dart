@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/app/failture.dart';
@@ -7,6 +9,7 @@ import '../../domain/entities/campaign_entity.dart';
 import '../../domain/entities/campaign_detail_entity.dart';
 import '../../domain/entities/campaign_member_entity.dart';
 import '../../domain/entities/campaign_objective_entity.dart';
+import '../../domain/entities/campaign_paper_entity.dart';
 import '../../domain/entities/campaign_supply_entity.dart';
 import '../../domain/entities/volunteer_entity.dart';
 import 'campaigns_remote_datasource.dart';
@@ -189,17 +192,35 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
           )
           .toList();
 
-      // Members via task_assignments joined with users
-     final assignmentsRaw = await _client
-    .from('task_assignments')
-    .select('user_id, status, users!task_assignments_user_id_fkey(id, name, avatar_url, rating, region, is_online, last_seen_at, role)')
-    .eq('task_id', id);
+      // Papers
+      final papersRaw = await _client
+          .from('task_papers')
+          .select()
+          .eq('task_id', id);
+      final papers = (papersRaw as List)
+          .map(
+            (p) => CampaignPaperEntity(
+              id: p['id'] as String,
+              fileUrl: p['file_url'] as String? ?? '',
+              fileName: p['file_name'] as String? ?? '',
+            ),
+          )
+          .toList();
+
+      // Members via task_assignments joined with users (include check-in fields)
+      final assignmentsRaw = await _client
+          .from('task_assignments')
+          .select(
+              'user_id, status, checked_in_at, checked_out_at, verified_hours, is_verified, users!task_assignments_user_id_fkey(id, name, avatar_url, rating, region, is_online, last_seen_at, role)')
+          .eq('task_id', id);
 
       final members = <CampaignMemberEntity>[];
       for (final a in assignmentsRaw as List) {
         final u = a['users'] as Map<String, dynamic>?;
         if (u == null) continue;
         final lastSeenStr = u['last_seen_at'] as String?;
+        final checkedInStr = a['checked_in_at'] as String?;
+        final checkedOutStr = a['checked_out_at'] as String?;
         members.add(
           CampaignMemberEntity(
             id: u['id'] as String? ?? a['user_id'] as String,
@@ -210,9 +231,18 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
             isOnline: (u['is_online'] as bool?) ?? false,
             lastSeenAt: lastSeenStr != null ? DateTime.tryParse(lastSeenStr) : null,
             role: u['role'] as String? ?? 'user',
+            checkedInAt: checkedInStr != null ? DateTime.tryParse(checkedInStr) : null,
+            checkedOutAt: checkedOutStr != null ? DateTime.tryParse(checkedOutStr) : null,
+            verifiedHours: ((a['verified_hours'] as num?) ?? 0).toDouble(),
+            isVerified: (a['is_verified'] as bool?) ?? false,
           ),
         );
       }
+
+      // Compute attendance summary
+      final verifiedAttendanceCount = members.where((m) => m.isVerified).length;
+      final totalVerifiedHours = members.fold<double>(
+          0.0, (sum, m) => sum + (m.verifiedHours ?? 0.0));
 
       final detailDate = taskMap['date'] as String?;
       final detailTimeEnd = taskMap['time_end'] as String?;
@@ -232,6 +262,8 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
         timeEnd: taskMap['time_end'] as String?,
         locationName: taskMap['location_name'] as String?,
         locationAddress: taskMap['location_address'] as String?,
+        locationLat: (taskMap['location_lat'] as num?)?.toDouble(),
+        locationLng: (taskMap['location_lng'] as num?)?.toDouble(),
         supervisorName: taskMap['supervisor_name'] as String?,
         supervisorPhone: taskMap['supervisor_phone'] as String?,
         description: taskMap['description'] as String?,
@@ -239,9 +271,12 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
         targetBeneficiaries: (taskMap['target_beneficiaries'] as int?) ?? 0,
         reachedBeneficiaries: (taskMap['reached_beneficiaries'] as int?) ?? 0,
         points: (taskMap['points'] as int?) ?? 0,
+        verifiedAttendanceCount: verifiedAttendanceCount,
+        totalVerifiedHours: totalVerifiedHours,
         members: members,
         objectives: objectives,
         supplies: supplies,
+        papers: papers,
       );
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
@@ -311,6 +346,36 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
   }
 
   @override
+  Future<void> uploadCampaignPapers({
+    required String taskId,
+    required String adminId,
+    required List<File> files,
+  }) async {
+    try {
+      for (final file in files) {
+        final originalName = file.path.split('/').last;
+        final cleanFileName = originalName.replaceAll(RegExp(r'[^a-zA-Z0-9.]'), '_');
+        final ext = cleanFileName.split('.').last.toLowerCase();
+        final contentType = ext == 'pdf' ? 'application/pdf' : (ext == 'png' ? 'image/png' : 'image/jpeg');
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}_$cleanFileName';
+        final path = '$taskId/$fileName';
+        final bytes = await file.readAsBytes();
+        await _client.storage.from('campaign-papers').uploadBinary(path, bytes, fileOptions: FileOptions(contentType: contentType));
+        final publicUrl = _client.storage.from('campaign-papers').getPublicUrl(path);
+        await _client.from('task_papers').insert({
+          'task_id': taskId,
+          'file_url': publicUrl,
+          'file_name': fileName,
+          'uploaded_by': adminId,
+          'uploaded_at': DateTime.now().toUtc().toIso8601String(),
+        });
+      }
+    } catch (e) {
+      throw ErrorHandler.handle(e).failture;
+    }
+  }
+
+  @override
   Future<String> createCampaign(Map<String, dynamic> data) async {
     try {
       final timeStart = data['time_start'] as String?;
@@ -329,6 +394,7 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
       final volunteerIds = data.remove('volunteer_ids') as List<String>? ?? [];
       final objectiveTitles = data.remove('objective_titles') as List<String>? ?? [];
       final suppliesData = data.remove('supplies_data') as List<Map<String, dynamic>>? ?? [];
+      final paperFiles = data.remove('paper_files') as List<File>? ?? [];
 
       final response = await _client
           .from('tasks')
@@ -407,6 +473,15 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
         await _client.from('task_supplies').insert(supplies);
       }
 
+      if (paperFiles.isNotEmpty) {
+        final adminId = data['created_by'] as String? ?? '';
+        await uploadCampaignPapers(
+          taskId: taskId,
+          adminId: adminId,
+          files: paperFiles,
+        );
+      }
+
       await LocalAppStorage.invalidateCache('campaigns_list');
       await LocalAppStorage.invalidateCache('campaigns_stats');
       return taskId;
@@ -421,6 +496,8 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
       final volunteerIds = data.remove('volunteer_ids') as List<String>?;
       final objectiveTitles = data.remove('objective_titles') as List<String>?;
       final suppliesData = data.remove('supplies_data') as List<Map<String, dynamic>>?;
+      final paperFiles = data.remove('paper_files') as List<File>? ?? [];
+      final adminId = data.remove('updated_by') as String? ?? '';
 
       final timeStart = data['time_start'] as String?;
       final timeEnd = data['time_end'] as String?;
@@ -517,6 +594,14 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
         }
       }
 
+      if (paperFiles.isNotEmpty) {
+        await uploadCampaignPapers(
+          taskId: id,
+          adminId: adminId,
+          files: paperFiles,
+        );
+      }
+
       await LocalAppStorage.invalidateCache('campaigns_list');
       await LocalAppStorage.invalidateCache('campaigns_stats');
     } catch (e) {
@@ -553,6 +638,25 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
         await LocalAppStorage.invalidateCache('tasks_stats_$uid');
         await LocalAppStorage.invalidateCache('vol_stats_v2_$uid');
       }
+
+      // Delete campaign papers from storage and table
+      final papersRaw = await _client
+          .from('task_papers')
+          .select('file_url')
+          .eq('task_id', id);
+      for (final p in papersRaw as List) {
+        final url = p['file_url'] as String? ?? '';
+        // Extract path: everything after /campaign-papers/
+        final marker = '/campaign-papers/';
+        final markerIdx = url.indexOf(marker);
+        if (markerIdx != -1) {
+          final storagePath = url.substring(markerIdx + marker.length);
+          try {
+            await _client.storage.from('campaign-papers').remove([storagePath]);
+          } catch (_) {}
+        }
+      }
+      await _client.from('task_papers').delete().eq('task_id', id);
 
       await _client.from('task_assignments').delete().eq('task_id', id);
       await _client.from('task_objectives').delete().eq('task_id', id);

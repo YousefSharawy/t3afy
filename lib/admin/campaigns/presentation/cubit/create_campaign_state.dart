@@ -25,6 +25,8 @@ class CreateCampaignReady extends CreateCampaignState {
   final DateTime? selectedDate;
   final TimeOfDay? timeStart;
   final TimeOfDay? timeEnd;
+  final double? locationLat;
+  final double? locationLng;
 
   const CreateCampaignReady({
     required this.volunteers,
@@ -35,6 +37,8 @@ class CreateCampaignReady extends CreateCampaignState {
     this.selectedDate,
     this.timeStart,
     this.timeEnd,
+    this.locationLat,
+    this.locationLng,
   });
 
   CreateCampaignReady copyWith({
@@ -46,7 +50,10 @@ class CreateCampaignReady extends CreateCampaignState {
     DateTime? selectedDate,
     TimeOfDay? timeStart,
     TimeOfDay? timeEnd,
+    double? locationLat,
+    double? locationLng,
     bool clearTaskData = false,
+    bool clearLocation = false,
   }) {
     return CreateCampaignReady(
       volunteers: volunteers ?? this.volunteers,
@@ -57,6 +64,8 @@ class CreateCampaignReady extends CreateCampaignState {
       selectedDate: selectedDate ?? this.selectedDate,
       timeStart: timeStart ?? this.timeStart,
       timeEnd: timeEnd ?? this.timeEnd,
+      locationLat: clearLocation ? null : (locationLat ?? this.locationLat),
+      locationLng: clearLocation ? null : (locationLng ?? this.locationLng),
     );
   }
 }

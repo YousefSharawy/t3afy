@@ -27,12 +27,17 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: ((_) => AuthCubit(getIt(), getIt(), getIt()))),
         BlocProvider(
           lazy: false,
-          create: (_) {
-            return getIt<OnlineStatusCubit>();
-          },
+          create: (_) => getIt<OnlineStatusCubit>(),
+        ),
+        BlocProvider(
+          create: (context) => AuthCubit(
+            getIt(),
+            getIt(),
+            getIt(),
+            context.read<OnlineStatusCubit>(),
+          ),
         ),
       ],
       child: ScreenUtilInit(

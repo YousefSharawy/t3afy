@@ -1,5 +1,6 @@
 import 'campaign_member_entity.dart';
 import 'campaign_objective_entity.dart';
+import 'campaign_paper_entity.dart';
 import 'campaign_supply_entity.dart';
 
 class CampaignDetailEntity {
@@ -12,6 +13,8 @@ class CampaignDetailEntity {
   final String? timeEnd;
   final String? locationName;
   final String? locationAddress;
+  final double? locationLat;
+  final double? locationLng;
   final String? supervisorName;
   final String? supervisorPhone;
   final String? description;
@@ -19,9 +22,12 @@ class CampaignDetailEntity {
   final int targetBeneficiaries;
   final int reachedBeneficiaries;
   final int points;
+  final int verifiedAttendanceCount;
+  final double totalVerifiedHours;
   final List<CampaignMemberEntity> members;
   final List<CampaignObjectiveEntity> objectives;
   final List<CampaignSupplyEntity> supplies;
+  final List<CampaignPaperEntity> papers;
 
   const CampaignDetailEntity({
     required this.id,
@@ -33,6 +39,8 @@ class CampaignDetailEntity {
     this.timeEnd,
     this.locationName,
     this.locationAddress,
+    this.locationLat,
+    this.locationLng,
     this.supervisorName,
     this.supervisorPhone,
     this.description,
@@ -40,9 +48,12 @@ class CampaignDetailEntity {
     required this.targetBeneficiaries,
     required this.reachedBeneficiaries,
     required this.points,
+    this.verifiedAttendanceCount = 0,
+    this.totalVerifiedHours = 0.0,
     required this.members,
     required this.objectives,
     required this.supplies,
+    this.papers = const [],
   });
 
   CampaignDetailEntity copyWith({
@@ -55,6 +66,8 @@ class CampaignDetailEntity {
     String? timeEnd,
     String? locationName,
     String? locationAddress,
+    double? locationLat,
+    double? locationLng,
     String? supervisorName,
     String? supervisorPhone,
     String? description,
@@ -62,9 +75,12 @@ class CampaignDetailEntity {
     int? targetBeneficiaries,
     int? reachedBeneficiaries,
     int? points,
+    int? verifiedAttendanceCount,
+    double? totalVerifiedHours,
     List<CampaignMemberEntity>? members,
     List<CampaignObjectiveEntity>? objectives,
     List<CampaignSupplyEntity>? supplies,
+    List<CampaignPaperEntity>? papers,
   }) {
     return CampaignDetailEntity(
       id: id ?? this.id,
@@ -76,6 +92,8 @@ class CampaignDetailEntity {
       timeEnd: timeEnd ?? this.timeEnd,
       locationName: locationName ?? this.locationName,
       locationAddress: locationAddress ?? this.locationAddress,
+      locationLat: locationLat ?? this.locationLat,
+      locationLng: locationLng ?? this.locationLng,
       supervisorName: supervisorName ?? this.supervisorName,
       supervisorPhone: supervisorPhone ?? this.supervisorPhone,
       description: description ?? this.description,
@@ -83,9 +101,12 @@ class CampaignDetailEntity {
       targetBeneficiaries: targetBeneficiaries ?? this.targetBeneficiaries,
       reachedBeneficiaries: reachedBeneficiaries ?? this.reachedBeneficiaries,
       points: points ?? this.points,
+      verifiedAttendanceCount: verifiedAttendanceCount ?? this.verifiedAttendanceCount,
+      totalVerifiedHours: totalVerifiedHours ?? this.totalVerifiedHours,
       members: members ?? this.members,
       objectives: objectives ?? this.objectives,
       supplies: supplies ?? this.supplies,
+      papers: papers ?? this.papers,
     );
   }
 }

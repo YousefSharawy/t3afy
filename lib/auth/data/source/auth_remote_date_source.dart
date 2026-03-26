@@ -1,5 +1,7 @@
 
 
+import 'dart:io';
+
 import 'package:t3afy/auth/data/models/user_model.dart';
 
 abstract class AuthRemoteDateSource {
@@ -9,6 +11,7 @@ abstract class AuthRemoteDateSource {
     required String name,
     required String password,
     required String role,
+    File? idFile,
   });
   Future<void> logout();
 }

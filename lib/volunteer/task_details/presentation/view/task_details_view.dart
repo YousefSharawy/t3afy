@@ -7,8 +7,12 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/volunteer/task_details/data/sources/check_in_impl_data_source.dart';
+import 'package:t3afy/volunteer/task_details/domain/entities/task_details_entity.dart';
+import 'package:t3afy/volunteer/task_details/presentation/cubit/location_cubit.dart';
 
 import '../cubit/task_details_cubit.dart';
+import 'widgets/check_in_out_card.dart';
 import 'widgets/task_details_header_card.dart';
 import 'widgets/task_details_tab.dart';
 import 'widgets/task_details_tab_switcher.dart';
@@ -31,6 +35,30 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
   void initState() {
     super.initState();
     context.read<TaskDetailsCubit>().loadTaskDetails(widget.taskId);
+  }
+
+  /// Returns true when:
+  /// - task has GPS coordinates
+  /// - current time is within 30 min before time_start until time_end
+  bool _shouldShowCheckIn(TaskDetailsEntity task) {
+    if (task.locationLat == null || task.locationLng == null) return false;
+    if (task.locationLat == 0 && task.locationLng == 0) return false;
+    try {
+      final d = DateTime.parse(task.date);
+      final startParts = task.timeStart.split(':');
+      final endParts = task.timeEnd.split(':');
+      final startHour = int.tryParse(startParts[0]) ?? 0;
+      final startMin = int.tryParse(startParts[1]) ?? 0;
+      final endHour = int.tryParse(endParts[0]) ?? 23;
+      final endMin = int.tryParse(endParts[1]) ?? 59;
+      final windowStart = DateTime(d.year, d.month, d.day, startHour, startMin)
+          .subtract(const Duration(minutes: 30));
+      final windowEnd = DateTime(d.year, d.month, d.day, endHour, endMin);
+      final now = DateTime.now();
+      return now.isAfter(windowStart) && now.isBefore(windowEnd);
+    } catch (_) {
+      return false;
+    }
   }
 
   @override
@@ -72,35 +100,48 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
                   .read<TaskDetailsCubit>()
                   .loadTaskDetails(widget.taskId),
             ),
-            loaded: (task) => SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppWidth.s18,
-              ),
-              child: Column(
-                children: [
-                  SizedBox(height: AppHeight.s10,),
-                  TaskDetailsHeaderCard(task: task),
-                  SizedBox(height: AppHeight.s16),
-                  TaskDetailsTabSwitcher(
-                    selectedIndex: _selectedTab,
-                    onTabChanged: (i) => setState(() => _selectedTab = i),
-                  ),
-                  SizedBox(height: AppHeight.s24),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 280),
-                    child: _selectedTab == 0
-                        ? TaskDetailsTab(
-                            key: const ValueKey(0),
-                            task: task,
-                          )
-                        : TaskSuppliesTab(
-                            key: const ValueKey(1),
-                            task: task,
-                          ),
-                  ),
-                ],
-              ),
-            ),
+            loaded: (task) {
+              final showCheckIn = _shouldShowCheckIn(task);
+              return SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
+                child: Column(
+                  children: [
+                    SizedBox(height: AppHeight.s10),
+                    TaskDetailsHeaderCard(task: task),
+                    if (showCheckIn) ...[
+                      SizedBox(height: AppHeight.s16),
+                      BlocProvider<LocationCubit>(
+                        create: (_) => LocationCubit(
+                          taskId: task.id,
+                          taskLat: task.locationLat!,
+                          taskLng: task.locationLng!,
+                          dataSource: CheckInImplDataSource(),
+                        )..init(),
+                        child: const CheckInOutCard(),
+                      ),
+                    ],
+                    SizedBox(height: AppHeight.s16),
+                    TaskDetailsTabSwitcher(
+                      selectedIndex: _selectedTab,
+                      onTabChanged: (i) => setState(() => _selectedTab = i),
+                    ),
+                    SizedBox(height: AppHeight.s24),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 280),
+                      child: _selectedTab == 0
+                          ? TaskDetailsTab(
+                              key: const ValueKey(0),
+                              task: task,
+                            )
+                          : TaskSuppliesTab(
+                              key: const ValueKey(1),
+                              task: task,
+                            ),
+                    ),
+                  ],
+                ),
+              );
+            },
           );
         },
       ),

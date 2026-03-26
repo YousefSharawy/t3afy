@@ -135,15 +135,12 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
           .eq('status', 'completed');
       final completedCount = completedResponse.length;
 
-      final pointsResponse = await _client
-          .from('task_assignments')
-          .select('tasks!inner(points)')
-          .eq('user_id', userId)
-          .eq('status', 'completed');
-      int earnedPoints = 0;
-      for (final row in pointsResponse) {
-        earnedPoints += (row['tasks']['points'] as num?)?.toInt() ?? 0;
-      }
+      final userRow = await _client
+          .from('users')
+          .select('total_points')
+          .eq('id', userId)
+          .single();
+      final earnedPoints = (userRow['total_points'] as num?)?.toInt() ?? 0;
 
       await LocalAppStorage.setCache(
         cacheKey,

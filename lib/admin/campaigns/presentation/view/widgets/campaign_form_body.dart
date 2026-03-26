@@ -1,10 +1,16 @@
+import 'dart:io';
+
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/volunteer_entity.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
+import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/base/primary_widgets.dart';
 import 'add_item_header.dart';
@@ -12,6 +18,7 @@ import 'campaign_form_helpers.dart';
 import 'create_volunteer_picker_sheet.dart';
 import 'dropdown_field.dart';
 import 'form_field_label.dart';
+import 'location_picker_view.dart';
 import 'objective_field.dart';
 import 'supply_field.dart';
 import 'volunteer_selection_list.dart';
@@ -44,6 +51,11 @@ class CampaignFormBody extends StatelessWidget {
     required this.onRemoveObjective,
     required this.onAddSupply,
     required this.onRemoveSupply,
+    required this.selectedPapers,
+    required this.onAddPaper,
+    required this.onRemovePaper,
+    this.selectedLat,
+    this.selectedLng,
   });
 
   final TextEditingController titleCtrl;
@@ -71,6 +83,11 @@ class CampaignFormBody extends StatelessWidget {
   final void Function(int index) onRemoveObjective;
   final VoidCallback onAddSupply;
   final void Function(int index) onRemoveSupply;
+  final List<File> selectedPapers;
+  final VoidCallback onAddPaper;
+  final void Function(int index) onRemovePaper;
+  final double? selectedLat;
+  final double? selectedLng;
 
   @override
   Widget build(BuildContext context) {
@@ -108,12 +125,26 @@ class CampaignFormBody extends StatelessWidget {
         SizedBox(height: AppHeight.s16),
 
         // ── 4. Location ───────────────────────────────────────────────────
-        const FormFieldLabel('المنطقة'),
+        const FormFieldLabel('اسم الموقع'),
         SizedBox(height: AppHeight.s8),
         PrimaryTextFF(
-                textAlign: .right,
+          textAlign: .right,
           controller: locationNameCtrl,
-          hint: 'أدخل المنطقة',
+          hint: 'أدخل اسم الموقع',
+        ),
+        SizedBox(height: AppHeight.s8),
+        const FormFieldLabel('عنوان الموقع'),
+        SizedBox(height: AppHeight.s8),
+        PrimaryTextFF(
+          textAlign: .right,
+          controller: locationAddressCtrl,
+          hint: 'أدخل عنوان الموقع',
+        ),
+        SizedBox(height: AppHeight.s8),
+        // Map picker button / mini preview
+        _LocationPickerSection(
+          selectedLat: selectedLat,
+          selectedLng: selectedLng,
         ),
         SizedBox(height: AppHeight.s8),
 
@@ -182,6 +213,92 @@ class CampaignFormBody extends StatelessWidget {
             onRemove: () => onRemoveSupply(e.key),
           ),
         ),
+        SizedBox(height: AppHeight.s8),
+
+        // ── 7b. Permission papers ─────────────────────────────────────────
+        AddItemHeader(label: 'أوراق التصاريح', onAdd: onAddPaper),
+        SizedBox(height: AppHeight.s8),
+        if (selectedPapers.isNotEmpty)
+          SizedBox(
+            height: 110.w,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: selectedPapers.length,
+              itemBuilder: (context, index) {
+                final file = selectedPapers[index];
+                return Padding(
+                  padding: EdgeInsetsDirectional.only(end: AppWidth.s8),
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 100.w,
+                        height: 100.w,
+                        decoration: BoxDecoration(
+                          color: ColorManager.natural100,
+                          borderRadius: BorderRadius.circular(AppRadius.s12),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(AppRadius.s12),
+                          child: Image.file(
+                            file,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.insert_drive_file_outlined,
+                              size: 40.r,
+                              color: ColorManager.natural400,
+                            ),
+                          ),
+                        ),
+                      ),
+                      PositionedDirectional(
+                        top: 4,
+                        end: 4,
+                        child: GestureDetector(
+                          onTap: () => onRemovePaper(index),
+                          child: Container(
+                            width: 22.r,
+                            height: 22.r,
+                            decoration: BoxDecoration(
+                              color: ColorManager.natural900.withValues(alpha: 0.6),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.close,
+                              size: 14.r,
+                              color: ColorManager.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          )
+        else
+          DottedBorder(
+            options: RoundedRectDottedBorderOptions(
+              radius: Radius.circular(AppRadius.s12),
+              color: ColorManager.natural300,
+              strokeWidth: 1.5,
+              dashPattern: const [6, 4],
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              height: 60.h,
+              child: Center(
+                child: Text(
+                  'لم يتم إضافة أوراق بعد',
+                  style: TextStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    fontSize: FontSize.s12,
+                    color: ColorManager.natural400,
+                  ),
+                ),
+              ),
+            ),
+          ),
         SizedBox(height: AppHeight.s8),
 
         // ── 8. Description ────────────────────────────────────────────────
@@ -285,6 +402,119 @@ class CampaignFormBody extends StatelessWidget {
         volunteers: volunteers,
         alreadySelected: selectedIds,
         onConfirm: cubit.addVolunteers,
+      ),
+    );
+  }
+}
+
+// ── Location picker section ────────────────────────────────────────────────────
+
+class _LocationPickerSection extends StatelessWidget {
+  const _LocationPickerSection({this.selectedLat, this.selectedLng});
+
+  final double? selectedLat;
+  final double? selectedLng;
+
+  bool get _hasLocation =>
+      selectedLat != null && selectedLng != null && selectedLat != 0 && selectedLng != 0;
+
+  Future<void> _openPicker(BuildContext context) async {
+    final cubit = context.read<CreateCampaignCubit>();
+    final initial = _hasLocation ? LatLng(selectedLat!, selectedLng!) : null;
+    final result = await Navigator.of(context).push<LatLng>(
+      MaterialPageRoute(
+        builder: (_) => LocationPickerView(initialLocation: initial),
+      ),
+    );
+    if (result != null) {
+      cubit.setLocation(result.latitude, result.longitude);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hasLocation) {
+      final point = LatLng(selectedLat!, selectedLng!);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Mini static map preview
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.s12),
+            child: SizedBox(
+              height: 150.h,
+              width: double.infinity,
+              child: FlutterMap(
+                options: MapOptions(
+                  initialCenter: point,
+                  initialZoom: 14,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.none,
+                  ),
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.t3afy.app',
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: point,
+                        width: 36.r,
+                        height: 36.r,
+                        child: Icon(
+                          Icons.location_pin,
+                          color: ColorManager.primary500,
+                          size: 36.r,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: AppHeight.s6),
+          Text(
+            'خط العرض: ${selectedLat!.toStringAsFixed(4)} — خط الطول: ${selectedLng!.toStringAsFixed(4)}',
+            style: getRegularStyle(
+              fontFamily: FontConstants.fontFamily,
+              fontSize: FontSize.s12,
+              color: ColorManager.natural500,
+            ),
+          ),
+          SizedBox(height: AppHeight.s8),
+          OutlinedButton.icon(
+            onPressed: () => _openPicker(context),
+            icon: const Icon(Icons.edit_location_alt_outlined),
+            label: const Text('تغيير الموقع على الخريطة'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: ColorManager.primary500,
+              side: BorderSide(color: ColorManager.primary500),
+              minimumSize: Size(double.infinity, AppHeight.s44),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.s12),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // No location selected yet — show picker button
+    return OutlinedButton.icon(
+      onPressed: () => _openPicker(context),
+      icon: const Icon(Icons.add_location_alt_outlined),
+      label: const Text('📍 تحديد الموقع على الخريطة'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: ColorManager.primary500,
+        side: BorderSide(color: ColorManager.primary500),
+        minimumSize: Size(double.infinity, AppHeight.s44),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.s12),
+        ),
       ),
     );
   }

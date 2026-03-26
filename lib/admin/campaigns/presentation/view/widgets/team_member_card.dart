@@ -97,10 +97,93 @@ class TeamMemberCard extends StatelessWidget {
                 ],
               ),
             ),
-            StatusBadge(status: member.status),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                StatusBadge(status: member.status),
+                SizedBox(height: AppHeight.s4),
+                _AttendanceDot(member: member),
+              ],
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _AttendanceDot extends StatelessWidget {
+  const _AttendanceDot({required this.member});
+  final CampaignMemberEntity member;
+
+  @override
+  Widget build(BuildContext context) {
+    if (member.checkedOutAt != null) {
+      // Checked out
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_circle_outline,
+              size: 11.r, color: ColorManager.success),
+          SizedBox(width: 3.w),
+          Text(
+            'حضر ${member.verifiedHours?.toStringAsFixed(1) ?? '0'} س',
+            style: getRegularStyle(
+              fontFamily: FontConstants.fontFamily,
+              fontSize: FontSize.s9,
+              color: ColorManager.success,
+            ),
+          ),
+        ],
+      );
+    }
+    if (member.checkedInAt != null) {
+      // Live — checked in
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7.w,
+            height: 7.w,
+            decoration: const BoxDecoration(
+              color: ColorManager.success,
+              shape: BoxShape.circle,
+            ),
+          ),
+          SizedBox(width: 3.w),
+          Text(
+            'متواجد الآن',
+            style: getRegularStyle(
+              fontFamily: FontConstants.fontFamily,
+              fontSize: FontSize.s9,
+              color: ColorManager.success,
+            ),
+          ),
+        ],
+      );
+    }
+    // Not checked in
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 7.w,
+          height: 7.w,
+          decoration: const BoxDecoration(
+            color: ColorManager.natural300,
+            shape: BoxShape.circle,
+          ),
+        ),
+        SizedBox(width: 3.w),
+        Text(
+          'لم يحضر بعد',
+          style: getRegularStyle(
+            fontFamily: FontConstants.fontFamily,
+            fontSize: FontSize.s9,
+            color: ColorManager.natural400,
+          ),
+        ),
+      ],
     );
   }
 }

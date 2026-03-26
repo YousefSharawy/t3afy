@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:t3afy/app/fcm_service.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/app/services/online_status_cubit.dart';
 import 'package:t3afy/auth/data/mappers/user_mapper.dart';
 import 'package:t3afy/auth/domain/entity/user_entity.dart';
 import 'package:t3afy/auth/domain/use_cases/log_out_use_case.dart';
@@ -12,12 +15,13 @@ part 'auth_state.dart';
 part 'auth_cubit.freezed.dart';
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit(this._logout, this._login, this._register)
+  AuthCubit(this._logout, this._login, this._register, this._onlineStatusCubit)
     : super(const AuthState.initial());
 
   final Login _login;
   final Register _register;
   final Logout _logout;
+  final OnlineStatusCubit _onlineStatusCubit;
   bool isVolunteer = false;
   String? gender;
 
@@ -40,6 +44,7 @@ class AuthCubit extends Cubit<AuthState> {
       final entity = user.toEntity();
       await LocalAppStorage.saveUserSession(entity.role, entity.id);
       FcmService.saveTokenForUser(entity.id);
+      await _onlineStatusCubit.reinitOnline();
       emit(AuthState.success(entity));
     });
   }
@@ -49,6 +54,7 @@ class AuthCubit extends Cubit<AuthState> {
     required String name,
     required String password,
     required String role,
+    File? idFile,
   }) async {
     emit(const AuthState.loading());
     final result = await _register(
@@ -56,6 +62,7 @@ class AuthCubit extends Cubit<AuthState> {
       name: name,
       password: password,
       role: role,
+      idFile: idFile,
     );
     result.fold(
       (failure) => emit(AuthState.error(failure.message)),

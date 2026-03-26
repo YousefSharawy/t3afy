@@ -23,6 +23,7 @@ _ProfileModel _$ProfileModelFromJson(Map<String, dynamic> json) =>
       placesVisited: (json['places_visited'] as num?)?.toInt() ?? 0,
       totalPoints: (json['total_points'] as num?)?.toInt() ?? 0,
       joinedAt: json['joined_at'] as String? ?? '',
+      idFileUrl: json['id_file_url'] as String?,
     );
 
 Map<String, dynamic> _$ProfileModelToJson(_ProfileModel instance) =>
@@ -42,4 +43,5 @@ Map<String, dynamic> _$ProfileModelToJson(_ProfileModel instance) =>
       'places_visited': instance.placesVisited,
       'total_points': instance.totalPoints,
       'joined_at': instance.joinedAt,
+      'id_file_url': instance.idFileUrl,
     };

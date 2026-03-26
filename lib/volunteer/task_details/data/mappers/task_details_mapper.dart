@@ -1,3 +1,5 @@
+import 'package:t3afy/admin/campaigns/domain/entities/campaign_paper_entity.dart';
+
 import '../../domain/entities/task_details_entity.dart';
 import '../../domain/entities/task_objective_entity.dart';
 import '../../domain/entities/task_supply_entity.dart';
@@ -8,8 +10,13 @@ import '../models/task_supply_model.dart';
 extension TaskDetailsModelMapper on TaskDetailsModel {
   TaskDetailsEntity toEntity(
     List<TaskObjectiveEntity> objectives,
-    List<TaskSupplyEntity> supplies,
-  ) {
+    List<TaskSupplyEntity> supplies, {
+    List<CampaignPaperEntity> papers = const [],
+    DateTime? checkedInAt,
+    DateTime? checkedOutAt,
+    double? verifiedHours,
+    bool isVerified = false,
+  }) {
     return TaskDetailsEntity(
       id: id,
       title: title,
@@ -29,8 +36,13 @@ extension TaskDetailsModelMapper on TaskDetailsModel {
       supervisorPhone: supervisorPhone,
       notes: notes,
       assignmentStatus: assignmentStatus,
+      checkedInAt: checkedInAt,
+      checkedOutAt: checkedOutAt,
+      verifiedHours: verifiedHours,
+      isVerified: isVerified,
       objectives: objectives,
       supplies: supplies,
+      papers: papers,
     );
   }
 }

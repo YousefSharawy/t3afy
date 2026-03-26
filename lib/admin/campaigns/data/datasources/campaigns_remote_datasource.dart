@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/campaign_entity.dart';
 import '../../domain/entities/campaign_detail_entity.dart';
@@ -10,6 +12,11 @@ abstract class CampaignsRemoteDatasource {
   Future<String> createCampaign(Map<String, dynamic> data);
   Future<void> updateCampaign(String id, Map<String, dynamic> data);
   Future<void> deleteCampaign(String id);
+  Future<void> uploadCampaignPapers({
+    required String taskId,
+    required String adminId,
+    required List<File> files,
+  });
   Future<void> assignVolunteers({
     required String taskId,
     required List<String> userIds,

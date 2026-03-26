@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import 'package:t3afy/app/failture.dart';
 import 'package:t3afy/auth/data/models/user_model.dart';
@@ -26,6 +28,7 @@ class AuthImplRepository implements AuthRepository {
     required String name,
     required String password,
     required String role,
+    File? idFile,
   }) async {
     try {
       final user = await _remoteDataSource.register(
@@ -33,6 +36,7 @@ class AuthImplRepository implements AuthRepository {
         name: name,
         password: password,
         role: role,
+        idFile: idFile,
       );
       return Right(user);
     } on Failture catch (e) {

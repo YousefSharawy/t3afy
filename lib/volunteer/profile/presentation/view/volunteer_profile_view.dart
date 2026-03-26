@@ -1,13 +1,17 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/shimmers.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/volunteer/profile/domain/entity/profile_entity.dart';
@@ -40,6 +44,71 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
     final userId = LocalAppStorage.getUserId();
     if (userId != null) return context.read<ProfileCubit>().loadProfile(userId);
     return Future.value();
+  }
+
+  Widget _buildIdCard(String? url) {
+    if (url == null || url.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(AppHeight.s16),
+        decoration: BoxDecoration(
+          color: ColorManager.natural100,
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        child: Text(
+          'لم يتم رفع صورة الهوية',
+          textAlign: TextAlign.center,
+          style: getRegularStyle(
+            fontFamily: FontConstants.fontFamily,
+            color: ColorManager.natural400,
+            fontSize: FontSize.s13,
+          ),
+        ),
+      );
+    }
+    return GestureDetector(
+      onTap: () => _openFullscreen(url),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12.r),
+        child: CachedNetworkImage(
+          imageUrl: url,
+          width: double.infinity,
+          height: 180.h,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => CustomShimmerWrapW(
+            width: double.infinity,
+            height: 180.h,
+            itemCount: 1,
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          errorWidget: (context, url, error) => Container(
+            width: double.infinity,
+            height: 180.h,
+            color: ColorManager.natural100,
+            child: Icon(Icons.broken_image_outlined,
+                size: 40.r, color: ColorManager.natural300),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openFullscreen(String url) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          body: PhotoView(
+            imageProvider: CachedNetworkImageProvider(url),
+            backgroundDecoration: const BoxDecoration(color: Colors.black),
+          ),
+        ),
+      ),
+    );
   }
 
   void _logout() async {
@@ -189,6 +258,20 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
                 ),
               ],
             ),
+            SizedBox(height: AppHeight.s16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                "صورة الهوية",
+                style: getBoldStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s14,
+                  color: ColorManager.natural700,
+                ),
+              ),
+            ),
+            SizedBox(height: AppHeight.s8),
+            _buildIdCard(profile.idFileUrl),
             SizedBox(height: AppHeight.s16),
             PrimaryElevatedButton(
               height: AppHeight.s46,
