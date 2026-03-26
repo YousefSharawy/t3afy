@@ -23,6 +23,7 @@ class AdminPerformanceEntity {
   final int completedCampaigns;
   final double campaignCompletionPercent;
   final double completionPercentChange;
+  final double verifiedAttendanceRate;
 
   const AdminPerformanceEntity({
     required this.totalVolunteers,
@@ -34,5 +35,6 @@ class AdminPerformanceEntity {
     required this.completedCampaigns,
     required this.campaignCompletionPercent,
     required this.completionPercentChange,
+    this.verifiedAttendanceRate = 0,
   });
 }

@@ -36,6 +36,9 @@ class CheckInOutCard extends StatelessWidget {
         if (state is LocationPermissionDenied) {
           return _PermissionDeniedCard();
         }
+        if (state is LocationError) {
+          return _ErrorCard(state: state);
+        }
         if (state is LocationLoading) {
           return _LoadingCard();
         }
@@ -450,6 +453,79 @@ class _CheckedOutCard extends StatelessWidget {
             label: 'المدة الفعلية',
             value: '${state.verifiedHours} ساعة',
             bold: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Permission denied
+// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// Error state — GPS failed or service disabled
+// ─────────────────────────────────────────────────────────────────
+class _ErrorCard extends StatelessWidget {
+  const _ErrorCard({required this.state});
+  final LocationError state;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<LocationCubit>();
+    return _CardShell(
+      borderColor: ColorManager.error,
+      backgroundColor: ColorManager.errorLight,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.gps_off_outlined, color: ColorManager.error, size: 20.r),
+              SizedBox(width: AppWidth.s8),
+              Expanded(
+                child: Text(
+                  state.message,
+                  style: getMediumStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    fontSize: FontSize.s12,
+                    color: ColorManager.error,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: AppHeight.s12),
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryElevatedButton(
+                  title: 'إعادة المحاولة',
+                  height: 44.h,
+                  backGroundColor: ColorManager.error,
+                  onPress: () => cubit.retry(),
+                  textStyle: getBoldStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    fontSize: FontSize.s13,
+                    color: ColorManager.white,
+                  ),
+                ),
+              ),
+              SizedBox(width: AppWidth.s8),
+              Expanded(
+                child: PrimaryElevatedButton(
+                  title: 'فتح الإعدادات',
+                  height: 44.h,
+                  backGroundColor: ColorManager.natural400,
+                  onPress: () => Geolocator.openAppSettings(),
+                  textStyle: getBoldStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    fontSize: FontSize.s13,
+                    color: ColorManager.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

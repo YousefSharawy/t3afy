@@ -15,6 +15,7 @@ import 'widgets/campaign_hero_card.dart';
 import 'widgets/overview_tab.dart';
 import 'widgets/team_tab.dart';
 import 'widgets/actions_tab.dart';
+import 'widgets/live_map_tab.dart';
 
 class CampaignDetailView extends StatefulWidget {
   const CampaignDetailView({super.key, required this.taskId});
@@ -32,7 +33,7 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     context.read<CampaignDetailCubit>().load(widget.taskId);
   }
 
@@ -111,7 +112,7 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
                   padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
                   child: PrimaryTabBar(
                     controller: _tabController,
-                    labels: const ['نظرة عامة', 'الفريق', 'الاجراءات'],
+                    labels: const ['نظرة عامة', 'الفريق', 'الاجراءات', 'الخريطة'],
                   ),
                 ),
                 Expanded(
@@ -121,6 +122,7 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
                       OverviewTab(detail: detail),
                       TeamTab(detail: detail),
                       ActionsTab(detail: detail),
+                      LiveMapTab(detail: detail),
                     ],
                   ),
                 ),

@@ -103,7 +103,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
           .single();
       final tasksRaw = await _client
           .from('task_assignments')
-          .select('*, tasks(title, duration_hours)')
+          .select('*, is_verified, verified_hours, tasks(title, duration_hours)')
           .eq('user_id', volunteerId)
           .order('assigned_at', ascending: false);
       final tasks = tasksRaw

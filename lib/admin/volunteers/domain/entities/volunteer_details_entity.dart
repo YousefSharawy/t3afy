@@ -4,6 +4,8 @@ class VolunteerTaskAssignmentEntity {
   final DateTime? assignedAt;
   final String status;
   final double durationHours;
+  final bool isVerified;
+  final double? verifiedHours;
 
   const VolunteerTaskAssignmentEntity({
     required this.id,
@@ -11,6 +13,8 @@ class VolunteerTaskAssignmentEntity {
     this.assignedAt,
     required this.status,
     this.durationHours = 0,
+    this.isVerified = false,
+    this.verifiedHours,
   });
 
   factory VolunteerTaskAssignmentEntity.fromJson(Map<String, dynamic> json) {
@@ -22,6 +26,8 @@ class VolunteerTaskAssignmentEntity {
       assignedAt: assignedStr != null ? DateTime.tryParse(assignedStr) : null,
       status: json['status'] as String? ?? 'active',
       durationHours: ((task?['duration_hours'] as num?) ?? 0).toDouble(),
+      isVerified: (json['is_verified'] as bool?) ?? false,
+      verifiedHours: (json['verified_hours'] as num?)?.toDouble(),
     );
   }
 }

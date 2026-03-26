@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -23,15 +22,15 @@ class LocationCubit extends Cubit<LocationState> {
 
   static const double _checkInRadiusMeters = 200.0;
 
-  Timer? _locationTimer;
+  StreamSubscription<Position>? _positionStream;
   Timer? _gpsPingTimer;
   DateTime? _checkedInAt;
 
-  /// Call on screen init — restores state and starts tracking.
+  /// Call on screen init — restores existing check-in state, then starts GPS.
   Future<void> init() async {
     emit(LocationLoading());
 
-    // 1. Restore existing check-in state from DB
+    // 1. Restore existing check-in/out state from DB
     final userId = LocalAppStorage.getUserId() ?? '';
     try {
       final status = await dataSource.getCheckInStatus(taskId, userId);
@@ -56,75 +55,105 @@ class LocationCubit extends Cubit<LocationState> {
               ((status['check_in_lng'] as num?) ?? taskLng).toDouble();
           emit(LocationCheckedIn(_checkedInAt!, lat, lng));
           _startGpsPings();
-          _startLocationPolling();
           return;
         }
       }
     } catch (_) {
-      // Ignore DB errors — fall through to GPS check
+      // DB errors are non-fatal — fall through to GPS
     }
 
-    // 2. Check permission and start tracking
-    await _startLocationPolling();
+    // 2. Start GPS tracking
+    await _initGps();
   }
 
-  Future<void> _startLocationPolling() async {
-    final hasPermission = await _ensurePermission();
-    if (!hasPermission) return;
-
-    await _updateLocation();
-    _locationTimer?.cancel();
-    _locationTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      _updateLocation();
-    });
-  }
-
-  Future<bool> _ensurePermission() async {
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      emit(LocationPermissionDenied());
-      return false;
-    }
-    return true;
-  }
-
-  Future<void> _updateLocation() async {
-    if (state is LocationCheckedIn || state is LocationCheckedOut) return;
+  /// Checks service + permission, gets initial position, then starts stream.
+  Future<void> _initGps() async {
     try {
+      // Step 1: location service enabled?
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        emit(LocationError('خدمة الموقع غير مفعلة. يرجى تفعيلها من الإعدادات'));
+        return;
+      }
+
+      // Step 2: permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied) {
+        emit(LocationPermissionDenied());
+        return;
+      }
+      if (permission == LocationPermission.deniedForever) {
+        emit(LocationPermissionDenied());
+        return;
+      }
+
+      // Step 3: get initial position with explicit timeout
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
+          timeLimit: Duration(seconds: 15),
         ),
       );
-      final dist = haversineDistance(
-          pos.latitude, pos.longitude, taskLat, taskLng);
-      if (dist <= _checkInRadiusMeters) {
-        emit(LocationNearTask(dist, pos.latitude, pos.longitude));
-      } else {
-        emit(LocationFarFromTask(dist, pos.latitude, pos.longitude));
+      _emitDistanceState(pos);
+
+      // Step 4: start continuous stream
+      _startPositionStream();
+    } on TimeoutException {
+      if (!isClosed) {
+        emit(LocationError('تعذر تحديد موقعك. تأكد من تفعيل GPS وحاول مرة أخرى'));
       }
-    } catch (_) {
-      // Silently ignore GPS errors during periodic polling
+    } catch (e) {
+      if (!isClosed) {
+        emit(LocationError('حدث خطأ في تحديد الموقع'));
+      }
+    }
+  }
+
+  void _startPositionStream() {
+    _positionStream?.cancel();
+    _positionStream = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      ),
+    ).listen(
+      (pos) {
+        if (isClosed) return;
+        // Don't override terminal states
+        if (state is LocationCheckedIn || state is LocationCheckedOut) return;
+        _emitDistanceState(pos);
+      },
+      onError: (Object e) {
+        if (!isClosed && state is! LocationCheckedIn && state is! LocationCheckedOut) {
+          emit(LocationError('تعذر تتبع الموقع'));
+        }
+      },
+      cancelOnError: false,
+    );
+  }
+
+  void _emitDistanceState(Position pos) {
+    final dist = Geolocator.distanceBetween(
+        pos.latitude, pos.longitude, taskLat, taskLng);
+    if (dist <= _checkInRadiusMeters) {
+      emit(LocationNearTask(dist, pos.latitude, pos.longitude));
+    } else {
+      emit(LocationFarFromTask(dist, pos.latitude, pos.longitude));
     }
   }
 
   Future<void> checkIn() async {
-    final hasPermission = await _ensurePermission();
-    if (!hasPermission) return;
-
     try {
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
+          timeLimit: Duration(seconds: 15),
         ),
       );
-      final dist = haversineDistance(
+      final dist = Geolocator.distanceBetween(
           pos.latitude, pos.longitude, taskLat, taskLng);
       if (dist > _checkInRadiusMeters) {
         emit(LocationFarFromTask(dist, pos.latitude, pos.longitude));
@@ -135,22 +164,26 @@ class LocationCubit extends Cubit<LocationState> {
       await dataSource.checkIn(taskId, userId, pos.latitude, pos.longitude);
       _checkedInAt = DateTime.now();
       emit(LocationCheckedIn(_checkedInAt!, pos.latitude, pos.longitude));
-      _locationTimer?.cancel();
+
+      // Stop proximity stream — no longer needed while checked in
+      _positionStream?.cancel();
+      _positionStream = null;
       _startGpsPings();
+    } on TimeoutException {
+      if (!isClosed) {
+        emit(LocationError('تعذر تحديد موقعك. حاول مرة أخرى'));
+      }
     } catch (e) {
-      emit(LocationError(e.toString()));
+      if (!isClosed) emit(LocationError(e.toString()));
     }
   }
 
   Future<void> checkOut() async {
-    final hasPermission = await _ensurePermission();
-    if (!hasPermission) return;
-
     try {
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
+          timeLimit: Duration(seconds: 15),
         ),
       );
 
@@ -165,15 +198,21 @@ class LocationCubit extends Cubit<LocationState> {
 
       _gpsPingTimer?.cancel();
       emit(LocationCheckedOut(checkedInAt, now, verifiedHours));
+    } on TimeoutException {
+      if (!isClosed) {
+        emit(LocationError('تعذر تحديد موقعك. حاول مرة أخرى'));
+      }
     } catch (e) {
-      emit(LocationError(e.toString()));
+      if (!isClosed) emit(LocationError(e.toString()));
     }
   }
 
+  /// Retry after an error state.
+  Future<void> retry() => init();
+
   void _startGpsPings() {
     _gpsPingTimer?.cancel();
-    _gpsPingTimer =
-        Timer.periodic(const Duration(minutes: 2), (_) async {
+    _gpsPingTimer = Timer.periodic(const Duration(minutes: 2), (_) async {
       try {
         final pos = await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
@@ -187,24 +226,9 @@ class LocationCubit extends Cubit<LocationState> {
     });
   }
 
-  /// Haversine formula — returns distance in metres.
-  static double haversineDistance(
-      double lat1, double lng1, double lat2, double lng2) {
-    const r = 6371000.0;
-    final dLat = (lat2 - lat1) * pi / 180;
-    final dLng = (lng2 - lng1) * pi / 180;
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(lat1 * pi / 180) *
-            cos(lat2 * pi / 180) *
-            sin(dLng / 2) *
-            sin(dLng / 2);
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return r * c;
-  }
-
   @override
   Future<void> close() {
-    _locationTimer?.cancel();
+    _positionStream?.cancel();
     _gpsPingTimer?.cancel();
     return super.close();
   }

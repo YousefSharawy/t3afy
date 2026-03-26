@@ -60,7 +60,34 @@ class VolunteerTaskCard extends StatelessWidget {
               ],
             ),
           ),
-          StatusBadge(status: task.status),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              StatusBadge(status: task.status),
+              if (task.isVerified) ...[
+                SizedBox(height: 3.h),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.verified_outlined,
+                        size: 10.r, color: ColorManager.success),
+                    SizedBox(width: 2.w),
+                    Text(
+                      task.verifiedHours != null
+                          ? '${task.verifiedHours!.toStringAsFixed(1)} س'
+                          : 'محقق',
+                      style: getRegularStyle(
+                        fontFamily: FontConstants.fontFamily,
+                        fontSize: FontSize.s9,
+                        color: ColorManager.success,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );

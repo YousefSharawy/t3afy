@@ -70,6 +70,13 @@ class AdminPerformanceRemoteDatasourceImpl
             .from('tasks')
             .select('status')
             .gte('date', startStr),
+
+        // 6: completed assignments for verified attendance rate
+        _client
+            .from('task_assignments')
+            .select('is_verified, tasks!inner(date)')
+            .eq('status', 'completed')
+            .gte('tasks.date', startStr),
       ]);
 
       // --- Stats ---
@@ -112,6 +119,14 @@ class AdminPerformanceRemoteDatasourceImpl
           .map((e) => RegionStatEntity(region: e.key, volunteerCount: e.value))
           .toList();
 
+      // --- Verified attendance rate ---
+      final completedAssignments = results[6] as List;
+      final totalCompleted = completedAssignments.length;
+      final verifiedCount =
+          completedAssignments.where((r) => (r['is_verified'] as bool?) == true).length;
+      final verifiedAttendanceRate =
+          totalCompleted > 0 ? (verifiedCount / totalCompleted * 100) : 0.0;
+
       // --- Campaign completion rate ---
       final allTasks = results[5] as List;
       final totalCampaigns = allTasks.length;
@@ -148,6 +163,7 @@ class AdminPerformanceRemoteDatasourceImpl
         completedCampaigns: completedCampaigns,
         campaignCompletionPercent: campaignCompletionPercent,
         completionPercentChange: completionPercentChange,
+        verifiedAttendanceRate: verifiedAttendanceRate,
       );
 
       await LocalAppStorage.setCache(
@@ -278,6 +294,7 @@ class AdminPerformanceRemoteDatasourceImpl
         'completedCampaigns': e.completedCampaigns,
         'campaignCompletionPercent': e.campaignCompletionPercent,
         'completionPercentChange': e.completionPercentChange,
+        'verifiedAttendanceRate': e.verifiedAttendanceRate,
       };
 
   AdminPerformanceEntity _fromJson(Map<String, dynamic> m) =>
@@ -303,5 +320,7 @@ class AdminPerformanceRemoteDatasourceImpl
             (m['campaignCompletionPercent'] as num).toDouble(),
         completionPercentChange:
             (m['completionPercentChange'] as num).toDouble(),
+        verifiedAttendanceRate:
+            ((m['verifiedAttendanceRate'] as num?) ?? 0).toDouble(),
       );
 }
