@@ -35,16 +35,16 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
           .inFilter('role', ['volunteer', 'user']);
       final activeTodayCount = (activeCountRes as List).length;
 
-      final volunteersRes = await _client
-          .from('users')
-          .select('id')
-          .inFilter('role', ['volunteer', 'user']);
+      final volunteersRes = await _client.from('users').select('id').inFilter(
+        'role',
+        ['volunteer', 'user'],
+      );
       final totalVolunteers = (volunteersRes as List).length;
 
-      final completedRes = await _client
-          .from('tasks')
-          .select('id')
-          .inFilter('status', ['completed', 'done']);
+      final completedRes = await _client.from('tasks').select('id').inFilter(
+        'status',
+        ['completed', 'done'],
+      );
       final completedCampaigns = (completedRes as List).length;
 
       final hoursRes = await _client
@@ -58,8 +58,11 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
       }
 
       final now = DateTime.now();
-      final firstDayOfMonth =
-          DateTime(now.year, now.month, 1).toIso8601String().split('T')[0];
+      final firstDayOfMonth = DateTime(
+        now.year,
+        now.month,
+        1,
+      ).toIso8601String().split('T')[0];
       final volunteersThisMonthRes = await _client
           .from('users')
           .select('id')
@@ -67,11 +70,16 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
           .gte('joined_at', firstDayOfMonth);
       final volunteersThisMonth = (volunteersThisMonthRes as List).length;
 
-      final yesterdayStart = DateTime(now.year, now.month, now.day - 1)
-          .toUtc()
-          .toIso8601String();
-      final yesterdayEnd =
-          DateTime(now.year, now.month, now.day).toUtc().toIso8601String();
+      final yesterdayStart = DateTime(
+        now.year,
+        now.month,
+        now.day - 1,
+      ).toUtc().toIso8601String();
+      final yesterdayEnd = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).toUtc().toIso8601String();
       final activeYesterdayRes = await _client
           .from('users')
           .select('id')
@@ -81,8 +89,11 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
       final activeYesterdayCount = (activeYesterdayRes as List).length;
       final activeDiffFromYesterday = activeTodayCount - activeYesterdayCount;
 
-      final firstDayOfLastMonth =
-          DateTime(now.year, now.month - 1, 1).toIso8601String().split('T')[0];
+      final firstDayOfLastMonth = DateTime(
+        now.year,
+        now.month - 1,
+        1,
+      ).toIso8601String().split('T')[0];
       final hoursThisMonthRes = await _client
           .from('tasks')
           .select('duration_hours, task_assignments!inner(status)')
@@ -132,16 +143,13 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
         final key = '${date.year}-${date.month.toString().padLeft(2, '0')}';
         monthMap[key] = (monthMap[key] ?? 0) + 1;
       }
-      final monthlyCompletedTasks = monthMap.entries
-          .map((e) {
-            final parts = e.key.split('-');
-            return MonthlyTaskCount(
-              month: DateTime(int.parse(parts[0]), int.parse(parts[1])),
-              count: e.value,
-            );
-          })
-          .toList()
-        ..sort((a, b) => a.month.compareTo(b.month));
+      final monthlyCompletedTasks = monthMap.entries.map((e) {
+        final parts = e.key.split('-');
+        return MonthlyTaskCount(
+          month: DateTime(int.parse(parts[0]), int.parse(parts[1])),
+          count: e.value,
+        );
+      }).toList()..sort((a, b) => a.month.compareTo(b.month));
 
       final todayCampaigns = <TodayCampaignEntity>[];
       for (final t in todayTasksRaw as List) {

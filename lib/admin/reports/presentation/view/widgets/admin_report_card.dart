@@ -67,9 +67,7 @@ class AdminReportCard extends StatelessWidget {
                   children: List.generate(
                     5,
                     (i) => Image.asset(
-                      i < report.rating
-                          ? IconAssets.star
-                          : IconAssets.unstar,
+                      i < report.rating ? IconAssets.star : IconAssets.unstar,
                       width: 14.r,
                       height: 14.r,
                     ),
@@ -77,7 +75,7 @@ class AdminReportCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '${report.createdAt.day} ${const ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'][report.createdAt.month - 1]} ${report.createdAt.year}',
+                  '${report.createdAt.day} ${const ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'][report.createdAt.month - 1]} ${report.createdAt.year}',
                   style: getRegularStyle(
                     fontFamily: FontConstants.fontFamily,
                     fontSize: FontSize.s11,

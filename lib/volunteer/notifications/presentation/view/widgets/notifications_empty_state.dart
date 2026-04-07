@@ -11,12 +11,16 @@ class NotificationsEmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.notifications_off_outlined,
-              color: Colors.white38, size: 64.sp),
+          Icon(
+            Icons.notifications_off_outlined,
+            color: Colors.white38,
+            size: 64.sp,
+          ),
           SizedBox(height: 12.h),
-          Text('لا توجد إشعارات',
-              style: getMediumStyle(
-                  color: Colors.white54, fontSize: 16.sp)),
+          Text(
+            'لا توجد إشعارات',
+            style: getMediumStyle(color: Colors.white54, fontSize: 16.sp),
+          ),
         ],
       ),
     );

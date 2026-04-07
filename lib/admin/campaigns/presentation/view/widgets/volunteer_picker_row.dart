@@ -58,7 +58,10 @@ class VolunteerPickerRow extends StatelessWidget {
                     width: AppWidth.s32,
                     height: AppHeight.s32,
                     decoration: BoxDecoration(
-                      border: Border.all(width: 0.5.sp, color: ColorManager.primary500),
+                      border: Border.all(
+                        width: 0.5.sp,
+                        color: ColorManager.primary500,
+                      ),
                       borderRadius: BorderRadius.circular(AppRadius.s8),
                       color: ColorManager.primary50,
                     ),
@@ -79,7 +82,11 @@ class VolunteerPickerRow extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.star_rounded, size: 13.r, color: const Color(0xFFFBBF24)),
+              Icon(
+                Icons.star_rounded,
+                size: 13.r,
+                color: const Color(0xFFFBBF24),
+              ),
               SizedBox(width: AppWidth.s2),
               Text(
                 volunteer.rating.toStringAsFixed(1),

@@ -48,9 +48,9 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-            backgroundColor: ColorManager.background,
+        backgroundColor: ColorManager.background,
         appBar: AppBar(
-            backgroundColor: ColorManager.background,
+          backgroundColor: ColorManager.background,
           elevation: 0,
           leading: IconButton(
             icon: Icon(
@@ -87,7 +87,8 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
               current is! CampaignDetailAlertSent &&
               current is! CampaignDetailActionError,
           builder: (context, state) {
-            if (state is CampaignDetailLoading || state is CampaignDetailInitial) {
+            if (state is CampaignDetailLoading ||
+                state is CampaignDetailInitial) {
               return const LoadingIndicator();
             }
             if (state is CampaignDetailError) {
@@ -98,9 +99,7 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
               );
             }
 
-            final detail = state is CampaignDetailLoaded
-                ? state.detail
-                : null;
+            final detail = state is CampaignDetailLoaded ? state.detail : null;
             if (detail == null) return const LoadingIndicator();
 
             return Column(
@@ -112,7 +111,12 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
                   padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
                   child: PrimaryTabBar(
                     controller: _tabController,
-                    labels: const ['نظرة عامة', 'الفريق', 'الاجراءات', 'الخريطة'],
+                    labels: const [
+                      'نظرة عامة',
+                      'الفريق',
+                      'الاجراءات',
+                      'الخريطة',
+                    ],
                   ),
                 ),
                 Expanded(

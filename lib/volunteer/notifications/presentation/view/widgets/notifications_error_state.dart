@@ -6,10 +6,7 @@ import 'package:t3afy/volunteer/notifications/presentation/cubit/notifications_c
 class NotificationsErrorState extends StatelessWidget {
   final NotificationsStateError state;
 
-  const NotificationsErrorState({
-    super.key,
-    required this.state,
-  });
+  const NotificationsErrorState({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -17,13 +14,13 @@ class NotificationsErrorState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.error_outline_rounded,
-              color: Colors.white38, size: 48.sp),
+          Icon(Icons.error_outline_rounded, color: Colors.white38, size: 48.sp),
           SizedBox(height: 12.h),
-          Text(state.message,
-              style: getMediumStyle(
-                  color: Colors.white54, fontSize: 14.sp),
-              textAlign: TextAlign.center),
+          Text(
+            state.message,
+            style: getMediumStyle(color: Colors.white54, fontSize: 14.sp),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );

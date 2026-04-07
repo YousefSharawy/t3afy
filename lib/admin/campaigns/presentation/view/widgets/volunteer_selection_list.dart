@@ -133,10 +133,7 @@ class _AssignedVolunteerRow extends StatelessWidget {
             ),
           ),
           // Remove button
-          GestureDetector(
-            onTap: onRemove,
-            child: Image.asset(IconAssets.x)
-          ),
+          GestureDetector(onTap: onRemove, child: Image.asset(IconAssets.x)),
         ],
       ),
     );

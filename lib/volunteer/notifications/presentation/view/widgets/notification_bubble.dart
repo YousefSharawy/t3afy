@@ -31,7 +31,10 @@ class NotificationBubble extends StatelessWidget {
           border: notification.isRead
               ? null
               : BorderDirectional(
-                  start: BorderSide(color: ColorManager.primary500, width: 3.sp),
+                  start: BorderSide(
+                    color: ColorManager.primary500,
+                    width: 3.sp,
+                  ),
                 ),
         ),
         child: Column(
@@ -57,7 +60,6 @@ class NotificationBubble extends StatelessWidget {
                     ),
                   ),
                 ),
-              
               ],
             ),
             SizedBox(height: AppHeight.s8),

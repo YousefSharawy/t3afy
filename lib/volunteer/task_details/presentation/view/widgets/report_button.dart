@@ -11,7 +11,11 @@ import 'package:t3afy/volunteer/task_details/presentation/cubit/report_cubit.dar
 import 'submit_report_sheet.dart';
 
 class ReportButton extends StatelessWidget {
-  const ReportButton({super.key, required this.taskId, required this.taskTitle});
+  const ReportButton({
+    super.key,
+    required this.taskId,
+    required this.taskTitle,
+  });
 
   final String taskId;
   final String taskTitle;

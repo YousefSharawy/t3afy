@@ -6,7 +6,8 @@ import 'package:t3afy/volunteer/home/data/sources/volunteer_home_remote_data_sou
 import 'package:t3afy/volunteer/models/volunteer_stats_model.dart';
 import 'package:t3afy/volunteer/tasks/data/models/task_models.dart';
 
-class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource {
+class VolunteerImplHomeRemoteDataSource
+    implements VolunteerHomeRemoteDataSource {
   final _client = Supabase.instance.client;
 
   @override
@@ -17,7 +18,8 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
       final cached = LocalAppStorage.getCache(cacheKey);
       if (cached != null) {
         return VolunteerStatsModel.fromJson(
-            Map<String, dynamic>.from(cached as Map));
+          Map<String, dynamic>.from(cached as Map),
+        );
       }
 
       final response = await _client
@@ -43,8 +45,9 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
       final cached = LocalAppStorage.getCache(cacheKey);
       if (cached != null) {
         return (cached as List)
-            .map<TaskModel>((e) =>
-                TaskModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .map<TaskModel>(
+              (e) => TaskModel.fromJson(Map<String, dynamic>.from(e as Map)),
+            )
             .toList();
       }
 
@@ -77,8 +80,10 @@ class VolunteerImplHomeRemoteDataSource implements VolunteerHomeRemoteDataSource
       }).toList();
 
       await LocalAppStorage.setCache(
-          cacheKey, tasks.map((t) => t.toJson()).toList(),
-          ttl: ttl);
+        cacheKey,
+        tasks.map((t) => t.toJson()).toList(),
+        ttl: ttl,
+      );
       return tasks;
     } catch (error) {
       throw ErrorHandler.handle(error).failture;

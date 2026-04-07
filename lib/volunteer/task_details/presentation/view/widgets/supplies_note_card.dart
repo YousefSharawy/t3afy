@@ -14,7 +14,7 @@ class SuppliesNoteCard extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(12.sp),
       decoration: BoxDecoration(
-       color: ColorManager.white,
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
       child: Column(
@@ -34,7 +34,7 @@ class SuppliesNoteCard extends StatelessWidget {
             style: getSemiBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s11,
-               color: ColorManager.natural400,
+              color: ColorManager.natural400,
             ),
           ),
         ],

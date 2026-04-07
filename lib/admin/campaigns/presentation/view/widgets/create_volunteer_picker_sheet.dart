@@ -40,20 +40,20 @@ class _CreateVolunteerPickerSheetState
       widget.volunteers.every((v) => _selected.contains(v.id));
 
   void _toggle(String id) => setState(() {
-        if (_selected.contains(id)) {
-          _selected.remove(id);
-        } else {
-          _selected.add(id);
-        }
-      });
+    if (_selected.contains(id)) {
+      _selected.remove(id);
+    } else {
+      _selected.add(id);
+    }
+  });
 
   void _toggleAll() => setState(() {
-        if (_allSelected) {
-          _selected.removeAll(widget.volunteers.map((v) => v.id));
-        } else {
-          _selected.addAll(widget.volunteers.map((v) => v.id));
-        }
-      });
+    if (_allSelected) {
+      _selected.removeAll(widget.volunteers.map((v) => v.id));
+    } else {
+      _selected.addAll(widget.volunteers.map((v) => v.id));
+    }
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -140,8 +140,7 @@ class _CreateVolunteerPickerSheetState
                       )
                     : ListView.builder(
                         controller: controller,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: AppWidth.s16),
+                        padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
                         itemCount: widget.volunteers.length,
                         itemBuilder: (context, i) {
                           final v = widget.volunteers[i];
@@ -183,4 +182,3 @@ class _CreateVolunteerPickerSheetState
     );
   }
 }
-

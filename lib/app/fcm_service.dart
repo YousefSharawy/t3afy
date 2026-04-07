@@ -42,7 +42,8 @@ class FcmService {
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(androidChannel);
 
     // Init flutter_local_notifications
@@ -90,13 +91,15 @@ class FcmService {
       if (token == null) return;
       await Supabase.instance.client
           .from('users')
-          .update({'fcm_token': token}).eq('id', userId);
+          .update({'fcm_token': token})
+          .eq('id', userId);
 
       // Refresh token if it rotates
       FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
         await Supabase.instance.client
             .from('users')
-            .update({'fcm_token': newToken}).eq('id', userId);
+            .update({'fcm_token': newToken})
+            .eq('id', userId);
       });
     } catch (_) {
       // Non-fatal — push is best-effort
@@ -108,9 +111,9 @@ class FcmService {
     if (!Platform.isIOS) return;
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+          alert: true,
+          badge: true,
+          sound: true,
+        );
   }
 }

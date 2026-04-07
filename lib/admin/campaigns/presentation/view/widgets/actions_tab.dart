@@ -66,7 +66,9 @@ class ActionsTab extends StatelessWidget {
           title: 'تعديل تفاصيل الحملة',
           subtitle: 'تعديل معلومات وبيانات الحملة',
           onTap: () async {
-            final changed = await context.push<bool>('/editCampaign/${detail.id}');
+            final changed = await context.push<bool>(
+              '/editCampaign/${detail.id}',
+            );
             if (changed == true && context.mounted) {
               cubit.load(detail.id, invalidateListCache: true);
             }
@@ -118,5 +120,4 @@ class ActionsTab extends StatelessWidget {
       ],
     );
   }
-
 }

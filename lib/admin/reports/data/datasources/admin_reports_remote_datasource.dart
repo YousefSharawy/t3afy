@@ -1,5 +1,4 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/admin/reports/domain/entities/admin_report_entity.dart';
 
 abstract class AdminReportsRemoteDatasource {

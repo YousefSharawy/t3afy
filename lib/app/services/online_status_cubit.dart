@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,7 +21,7 @@ class OnlineStatusCubit extends Cubit<OnlineStatusState>
   Future<void> _initOnline() async {
     final role = LocalAppStorage.getUserRole();
     final userId = LocalAppStorage.getUserId();
-    debugPrint('🔍 OnlineStatus init — role: $role, userId: $userId');
+    if (kDebugMode) debugPrint('🔍 OnlineStatus init — role: $role');
     if (role == null || role == 'admin') return;
     if (!_observerAdded) {
       WidgetsBinding.instance.addObserver(this);
@@ -34,8 +35,7 @@ class OnlineStatusCubit extends Cubit<OnlineStatusState>
 
   Future<void> reinitOnline() async {
     final role = LocalAppStorage.getUserRole();
-    final userId = LocalAppStorage.getUserId();
-    debugPrint('🔍 OnlineStatus reinit — role: $role, userId: $userId');
+    if (kDebugMode) debugPrint('🔍 OnlineStatus reinit — role: $role');
     if (role == null || role == 'admin') return;
     if (!_observerAdded) {
       WidgetsBinding.instance.addObserver(this);
@@ -47,18 +47,16 @@ class OnlineStatusCubit extends Cubit<OnlineStatusState>
   }
 
   void _startHeartbeat() {
-    _heartbeat = Timer.periodic(
-      const Duration(minutes: 1),
-      (_) {
-        final currentRole = LocalAppStorage.getUserRole();
-        if (currentRole == 'admin' || currentRole == null) {
-          _heartbeat?.cancel();
-          return;
-        }
-        _setOnline(true);
-      },
-    );
+    _heartbeat = Timer.periodic(const Duration(minutes: 1), (_) {
+      final currentRole = LocalAppStorage.getUserRole();
+      if (currentRole == 'admin' || currentRole == null) {
+        _heartbeat?.cancel();
+        return;
+      }
+      _setOnline(true);
+    });
   }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {

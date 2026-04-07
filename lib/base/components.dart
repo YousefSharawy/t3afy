@@ -10,6 +10,7 @@ import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/base/widgets/nav_bar_item.dart';
 import 'package:t3afy/translation/locale_keys.g.dart';
+import 'package:t3afy/app/services/tutorial_service.dart';
 
 class PrimaryScaffold extends StatefulWidget {
   const PrimaryScaffold({
@@ -175,6 +176,15 @@ class _VolunteerScaffoldWithNavBarState
   void initState() {
     super.initState();
     _loadUnreadCount();
+
+    // Register tab switcher for tutorial
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        TutorialPhaseService.instance.registerSwitchTab(
+          (index) => widget.navigationShell.goBranch(index, initialLocation: false),
+        );
+      }
+    });
   }
 
   Future<void> _loadUnreadCount() async {
@@ -198,7 +208,7 @@ class _VolunteerScaffoldWithNavBarState
         children: [
           Positioned.fill(child: widget.navigationShell),
           Positioned(
-            top: MediaQuery.of(context).padding.top+AppHeight.s5,
+            top: MediaQuery.of(context).padding.top + AppHeight.s5,
             left: AppWidth.s18,
             child: _buildNotificationButton(context),
           ),
@@ -215,9 +225,8 @@ class _VolunteerScaffoldWithNavBarState
 
   Widget _buildNotificationButton(BuildContext context) {
     return GestureDetector(
-      onTap: () => context
-          .push(Routes.notifications)
-          .then((_) => _loadUnreadCount()),
+      onTap: () =>
+          context.push(Routes.notifications).then((_) => _loadUnreadCount()),
       child: Stack(
         children: [
           Container(
@@ -242,10 +251,7 @@ class _VolunteerScaffoldWithNavBarState
                   color: Colors.red,
                   shape: BoxShape.circle,
                 ),
-                constraints: BoxConstraints(
-                  minWidth: 14.sp,
-                  minHeight: 14.sp,
-                ),
+                constraints: BoxConstraints(minWidth: 14.sp, minHeight: 14.sp),
                 child: Text(
                   '$_unreadCount',
                   style: TextStyle(
@@ -281,30 +287,35 @@ class _VolunteerScaffoldWithNavBarState
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             NavBarItem(
+              key: AppTutorialKeys.volunteerHomeTabKey,
               iconPath: IconAssets.home,
               label: LocaleKeys.home.tr(),
               isSelected: widget.navigationShell.currentIndex == 0,
               onTap: () => _onTap(context, 0),
             ),
             NavBarItem(
+              key: AppTutorialKeys.volunteerTasksTabKey,
               iconPath: IconAssets.tasks,
               label: LocaleKeys.tasks.tr(),
               isSelected: widget.navigationShell.currentIndex == 1,
               onTap: () => _onTap(context, 1),
             ),
             NavBarItem(
+              key: AppTutorialKeys.volunteerMapTabKey,
               iconPath: IconAssets.map,
               label: LocaleKeys.map.tr(),
               isSelected: widget.navigationShell.currentIndex == 2,
               onTap: () => _onTap(context, 2),
             ),
             NavBarItem(
+              key: AppTutorialKeys.volunteerPerformanceTabKey,
               iconPath: IconAssets.performance,
               label: LocaleKeys.performance.tr(),
               isSelected: widget.navigationShell.currentIndex == 3,
               onTap: () => _onTap(context, 3),
             ),
             NavBarItem(
+              key: AppTutorialKeys.volunteerBotTabKey,
               iconPath: IconAssets.bot,
               label: LocaleKeys.bot.tr(),
               isSelected: widget.navigationShell.currentIndex == 4,
@@ -343,6 +354,15 @@ class _AdminScaffoldWithNavBarState extends State<AdminScaffoldWithNavBar> {
   void initState() {
     super.initState();
     _loadUnreadCount();
+
+    // Register tab switcher for tutorial
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        TutorialPhaseService.instance.registerSwitchTab(
+          (index) => widget.navigationShell.goBranch(index, initialLocation: false),
+        );
+      }
+    });
   }
 
   Future<void> _loadUnreadCount() async {
@@ -384,6 +404,7 @@ class _AdminScaffoldWithNavBarState extends State<AdminScaffoldWithNavBar> {
 
   Widget _buildNotificationButton(BuildContext context) {
     return GestureDetector(
+      key: AppTutorialKeys.adminNotificationKey,
       onTap: () => context
           .push(Routes.adminNotifications)
           .then((_) => _loadUnreadCount()),
@@ -411,10 +432,7 @@ class _AdminScaffoldWithNavBarState extends State<AdminScaffoldWithNavBar> {
                   color: Colors.red,
                   shape: BoxShape.circle,
                 ),
-                constraints: BoxConstraints(
-                  minWidth: 14.sp,
-                  minHeight: 14.sp,
-                ),
+                constraints: BoxConstraints(minWidth: 14.sp, minHeight: 14.sp),
                 child: Text(
                   '$_unreadCount',
                   style: TextStyle(
@@ -450,30 +468,35 @@ class _AdminScaffoldWithNavBarState extends State<AdminScaffoldWithNavBar> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             NavBarItem(
+              key: AppTutorialKeys.adminHomeTabKey,
               iconPath: IconAssets.home,
               label: "الرئيسية",
               isSelected: widget.navigationShell.currentIndex == 0,
               onTap: () => _onTap(context, 0),
             ),
             NavBarItem(
+              key: AppTutorialKeys.adminVolunteersTabKey,
               iconPath: IconAssets.group,
               label: "المتطوعين",
               isSelected: widget.navigationShell.currentIndex == 1,
               onTap: () => _onTap(context, 1),
             ),
             NavBarItem(
+              key: AppTutorialKeys.adminCampaignsTabKey,
               iconPath: IconAssets.campaigns,
-              label:"الحملات",
+              label: "الحملات",
               isSelected: widget.navigationShell.currentIndex == 2,
               onTap: () => _onTap(context, 2),
             ),
             NavBarItem(
+              key: AppTutorialKeys.adminReportsTabKey,
               iconPath: IconAssets.reports,
               label: "التقارير",
               isSelected: widget.navigationShell.currentIndex == 3,
               onTap: () => _onTap(context, 3),
             ),
             NavBarItem(
+              key: AppTutorialKeys.adminPerformanceTabKey,
               iconPath: IconAssets.performance,
               label: "الاحصاء",
               isSelected: widget.navigationShell.currentIndex == 4,

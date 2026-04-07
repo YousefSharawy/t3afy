@@ -98,7 +98,8 @@ class OverviewTab extends StatelessWidget {
             detail.locationLng != 0) ...[
           SizedBox(height: AppHeight.s16),
           GestureDetector(
-            onTap: () => openDirections(detail.locationLat!, detail.locationLng!),
+            onTap: () =>
+                openDirections(detail.locationLat!, detail.locationLng!),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(AppRadius.s12),
               child: SizedBox(
@@ -106,7 +107,10 @@ class OverviewTab extends StatelessWidget {
                 width: double.infinity,
                 child: FlutterMap(
                   options: MapOptions(
-                    initialCenter: LatLng(detail.locationLat!, detail.locationLng!),
+                    initialCenter: LatLng(
+                      detail.locationLat!,
+                      detail.locationLng!,
+                    ),
                     initialZoom: 14,
                     interactionOptions: const InteractionOptions(
                       flags: InteractiveFlag.none,
@@ -121,7 +125,10 @@ class OverviewTab extends StatelessWidget {
                     MarkerLayer(
                       markers: [
                         Marker(
-                          point: LatLng(detail.locationLat!, detail.locationLng!),
+                          point: LatLng(
+                            detail.locationLat!,
+                            detail.locationLng!,
+                          ),
                           width: 36.r,
                           height: 36.r,
                           child: Icon(
@@ -147,7 +154,8 @@ class OverviewTab extends StatelessWidget {
               locationAddress: detail.locationAddress,
             ),
           ),
-        ] else if (detail.locationName != null || detail.locationAddress != null) ...[
+        ] else if (detail.locationName != null ||
+            detail.locationAddress != null) ...[
           SizedBox(height: AppHeight.s16),
           Align(
             alignment: AlignmentDirectional.centerStart,
@@ -309,7 +317,8 @@ class _AttendanceSummaryCard extends StatelessWidget {
               minHeight: 6.h,
               backgroundColor: ColorManager.natural100,
               valueColor: const AlwaysStoppedAnimation<Color>(
-                  ColorManager.primary500),
+                ColorManager.primary500,
+              ),
             ),
           ),
           if (detail.totalVerifiedHours > 0) ...[
@@ -384,9 +393,8 @@ class _PapersSection extends StatelessWidget {
                             : CachedNetworkImage(
                                 imageUrl: paper.fileUrl,
                                 fit: BoxFit.cover,
-                                placeholder: (_, __) => Container(
-                                  color: ColorManager.natural100,
-                                ),
+                                placeholder: (_, __) =>
+                                    Container(color: ColorManager.natural100),
                                 errorWidget: (_, __, ___) => Icon(
                                   Icons.broken_image_outlined,
                                   size: 32.r,
@@ -408,10 +416,8 @@ class _PapersSection extends StatelessWidget {
   void _openFullScreen(BuildContext context, int initialIndex) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => _PaperFullScreenViewer(
-          papers: papers,
-          initialIndex: initialIndex,
-        ),
+        builder: (_) =>
+            _PaperFullScreenViewer(papers: papers, initialIndex: initialIndex),
       ),
     );
   }

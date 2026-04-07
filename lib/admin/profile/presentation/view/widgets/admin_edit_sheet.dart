@@ -33,13 +33,13 @@ class _AdminEditSheetState extends State<AdminEditSheet> {
     HapticFeedback.mediumImpact();
     setState(() => _saving = true);
     await context.read<AdminProfileCubit>().updateProfile(
-          userId: widget.userId,
-          name: widget.nameCtrl.text.trim(),
-          email: widget.emailCtrl.text.trim(),
-          phone: widget.phoneCtrl.text.trim().isEmpty
-              ? null
-              : widget.phoneCtrl.text.trim(),
-        );
+      userId: widget.userId,
+      name: widget.nameCtrl.text.trim(),
+      email: widget.emailCtrl.text.trim(),
+      phone: widget.phoneCtrl.text.trim().isEmpty
+          ? null
+          : widget.phoneCtrl.text.trim(),
+    );
     if (mounted) Navigator.of(context).pop();
   }
 

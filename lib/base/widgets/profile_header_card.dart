@@ -36,7 +36,10 @@ class ProfileHeaderCard extends StatelessWidget {
             size: 80.sp,
             color: ColorManager.blueTwo200,
             image: avatarUrl != null && avatarUrl!.isNotEmpty
-                ? DecorationImage(image: NetworkImage(avatarUrl!), fit: BoxFit.cover)
+                ? DecorationImage(
+                    image: NetworkImage(avatarUrl!),
+                    fit: BoxFit.cover,
+                  )
                 : null,
             child: avatarUrl == null || avatarUrl!.isEmpty
                 ? Icon(Icons.person, size: 40.sp, color: ColorManager.white)
@@ -60,7 +63,6 @@ class ProfileHeaderCard extends StatelessWidget {
               fontSize: FontSize.s14,
             ),
           ),
-       
         ],
       ),
     );

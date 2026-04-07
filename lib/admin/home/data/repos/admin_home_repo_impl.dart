@@ -11,7 +11,8 @@ class AdminHomeRepoImpl implements AdminHomeRepo {
 
   @override
   Future<Either<Failture, AdminHomeDataEntity>> getDashboardData(
-      String adminId) async {
+    String adminId,
+  ) async {
     try {
       final data = await _datasource.getDashboardData(adminId);
       return Right(data);

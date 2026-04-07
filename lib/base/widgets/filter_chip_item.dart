@@ -36,7 +36,7 @@ class FilterChipItem extends StatelessWidget {
           horizontal: horizontalPadding ?? AppWidth.s10,
         ),
         decoration: BoxDecoration(
-          color: selectedColor ,
+          color: selectedColor,
           borderRadius: BorderRadius.circular(borderRadius ?? AppRadius.s8),
         ),
         child: Center(

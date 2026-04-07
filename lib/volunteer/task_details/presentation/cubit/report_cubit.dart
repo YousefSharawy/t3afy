@@ -17,7 +17,7 @@ class ReportCubit extends Cubit<ReportState> {
   String? _currentTaskId;
 
   ReportCubit(this._submitReportUseCase, this._getExistingReportUseCase)
-      : super(ReportStateInitial());
+    : super(ReportStateInitial());
 
   void _subscribeToRealtime(String taskId, String userId) {
     _reportsChannel?.unsubscribe();

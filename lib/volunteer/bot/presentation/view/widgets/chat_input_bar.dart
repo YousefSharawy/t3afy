@@ -20,7 +20,7 @@ class ChatInputBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsetsDirectional.only(
-        start:AppWidth.s18,
+        start: AppWidth.s18,
         end: AppWidth.s18,
       ),
       child: Directionality(
@@ -66,10 +66,7 @@ class ChatInputBar extends StatelessWidget {
             ),
             SizedBox(width: 10.sp),
             // Send icon
-            GestureDetector(
-              onTap: onSend,
-              child: Image.asset(IconAssets.send)
-            ),
+            GestureDetector(onTap: onSend, child: Image.asset(IconAssets.send)),
           ],
         ),
       ),

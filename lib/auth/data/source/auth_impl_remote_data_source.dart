@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:t3afy/app/app_const.dart';
 import 'package:t3afy/auth/data/models/user_model.dart';
 import 'package:t3afy/auth/data/source/auth_remote_date_source.dart';
 
@@ -102,14 +104,14 @@ class AuthImplRemoteDataSource implements AuthRemoteDateSource {
               ? ext
               : 'jpg';
           final timestamp = DateTime.now().millisecondsSinceEpoch;
-          final storagePath = '$userId/${timestamp}.$safeExt';
+          final storagePath = '$userId/$timestamp.$safeExt';
 
           final contentType = safeExt == 'pdf'
               ? 'application/pdf'
               : (safeExt == 'png' ? 'image/png' : 'image/jpeg');
 
           await _client.storage
-              .from('volunteer-ids')
+              .from(StorageBuckets.volunteerIds)
               .uploadBinary(
                 storagePath,
                 bytes,
@@ -120,7 +122,7 @@ class AuthImplRemoteDataSource implements AuthRemoteDateSource {
               );
 
           final publicUrl = _client.storage
-              .from('volunteer-ids')
+              .from(StorageBuckets.volunteerIds)
               .getPublicUrl(storagePath);
 
           // ── STEP 4: Save URL back to the user's row ──────────────────────
@@ -129,9 +131,11 @@ class AuthImplRemoteDataSource implements AuthRemoteDateSource {
               .update({'id_file_url': publicUrl})
               .eq('id', userId);
         } catch (e, stack) {
-          print('--- UPLOAD FAILED ---');
-          print(e);
-          print(stack);
+          if (kDebugMode) {
+            debugPrint('--- UPLOAD FAILED ---');
+            debugPrint(e.toString());
+            debugPrint(stack.toString());
+          }
           // Upload failure should NOT silently succeed — surface the error.
           throw Failture(
             400,

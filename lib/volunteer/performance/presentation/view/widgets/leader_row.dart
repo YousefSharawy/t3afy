@@ -31,7 +31,7 @@ class LeaderRow extends StatelessWidget {
         horizontal: AppWidth.s18,
       ),
       decoration: BoxDecoration(
-       color: ColorManager.white,
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s16),
         border: isMe
             ? Border.all(color: ColorManager.primary500, width: 1.sp)
@@ -39,7 +39,11 @@ class LeaderRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Image.asset(IconAssets.medal,width: AppWidth.s24,height: AppHeight.s24,),
+          Image.asset(
+            IconAssets.medal,
+            width: AppWidth.s24,
+            height: AppHeight.s24,
+          ),
           SizedBox(width: AppWidth.s8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,7 +71,7 @@ class LeaderRow extends StatelessWidget {
             'pts $pts',
             style: getBoldStyle(
               fontFamily: FontConstants.fontFamily,
-              color:  ColorManager.warning,
+              color: ColorManager.warning,
               fontSize: FontSize.s15,
             ),
           ),

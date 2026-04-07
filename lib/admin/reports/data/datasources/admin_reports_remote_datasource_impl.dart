@@ -3,8 +3,7 @@ import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/admin/reports/data/datasources/admin_reports_remote_datasource.dart';
 import 'package:t3afy/admin/reports/domain/entities/admin_report_entity.dart';
 
-class AdminReportsRemoteDatasourceImpl
-    implements AdminReportsRemoteDatasource {
+class AdminReportsRemoteDatasourceImpl implements AdminReportsRemoteDatasource {
   final _client = Supabase.instance.client;
 
   @override
@@ -12,8 +11,7 @@ class AdminReportsRemoteDatasourceImpl
     try {
       final data = await _client
           .from('task_reports')
-          .select(
-              '*, tasks(title), users!task_reports_user_id_fkey(name)')
+          .select('*, tasks(title), users!task_reports_user_id_fkey(name)')
           .order('created_at', ascending: false);
       return (data as List)
           .map((e) => AdminReportEntity.fromJson(e as Map<String, dynamic>))
@@ -48,6 +46,19 @@ class AdminReportsRemoteDatasourceImpl
       final volunteerId = updated['user_id'] as String;
 
       if (status == 'approved') {
+        // Guard: Check if assignment is already completed to prevent double-crediting
+        final assignmentCheckRes = await _client
+            .from('task_assignments')
+            .select('status')
+            .eq('task_id', taskId)
+            .eq('user_id', volunteerId)
+            .maybeSingle();
+
+        if (assignmentCheckRes != null && (assignmentCheckRes['status'] as String?) == 'completed') {
+          // Assignment already completed, do not credit again
+          return;
+        }
+
         // Fetch task details needed for stats
         final task = await _client
             .from('tasks')
@@ -66,9 +77,9 @@ class AdminReportsRemoteDatasourceImpl
             (assignmentRow?['is_verified'] as bool?) ?? false;
         final assignmentVerifiedHours =
             ((assignmentRow?['verified_hours'] as num?) ?? 0).toDouble();
-        final plannedHours =
-            ((task['duration_hours'] as num?) ?? 0).toDouble();
-        final durationHours = (isVerifiedAssignment && assignmentVerifiedHours > 0)
+        final plannedHours = ((task['duration_hours'] as num?) ?? 0).toDouble();
+        final durationHours =
+            (isVerifiedAssignment && assignmentVerifiedHours > 0)
             ? assignmentVerifiedHours
             : plannedHours;
 
@@ -100,12 +111,15 @@ class AdminReportsRemoteDatasourceImpl
           }
         }
 
-        await _client.from('users').update({
-          'total_tasks': currentTasks + 1,
-          'total_hours': currentHours + durationHours.round(),
-          'places_visited': newPlaces,
-          'total_points': currentPoints + taskPoints,
-        }).eq('id', volunteerId);
+        await _client
+            .from('users')
+            .update({
+              'total_tasks': currentTasks + 1,
+              'total_hours': currentHours + durationHours.round(),
+              'places_visited': newPlaces,
+              'total_points': currentPoints + taskPoints,
+            })
+            .eq('id', volunteerId);
 
         // Mark this volunteer's assignment as completed.
         await _client

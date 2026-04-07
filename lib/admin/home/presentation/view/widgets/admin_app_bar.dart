@@ -8,11 +8,7 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 class AdminAppBar extends StatelessWidget {
-  const AdminAppBar({
-    super.key,
-    required this.adminName,
-    this.avatarUrl,
-  });
+  const AdminAppBar({super.key, required this.adminName, this.avatarUrl});
 
   final String adminName;
   final String? avatarUrl;

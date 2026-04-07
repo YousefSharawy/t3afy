@@ -23,8 +23,9 @@ class DeleteButton extends StatelessWidget {
       },
       backGroundColor: ColorManager.errorLight,
       textStyle: getBoldStyle(
-        fontFamily: FontConstants.fontFamily,fontSize: FontSize.s16
-        ,color: ColorManager.error,
+        fontFamily: FontConstants.fontFamily,
+        fontSize: FontSize.s16,
+        color: ColorManager.error,
       ),
     );
   }

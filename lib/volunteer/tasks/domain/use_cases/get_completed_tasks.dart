@@ -7,7 +7,7 @@ class GetCompletedTasks {
   final TasksRepository _repository;
   GetCompletedTasks(this._repository);
 
-  Future<Either<Failture, List<TaskEntity>>> call(String userId) {
-    return _repository.getCompletedTasks(userId);
+  Future<Either<Failture, List<TaskEntity>>> call(String userId, {bool skipCache = false}) {
+    return _repository.getCompletedTasks(userId, skipCache: skipCache);
   }
 }

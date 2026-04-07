@@ -84,10 +84,12 @@ class ReportForm extends StatelessWidget {
             SizedBox(height: AppHeight.s24),
             PrimaryElevatedButton(
               title: 'إرسال',
-              onPress: isSubmitting ? () {} : () {
-                HapticFeedback.mediumImpact();
-                onSubmit();
-              },
+              onPress: isSubmitting
+                  ? () {}
+                  : () {
+                      HapticFeedback.mediumImpact();
+                      onSubmit();
+                    },
               textStyle: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s16,

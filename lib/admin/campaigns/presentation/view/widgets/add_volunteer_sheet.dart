@@ -60,10 +60,10 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
     final count = _selected.length;
     setState(() => _loading = true);
     final success = await context.read<CampaignDetailCubit>().assignVolunteers(
-          taskId: widget.taskId,
-          userIds: _selected.toList(),
-          adminId: adminId,
-        );
+      taskId: widget.taskId,
+      userIds: _selected.toList(),
+      adminId: adminId,
+    );
     if (!mounted) return;
     setState(() => _loading = false);
     if (success) {
@@ -71,7 +71,9 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
       Navigator.pop(context);
     } else {
       final state = context.read<CampaignDetailCubit>().state;
-      final message = state is CampaignDetailActionError ? state.message : 'حدث خطأ';
+      final message = state is CampaignDetailActionError
+          ? state.message
+          : 'حدث خطأ';
       Toast.error.show(context, title: message);
     }
   }
@@ -179,12 +181,17 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
                               padding: EdgeInsets.all(AppSize.s12),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? ColorManager.primary500.withValues(alpha: 0.08)
+                                    ? ColorManager.primary500.withValues(
+                                        alpha: 0.08,
+                                      )
                                     : ColorManager.white,
-                                borderRadius: BorderRadius.circular(AppRadius.s12),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.s12,
+                                ),
                                 border: isSelected
                                     ? Border.all(
-                                        color: ColorManager.primary500.withValues(alpha: 0.4),
+                                        color: ColorManager.primary500
+                                            .withValues(alpha: 0.4),
                                         width: 1,
                                       )
                                     : null,
@@ -205,7 +212,9 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
                                               width: 0.5.sp,
                                               color: ColorManager.primary500,
                                             ),
-                                            borderRadius: BorderRadius.circular(AppRadius.s8),
+                                            borderRadius: BorderRadius.circular(
+                                              AppRadius.s8,
+                                            ),
                                             color: ColorManager.primary50,
                                           ),
                                           child: Image.asset(IconAssets.vol2),

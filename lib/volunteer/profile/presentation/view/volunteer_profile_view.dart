@@ -85,8 +85,11 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
             width: double.infinity,
             height: 180.h,
             color: ColorManager.natural100,
-            child: Icon(Icons.broken_image_outlined,
-                size: 40.r, color: ColorManager.natural300),
+            child: Icon(
+              Icons.broken_image_outlined,
+              size: 40.r,
+              color: ColorManager.natural300,
+            ),
           ),
         ),
       ),
@@ -272,6 +275,24 @@ class _VolunteerProfileViewState extends State<VolunteerProfileView> {
             ),
             SizedBox(height: AppHeight.s8),
             _buildIdCard(profile.idFileUrl),
+            SizedBox(height: AppHeight.s16),
+            PrimaryElevatedButton(
+              height: AppHeight.s46,
+              title: 'إعادة الجولة التعريفية',
+              onPress: () async {
+                HapticFeedback.lightImpact();
+                await LocalAppStorage.setVolunteerTutorialCompleted(false);
+                if (context.mounted) {
+                  context.go(Routes.splash);
+                }
+              },
+              backGroundColor: ColorManager.cyanPrimary,
+              textStyle: getBoldStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s16,
+                color: ColorManager.white,
+              ),
+            ),
             SizedBox(height: AppHeight.s16),
             PrimaryElevatedButton(
               height: AppHeight.s46,

@@ -28,7 +28,7 @@ class VolunteerDetailStatBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: ColorManager.primary50,
         borderRadius: BorderRadius.circular(AppRadius.s8),
-        border: Border.all(width: 1.sp,color: ColorManager.primary200)
+        border: Border.all(width: 1.sp, color: ColorManager.primary200),
       ),
       child: Column(
         children: [

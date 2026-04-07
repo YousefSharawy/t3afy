@@ -17,7 +17,8 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
       if (cached != null) {
         final m = Map<String, dynamic>.from(cached as Map);
         final stats = PerformanceStatsModel.fromJson(
-            Map<String, dynamic>.from(m['stats'] as Map));
+          Map<String, dynamic>.from(m['stats'] as Map),
+        );
         final commitment = (m['commitment'] as num).toDouble();
         return (stats, commitment);
       }
@@ -25,39 +26,30 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
       final response = await _client
           .from('users')
           .select(
-            'name, avatar_url, rating, level, level_title, total_hours, places_visited',
+            'name, avatar_url, rating, level, level_title, total_hours, places_visited, total_points',
           )
           .eq('id', userId)
           .single();
 
       final assignments = await _client
           .from('task_assignments')
-          .select('status, tasks(points)')
+          .select('status')
           .eq('user_id', userId);
 
       double commitmentPct = 0;
-      int totalPoints = 0;
       if ((assignments as List).isNotEmpty) {
-        final completed =
-            assignments.where((a) => a['status'] == 'completed').toList();
+        final completed = assignments
+            .where((a) => a['status'] == 'completed')
+            .toList();
         commitmentPct = (completed.length * 100.0) / assignments.length;
-
-        for (final a in completed) {
-          final task = a['tasks'];
-          if (task != null) {
-            totalPoints += (task['points'] as num?)?.toInt() ?? 0;
-          }
-        }
       }
 
-      response['total_points'] = totalPoints;
       final stats = PerformanceStatsModel.fromJson(response);
 
-      await LocalAppStorage.setCache(
-        cacheKey,
-        {'stats': stats.toJson(), 'commitment': commitmentPct},
-        ttl: const Duration(minutes: 1),
-      );
+      await LocalAppStorage.setCache(cacheKey, {
+        'stats': stats.toJson(),
+        'commitment': commitmentPct,
+      }, ttl: const Duration(minutes: 1));
 
       return (stats, commitmentPct);
     } catch (error) {
@@ -72,14 +64,19 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
       final cached = LocalAppStorage.getCache(cacheKey);
       if (cached != null) {
         return (cached as List)
-            .map<MonthlyHoursModel>((e) =>
-                MonthlyHoursModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .map<MonthlyHoursModel>(
+              (e) => MonthlyHoursModel.fromJson(
+                Map<String, dynamic>.from(e as Map),
+              ),
+            )
             .toList();
       }
 
       final response = await _client
           .from('task_assignments')
-          .select('task_id, tasks(date, duration_hours)')
+          .select(
+            'verified_hours, tasks(date, duration_hours, time_start, time_end)',
+          )
           .eq('user_id', userId)
           .eq('status', 'completed');
 
@@ -88,8 +85,18 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
         final task = row['tasks'];
         if (task == null) continue;
         final dateStr = task['date'] as String?;
-        final duration = (task['duration_hours'] as num?)?.toDouble() ?? 0;
         if (dateStr == null) continue;
+        final verifiedHours =
+            (row['verified_hours'] as num?)?.toDouble();
+        final durationHours =
+            (task['duration_hours'] as num?)?.toDouble();
+        final duration = verifiedHours ??
+            (durationHours != null && durationHours > 0
+                ? durationHours
+                : _hoursFromTime(
+                    task['time_start'] as String?,
+                    task['time_end'] as String?,
+                  ));
         final date = DateTime.tryParse(dateStr);
         if (date == null) continue;
         final key = '${date.year}-${date.month}';
@@ -98,8 +105,9 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
 
       final entries = monthlyMap.entries.toList()
         ..sort((a, b) => a.key.compareTo(b.key));
-      final last3 =
-          entries.length > 3 ? entries.sublist(entries.length - 3) : entries;
+      final last3 = entries.length > 3
+          ? entries.sublist(entries.length - 3)
+          : entries;
 
       final result = last3.map((e) {
         final parts = e.key.split('-');
@@ -111,12 +119,23 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
       }).toList();
 
       await LocalAppStorage.setCache(
-          cacheKey, result.map((m) => m.toJson()).toList(),
-          ttl: const Duration(minutes: 1));
+        cacheKey,
+        result.map((m) => m.toJson()).toList(),
+        ttl: const Duration(minutes: 1),
+      );
       return result;
     } catch (error) {
       throw ErrorHandler.handle(error).failture;
     }
+  }
+
+  double _hoursFromTime(String? start, String? end) {
+    if (start == null || end == null) return 0;
+    final s = DateTime.tryParse(start);
+    final e = DateTime.tryParse(end);
+    if (s == null || e == null) return 0;
+    final diff = e.difference(s).inMinutes;
+    return diff > 0 ? diff / 60.0 : 0;
   }
 
   @override
@@ -126,48 +145,40 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
       final cached = LocalAppStorage.getCache(cacheKey);
       if (cached != null) {
         return (cached as List)
-            .map<LeaderboardEntryModel>((e) => LeaderboardEntryModel.fromJson(
-                Map<String, dynamic>.from(e as Map)))
+            .map<LeaderboardEntryModel>(
+              (e) => LeaderboardEntryModel.fromJson(
+                Map<String, dynamic>.from(e as Map),
+              ),
+            )
             .toList();
       }
 
       final users = await _client
           .from('users')
-          .select('id, name, avatar_url, total_hours')
-          .eq('role', 'volunteer');
+          .select('id, name, avatar_url, total_hours, total_points')
+          .eq('role', 'volunteer')
+          .order('total_points', ascending: false)
+          .limit(3);
 
       final List<LeaderboardEntryModel> entries = [];
       for (final user in (users as List)) {
-        final userId = user['id'] as String;
-        final assignments = await _client
-            .from('task_assignments')
-            .select('tasks(points)')
-            .eq('user_id', userId)
-            .eq('status', 'completed');
-
-        int pts = 0;
-        for (final a in (assignments as List)) {
-          final task = a['tasks'];
-          if (task != null) {
-            pts += (task['points'] as num?)?.toInt() ?? 0;
-          }
-        }
-
-        entries.add(LeaderboardEntryModel(
-          id: userId,
-          name: user['name'] as String,
-          avatarUrl: (user['avatar_url'] as String?) ?? '',
-          totalHours: (user['total_hours'] as num?)?.toInt() ?? 0,
-          pts: pts,
-        ));
+        entries.add(
+          LeaderboardEntryModel(
+            id: user['id'] as String,
+            name: user['name'] as String,
+            avatarUrl: (user['avatar_url'] as String?) ?? '',
+            totalHours: (user['total_hours'] as num?)?.toInt() ?? 0,
+            pts: (user['total_points'] as num?)?.toInt() ?? 0,
+          ),
+        );
       }
 
-      entries.sort((a, b) => b.pts.compareTo(a.pts));
-
-      final result = entries.take(3).toList();
+      final result = entries;
       await LocalAppStorage.setCache(
-          cacheKey, result.map((e) => e.toJson()).toList(),
-          ttl: const Duration(minutes: 1));
+        cacheKey,
+        result.map((e) => e.toJson()).toList(),
+        ttl: const Duration(minutes: 1),
+      );
       return result;
     } catch (error) {
       throw ErrorHandler.handle(error).failture;

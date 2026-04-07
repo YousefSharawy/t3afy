@@ -8,5 +8,9 @@ class AdminHomeState with _$AdminHomeState {
   const factory AdminHomeState.error(String message) = _Error;
   const factory AdminHomeState.announcementSending() = _AnnouncementSending;
   const factory AdminHomeState.announcementSent() = _AnnouncementSent;
-  const factory AdminHomeState.announcementError(String message) = _AnnouncementError;
+  const factory AdminHomeState.announcementError(String message) =
+      _AnnouncementError;
+  const factory AdminHomeState.exportingPdf() = _ExportingPdf;
+  const factory AdminHomeState.exportSuccess() = _ExportSuccess;
+  const factory AdminHomeState.exportError(String message) = _ExportError;
 }

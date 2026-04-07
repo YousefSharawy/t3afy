@@ -1,3 +1,8 @@
+class StorageBuckets {
+  static const String campaignPapers = 'campaign-papers';
+  static const String volunteerIds = 'volunteer-ids';
+}
+
 class AppConst {
   static const String baseUrl = 'https://nogaty.com/api/v2/';
 

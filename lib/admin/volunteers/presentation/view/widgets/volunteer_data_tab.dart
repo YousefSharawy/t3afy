@@ -36,7 +36,11 @@ class _VolunteerDataTabState extends State<VolunteerDataTab>
         // ── ID photo section ──
         Padding(
           padding: EdgeInsetsDirectional.fromSTEB(
-              AppWidth.s16, AppHeight.s12, AppWidth.s16, 0),
+            AppWidth.s16,
+            AppHeight.s12,
+            AppWidth.s16,
+            0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -78,9 +82,7 @@ class _VolunteerDataTabState extends State<VolunteerDataTab>
               ? _timeAgo(widget.details.lastSeenAt!)
               : '—',
         ),
-        QualificationRow(
-          values: widget.details.volunteerAreas,
-        ),
+        QualificationRow(values: widget.details.volunteerAreas),
       ],
     );
   }
@@ -109,8 +111,8 @@ class _VolunteerDataTabState extends State<VolunteerDataTab>
     final isPdf = url.toLowerCase().endsWith('.pdf');
     if (isPdf) {
       return GestureDetector(
-        onTap: () => launchUrl(Uri.parse(url),
-            mode: LaunchMode.externalApplication),
+        onTap: () =>
+            launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
         child: Container(
           width: double.infinity,
           height: 200.h,
@@ -121,8 +123,11 @@ class _VolunteerDataTabState extends State<VolunteerDataTab>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.picture_as_pdf_outlined,
-                  size: 48.r, color: ColorManager.error),
+              Icon(
+                Icons.picture_as_pdf_outlined,
+                size: 48.r,
+                color: ColorManager.error,
+              ),
               SizedBox(height: AppHeight.s8),
               Text(
                 'عرض الهوية',
@@ -156,8 +161,11 @@ class _VolunteerDataTabState extends State<VolunteerDataTab>
             width: double.infinity,
             height: 200.h,
             color: ColorManager.natural100,
-            child: Icon(Icons.broken_image_outlined,
-                size: 40.r, color: ColorManager.natural300),
+            child: Icon(
+              Icons.broken_image_outlined,
+              size: 40.r,
+              color: ColorManager.natural300,
+            ),
           ),
         ),
       ),
@@ -189,7 +197,9 @@ class _VolunteerDataTabState extends State<VolunteerDataTab>
       children: [
         Container(
           padding: EdgeInsetsDirectional.symmetric(
-              horizontal: AppWidth.s12, vertical: AppHeight.s4),
+            horizontal: AppWidth.s12,
+            vertical: AppHeight.s4,
+          ),
           decoration: BoxDecoration(
             color: isApproved
                 ? ColorManager.successLight
@@ -213,8 +223,9 @@ class _VolunteerDataTabState extends State<VolunteerDataTab>
                 isApproved ? 'تم التحقق' : 'بانتظار المراجعة',
                 style: getSemiBoldStyle(
                   fontFamily: FontConstants.fontFamily,
-                  color:
-                      isApproved ? ColorManager.success : ColorManager.warning,
+                  color: isApproved
+                      ? ColorManager.success
+                      : ColorManager.warning,
                   fontSize: FontSize.s12,
                 ),
               ),

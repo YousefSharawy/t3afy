@@ -21,9 +21,7 @@ class SupervisorSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-           SectionHeader(
-            title: 'المشرف المسؤول',
-          ),
+          SectionHeader(title: 'المشرف المسؤول'),
           SizedBox(height: AppHeight.s16),
           Row(
             children: [
@@ -33,13 +31,9 @@ class SupervisorSection extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: ColorManager.infoLight,
                   border: Border.all(color: ColorManager.info, width: 0.5.sp),
-                  borderRadius: BorderRadius.circular(AppRadius.s12)
+                  borderRadius: BorderRadius.circular(AppRadius.s12),
                 ),
-                child: Center(
-                  child: Image.asset(
-                    IconAssets.mentor,
-                  ),
-                ),
+                child: Center(child: Image.asset(IconAssets.mentor)),
               ),
               SizedBox(width: AppWidth.s8),
               Expanded(
@@ -75,10 +69,13 @@ class SupervisorSection extends StatelessWidget {
                     onTap: () => _launchSms(phone),
                     child: Container(
                       width: AppWidth.s28,
-                      height:AppHeight.s28,
+                      height: AppHeight.s28,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(AppRadius.s8),
-                        border: Border.all(color: ColorManager.info, width: 0.5.sp),
+                        border: Border.all(
+                          color: ColorManager.info,
+                          width: 0.5.sp,
+                        ),
                         color: ColorManager.infoLight,
                       ),
                       child: Center(
@@ -94,17 +91,20 @@ class SupervisorSection extends StatelessWidget {
                   GestureDetector(
                     onTap: () => _launchPhone(phone),
                     child: Container(
-                  width: AppWidth.s28,
-                      height:AppHeight.s28,
+                      width: AppWidth.s28,
+                      height: AppHeight.s28,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(AppRadius.s8),
-                        border: Border.all(color: ColorManager.info, width: 0.5.sp),
+                        border: Border.all(
+                          color: ColorManager.info,
+                          width: 0.5.sp,
+                        ),
                         color: ColorManager.infoLight,
                       ),
                       child: Center(
                         child: Image.asset(
                           IconAssets.message,
-                        width: AppWidth.s18,
+                          width: AppWidth.s18,
                           height: AppHeight.s18,
                         ),
                       ),

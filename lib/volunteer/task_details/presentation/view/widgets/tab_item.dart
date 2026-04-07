@@ -34,7 +34,9 @@ class TabItem extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: isSelected ? ColorManager.primary500 : Colors.transparent,
+                color: isSelected
+                    ? ColorManager.primary500
+                    : Colors.transparent,
                 width: 2.sp,
               ),
             ),
@@ -42,7 +44,7 @@ class TabItem extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-           Image.asset(icon,width: AppWidth.s24,height: AppHeight.s24,),
+              Image.asset(icon, width: AppWidth.s24, height: AppHeight.s24),
               SizedBox(width: AppWidth.s4),
               Text(
                 label,

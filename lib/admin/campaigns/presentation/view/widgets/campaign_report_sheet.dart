@@ -15,8 +15,18 @@ class CampaignReportSheet extends StatelessWidget {
   final CampaignDetailEntity detail;
 
   static const _arabicMonths = [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+    'يناير',
+    'فبراير',
+    'مارس',
+    'أبريل',
+    'مايو',
+    'يونيو',
+    'يوليو',
+    'أغسطس',
+    'سبتمبر',
+    'أكتوبر',
+    'نوفمبر',
+    'ديسمبر',
   ];
 
   String _formatDate(String raw) {
@@ -92,7 +102,11 @@ class CampaignReportSheet extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(IconAssets.performance, width: 24.r, height: 24.r),
+                  Image.asset(
+                    IconAssets.performance,
+                    width: 24.r,
+                    height: 24.r,
+                  ),
                   SizedBox(width: AppWidth.s8),
                   Text(
                     'تقرير الحملة',

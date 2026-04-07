@@ -15,8 +15,9 @@ class PerformanceImplRepository implements PerformanceRepository {
     String userId,
   ) async {
     try {
-      final (stats, commitmentPct) =
-          await _dataSource.getPerformanceStats(userId);
+      final (stats, commitmentPct) = await _dataSource.getPerformanceStats(
+        userId,
+      );
       return Right(stats.toEntity(commitmentPct: commitmentPct));
     } on Failture catch (failture) {
       return Left(failture);
@@ -36,7 +37,8 @@ class PerformanceImplRepository implements PerformanceRepository {
   }
 
   @override
-  Future<Either<Failture, List<LeaderboardEntryEntity>>> getLeaderboard() async {
+  Future<Either<Failture, List<LeaderboardEntryEntity>>>
+  getLeaderboard() async {
     try {
       final result = await _dataSource.getLeaderboard();
       return Right(result.map((e) => e.toEntity()).toList());

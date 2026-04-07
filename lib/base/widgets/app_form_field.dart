@@ -42,8 +42,7 @@ class AppFormField extends StatelessWidget {
     final effectiveBorder = borderColor ?? ColorManager.blueOne700;
     final effectiveFocused = focusedBorderColor ?? ColorManager.cyanPrimary;
     final effectiveText = textColor ?? Colors.white;
-    final effectiveHint =
-        hintColor ?? Colors.white.withValues(alpha: 0.3);
+    final effectiveHint = hintColor ?? Colors.white.withValues(alpha: 0.3);
 
     final field = TextFormField(
       controller: controller,

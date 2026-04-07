@@ -37,7 +37,7 @@ class TaskDetailsTabSwitcher extends StatelessWidget {
           ),
           TabItem(
             label: 'المستلزمات',
-             icon: IconAssets.requirements,
+            icon: IconAssets.requirements,
             isSelected: selectedIndex == 1,
             onTap: () => onTabChanged(1),
             isFirst: false,

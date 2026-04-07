@@ -105,8 +105,7 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                           height: 30.r,
                           decoration: BoxDecoration(
                             color: ColorManager.natural100,
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.s8),
+                            borderRadius: BorderRadius.circular(AppRadius.s8),
                           ),
                           child: Icon(
                             Icons.close_rounded,
@@ -174,7 +173,8 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                                     report.rating,
                                     (i) => Padding(
                                       padding: EdgeInsetsDirectional.only(
-                                          start: AppWidth.s2),
+                                        start: AppWidth.s2,
+                                      ),
                                       child: Image.asset(
                                         IconAssets.star,
                                         width: 16.r,
@@ -236,15 +236,14 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
 
                       if (report.adminFeedback != null) ...[
                         SizedBox(height: AppHeight.s16),
-                        SectionLabel(
-                          label: 'ملاحظات المشرف',
-                        ),
+                        SectionLabel(label: 'ملاحظات المشرف'),
                         SizedBox(height: AppHeight.s8),
                         _ContentCard(
                           text: report.adminFeedback!,
                           textColor: ColorManager.cyanPrimary,
-                          borderColor: ColorManager.cyanPrimary
-                              .withValues(alpha: 0.3),
+                          borderColor: ColorManager.cyanPrimary.withValues(
+                            alpha: 0.3,
+                          ),
                           backgroundColor: ColorManager.primary50,
                         ),
                       ],
@@ -283,13 +282,18 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                         BlocBuilder<AdminReportsCubit, AdminReportsState>(
                           buildWhen: (prev, curr) =>
                               curr.maybeWhen(
-                                  reviewing: () => true,
-                                  orElse: () => false) ||
+                                reviewing: () => true,
+                                orElse: () => false,
+                              ) ||
                               curr.maybeWhen(
-                                  reviewed: () => true, orElse: () => false),
+                                reviewed: () => true,
+                                orElse: () => false,
+                              ),
                           builder: (context, state) {
                             final isProcessing = state.maybeWhen(
-                                reviewing: () => true, orElse: () => false);
+                              reviewing: () => true,
+                              orElse: () => false,
+                            );
                             return Row(
                               children: [
                                 Expanded(
@@ -307,12 +311,13 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                                                 .reviewReport(
                                                   reportId: report.id,
                                                   status: 'rejected',
-                                                  feedback: _feedbackCtrl.text
+                                                  feedback:
+                                                      _feedbackCtrl.text
                                                           .trim()
                                                           .isEmpty
                                                       ? null
                                                       : _feedbackCtrl.text
-                                                          .trim(),
+                                                            .trim(),
                                                 );
                                           },
                                   ),
@@ -334,12 +339,13 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
                                                 .reviewReport(
                                                   reportId: report.id,
                                                   status: 'approved',
-                                                  feedback: _feedbackCtrl.text
+                                                  feedback:
+                                                      _feedbackCtrl.text
                                                           .trim()
                                                           .isEmpty
                                                       ? null
                                                       : _feedbackCtrl.text
-                                                          .trim(),
+                                                            .trim(),
                                                 );
                                           },
                                   ),
@@ -377,9 +383,7 @@ class _InfoCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.s16),
         border: Border.all(color: ColorManager.natural100, width: 0.5),
       ),
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 }

@@ -39,7 +39,9 @@ class CampaignCard extends StatelessWidget {
         padding: EdgeInsets.all(AppSize.s12),
         decoration: BoxDecoration(
           color: ColorManager.white,
-          border: BorderDirectional(top: BorderSide(color: _statusTextColor,width: 3.sp)),
+          border: BorderDirectional(
+            top: BorderSide(color: _statusTextColor, width: 3.sp),
+          ),
           borderRadius: BorderRadius.circular(AppRadius.s16),
         ),
         child: Row(

@@ -9,17 +9,35 @@ class AdminPerformanceRemoteDatasourceImpl
   final _client = Supabase.instance.client;
 
   static const _arabicMonths = [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+    'يناير',
+    'فبراير',
+    'مارس',
+    'أبريل',
+    'مايو',
+    'يونيو',
+    'يوليو',
+    'أغسطس',
+    'سبتمبر',
+    'أكتوبر',
+    'نوفمبر',
+    'ديسمبر',
   ];
 
   static const _arabicDays = [
-    'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد',
+    'الاثنين',
+    'الثلاثاء',
+    'الأربعاء',
+    'الخميس',
+    'الجمعة',
+    'السبت',
+    'الأحد',
   ];
 
   @override
   Future<AdminPerformanceEntity> getPerformanceData(
-      DateTime startDate, String period) async {
+    DateTime startDate,
+    String period,
+  ) async {
     try {
       final cacheKey = 'admin_performance_$period';
       final cached = LocalAppStorage.getCache(cacheKey);
@@ -66,10 +84,7 @@ class AdminPerformanceRemoteDatasourceImpl
             .gte('joined_at', startStr),
 
         // 5: all tasks in period for completion rate
-        _client
-            .from('tasks')
-            .select('status')
-            .gte('date', startStr),
+        _client.from('tasks').select('status').gte('date', startStr),
 
         // 6: completed assignments for verified attendance rate
         _client
@@ -112,34 +127,42 @@ class AdminPerformanceRemoteDatasourceImpl
         if (region == null || region.isEmpty) continue;
         regionMap[region] = (regionMap[region] ?? 0) + 1;
       }
-      final topRegions = (regionMap.entries.toList()
-            ..sort((a, b) => b.value.compareTo(a.value)))
-          .where((e) => e.value > 0)
-          .take(5)
-          .map((e) => RegionStatEntity(region: e.key, volunteerCount: e.value))
-          .toList();
+      final topRegions =
+          (regionMap.entries.toList()
+                ..sort((a, b) => b.value.compareTo(a.value)))
+              .where((e) => e.value > 0)
+              .take(5)
+              .map(
+                (e) => RegionStatEntity(region: e.key, volunteerCount: e.value),
+              )
+              .toList();
 
       // --- Verified attendance rate ---
       final completedAssignments = results[6] as List;
       final totalCompleted = completedAssignments.length;
-      final verifiedCount =
-          completedAssignments.where((r) => (r['is_verified'] as bool?) == true).length;
-      final verifiedAttendanceRate =
-          totalCompleted > 0 ? (verifiedCount / totalCompleted * 100) : 0.0;
+      final verifiedCount = completedAssignments
+          .where((r) => (r['is_verified'] as bool?) == true)
+          .length;
+      final verifiedAttendanceRate = totalCompleted > 0
+          ? (verifiedCount / totalCompleted * 100)
+          : 0.0;
 
       // --- Campaign completion rate ---
       final allTasks = results[5] as List;
       final totalCampaigns = allTasks.length;
-      final completedCampaigns =
-          allTasks.where((t) => t['status'] == 'done' || t['status'] == 'completed').length;
+      final completedCampaigns = allTasks
+          .where((t) => t['status'] == 'done' || t['status'] == 'completed')
+          .length;
       final campaignCompletionPercent = totalCampaigns > 0
           ? (completedCampaigns / totalCampaigns * 100)
           : 0.0;
 
       // --- Completion percent change vs previous equivalent period ---
       final periodDays = _periodDays(period);
-      final prevStart =
-          startDate.subtract(Duration(days: periodDays)).toIso8601String().split('T')[0];
+      final prevStart = startDate
+          .subtract(Duration(days: periodDays))
+          .toIso8601String()
+          .split('T')[0];
       final prevEnd = startStr;
 
       final prevDoneRaw = await _client
@@ -207,7 +230,10 @@ class AdminPerformanceRemoteDatasourceImpl
 
   /// 7 bars — one per day
   List<PerformanceBarEntry> _buildWeekBars(
-      List rows, DateTime startDate, DateTime now) {
+    List rows,
+    DateTime startDate,
+    DateTime now,
+  ) {
     final countByDate = <String, int>{};
     for (final row in rows) {
       final task = row['tasks'] as Map<String, dynamic>?;
@@ -267,12 +293,13 @@ class AdminPerformanceRemoteDatasourceImpl
     final bars = <PerformanceBarEntry>[];
     for (int i = 11; i >= 0; i--) {
       final month = DateTime(now.year, now.month - i, 1);
-      final key =
-          '${month.year}-${month.month.toString().padLeft(2, '0')}';
-      bars.add(PerformanceBarEntry(
-        label: _arabicMonths[month.month - 1],
-        count: countByMonth[key] ?? 0,
-      ));
+      final key = '${month.year}-${month.month.toString().padLeft(2, '0')}';
+      bars.add(
+        PerformanceBarEntry(
+          label: _arabicMonths[month.month - 1],
+          count: countByMonth[key] ?? 0,
+        ),
+      );
     }
     return bars;
   }
@@ -280,22 +307,21 @@ class AdminPerformanceRemoteDatasourceImpl
   // --- Serialization for cache ---
 
   Map<String, dynamic> _toJson(AdminPerformanceEntity e) => {
-        'totalVolunteers': e.totalVolunteers,
-        'totalHours': e.totalHours,
-        'avgRating': e.avgRating,
-        'chartBars': e.chartBars
-            .map((b) => {'label': b.label, 'count': b.count})
-            .toList(),
-        'topRegions': e.topRegions
-            .map((r) =>
-                {'region': r.region, 'volunteerCount': r.volunteerCount})
-            .toList(),
-        'totalCampaigns': e.totalCampaigns,
-        'completedCampaigns': e.completedCampaigns,
-        'campaignCompletionPercent': e.campaignCompletionPercent,
-        'completionPercentChange': e.completionPercentChange,
-        'verifiedAttendanceRate': e.verifiedAttendanceRate,
-      };
+    'totalVolunteers': e.totalVolunteers,
+    'totalHours': e.totalHours,
+    'avgRating': e.avgRating,
+    'chartBars': e.chartBars
+        .map((b) => {'label': b.label, 'count': b.count})
+        .toList(),
+    'topRegions': e.topRegions
+        .map((r) => {'region': r.region, 'volunteerCount': r.volunteerCount})
+        .toList(),
+    'totalCampaigns': e.totalCampaigns,
+    'completedCampaigns': e.completedCampaigns,
+    'campaignCompletionPercent': e.campaignCompletionPercent,
+    'completionPercentChange': e.completionPercentChange,
+    'verifiedAttendanceRate': e.verifiedAttendanceRate,
+  };
 
   AdminPerformanceEntity _fromJson(Map<String, dynamic> m) =>
       AdminPerformanceEntity(
@@ -303,24 +329,28 @@ class AdminPerformanceRemoteDatasourceImpl
         totalHours: (m['totalHours'] as num).toInt(),
         avgRating: (m['avgRating'] as num).toDouble(),
         chartBars: (m['chartBars'] as List)
-            .map((b) => PerformanceBarEntry(
-                  label: b['label'] as String,
-                  count: (b['count'] as num).toInt(),
-                ))
+            .map(
+              (b) => PerformanceBarEntry(
+                label: b['label'] as String,
+                count: (b['count'] as num).toInt(),
+              ),
+            )
             .toList(),
         topRegions: (m['topRegions'] as List)
-            .map((r) => RegionStatEntity(
-                  region: r['region'] as String,
-                  volunteerCount: (r['volunteerCount'] as num).toInt(),
-                ))
+            .map(
+              (r) => RegionStatEntity(
+                region: r['region'] as String,
+                volunteerCount: (r['volunteerCount'] as num).toInt(),
+              ),
+            )
             .toList(),
         totalCampaigns: (m['totalCampaigns'] as num).toInt(),
         completedCampaigns: (m['completedCampaigns'] as num).toInt(),
-        campaignCompletionPercent:
-            (m['campaignCompletionPercent'] as num).toDouble(),
-        completionPercentChange:
-            (m['completionPercentChange'] as num).toDouble(),
-        verifiedAttendanceRate:
-            ((m['verifiedAttendanceRate'] as num?) ?? 0).toDouble(),
+        campaignCompletionPercent: (m['campaignCompletionPercent'] as num)
+            .toDouble(),
+        completionPercentChange: (m['completionPercentChange'] as num)
+            .toDouble(),
+        verifiedAttendanceRate: ((m['verifiedAttendanceRate'] as num?) ?? 0)
+            .toDouble(),
       );
 }

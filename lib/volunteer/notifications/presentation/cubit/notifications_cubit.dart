@@ -76,38 +76,13 @@ class NotificationsCubit extends Cubit<NotificationsState> {
 
   Future<void> markAsRead(String noteId) async {
     final result = await _markAsReadUseCase(noteId);
-    result.fold(
-      (failure) => emit(NotificationsStateError(failure.message)),
-      (_) {
-        final currentState = state;
-        if (currentState is NotificationsStateLoaded) {
-          final updatedNotes = currentState.notes.map((note) {
-            if (note.id == noteId) {
-              return AdminNote(
-                id: note.id,
-                volunteerId: note.volunteerId,
-                title: note.title,
-                message: note.message,
-                isRead: true,
-                createdAt: note.createdAt,
-              );
-            }
-            return note;
-          }).toList();
-          emit(NotificationsStateLoaded(updatedNotes));
-        }
-      },
-    );
-  }
-
-  Future<void> markAllAsRead(String volunteerId) async {
-    final result = await _markAllAsReadUseCase(volunteerId);
-    result.fold(
-      (failure) => emit(NotificationsStateError(failure.message)),
-      (_) {
-        final currentState = state;
-        if (currentState is NotificationsStateLoaded) {
-          final updatedNotes = currentState.notes.map((note) {
+    result.fold((failure) => emit(NotificationsStateError(failure.message)), (
+      _,
+    ) {
+      final currentState = state;
+      if (currentState is NotificationsStateLoaded) {
+        final updatedNotes = currentState.notes.map((note) {
+          if (note.id == noteId) {
             return AdminNote(
               id: note.id,
               volunteerId: note.volunteerId,
@@ -116,11 +91,34 @@ class NotificationsCubit extends Cubit<NotificationsState> {
               isRead: true,
               createdAt: note.createdAt,
             );
-          }).toList();
-          emit(NotificationsStateLoaded(updatedNotes));
-        }
-      },
-    );
+          }
+          return note;
+        }).toList();
+        emit(NotificationsStateLoaded(updatedNotes));
+      }
+    });
+  }
+
+  Future<void> markAllAsRead(String volunteerId) async {
+    final result = await _markAllAsReadUseCase(volunteerId);
+    result.fold((failure) => emit(NotificationsStateError(failure.message)), (
+      _,
+    ) {
+      final currentState = state;
+      if (currentState is NotificationsStateLoaded) {
+        final updatedNotes = currentState.notes.map((note) {
+          return AdminNote(
+            id: note.id,
+            volunteerId: note.volunteerId,
+            title: note.title,
+            message: note.message,
+            isRead: true,
+            createdAt: note.createdAt,
+          );
+        }).toList();
+        emit(NotificationsStateLoaded(updatedNotes));
+      }
+    });
   }
 
   Future<void> clearAllNotifications(String volunteerId) async {

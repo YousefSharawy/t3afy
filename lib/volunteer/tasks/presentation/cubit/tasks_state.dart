@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:t3afy/volunteer/tasks/domain/entities/home_enities.dart';
 
 part 'tasks_state.freezed.dart';
+
 @freezed
 abstract class TasksState with _$TasksState {
   const factory TasksState.initial() = TasksStateInitial;

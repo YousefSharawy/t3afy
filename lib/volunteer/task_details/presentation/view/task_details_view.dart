@@ -10,6 +10,9 @@ import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/volunteer/task_details/data/sources/check_in_impl_data_source.dart';
 import 'package:t3afy/volunteer/task_details/domain/entities/task_details_entity.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/location_cubit.dart';
+import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/app/services/tutorial_service.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../cubit/task_details_cubit.dart';
 import 'widgets/check_in_out_card.dart';
@@ -30,6 +33,7 @@ class TaskDetailsView extends StatefulWidget {
 
 class _TaskDetailsViewState extends State<TaskDetailsView> {
   int _selectedTab = 0;
+  bool _tutorialShown = false;
 
   @override
   void initState() {
@@ -51,8 +55,13 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
       final startMin = int.tryParse(startParts[1]) ?? 0;
       final endHour = int.tryParse(endParts[0]) ?? 23;
       final endMin = int.tryParse(endParts[1]) ?? 59;
-      final windowStart = DateTime(d.year, d.month, d.day, startHour, startMin)
-          .subtract(const Duration(minutes: 30));
+      final windowStart = DateTime(
+        d.year,
+        d.month,
+        d.day,
+        startHour,
+        startMin,
+      ).subtract(const Duration(minutes: 30));
       final windowEnd = DateTime(d.year, d.month, d.day, endHour, endMin);
       final now = DateTime.now();
       return now.isAfter(windowStart) && now.isBefore(windowEnd);
@@ -96,18 +105,31 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
             ),
             error: (message) => TaskErrorBody(
               message: message,
-              onRetry: () => context
-                  .read<TaskDetailsCubit>()
-                  .loadTaskDetails(widget.taskId),
+              onRetry: () => context.read<TaskDetailsCubit>().loadTaskDetails(
+                widget.taskId,
+              ),
             ),
             loaded: (task) {
               final showCheckIn = _shouldShowCheckIn(task);
+              if (!_tutorialShown &&
+                  !LocalAppStorage.isTaskDetailsTutorialCompleted()) {
+                _tutorialShown = true;
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (mounted) {
+                    _showTutorial(context);
+                  }
+                });
+              }
+
               return SingleChildScrollView(
                 padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
                 child: Column(
                   children: [
                     SizedBox(height: AppHeight.s10),
-                    TaskDetailsHeaderCard(task: task),
+                    TaskDetailsHeaderCard(
+                      key: AppTutorialKeys.taskDetailsHeaderKey,
+                      task: task,
+                    ),
                     if (showCheckIn) ...[
                       SizedBox(height: AppHeight.s16),
                       BlocProvider<LocationCubit>(
@@ -117,11 +139,15 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
                           taskLng: task.locationLng!,
                           dataSource: CheckInImplDataSource(),
                         )..init(),
-                        child: const CheckInOutCard(),
+                        child: CheckInOutCard(
+                          timeEnd: task.timeEnd,
+                          date: task.date,
+                        ),
                       ),
                     ],
                     SizedBox(height: AppHeight.s16),
                     TaskDetailsTabSwitcher(
+                      key: AppTutorialKeys.taskDetailsTabSwitcherKey,
                       selectedIndex: _selectedTab,
                       onTabChanged: (i) => setState(() => _selectedTab = i),
                     ),
@@ -129,14 +155,8 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 280),
                       child: _selectedTab == 0
-                          ? TaskDetailsTab(
-                              key: const ValueKey(0),
-                              task: task,
-                            )
-                          : TaskSuppliesTab(
-                              key: const ValueKey(1),
-                              task: task,
-                            ),
+                          ? TaskDetailsTab(key: const ValueKey(0), task: task)
+                          : TaskSuppliesTab(key: const ValueKey(1), task: task),
                     ),
                   ],
                 ),
@@ -146,5 +166,41 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
         },
       ),
     );
+  }
+
+  void _showTutorial(BuildContext context) {
+    TutorialService.createTutorial(
+      targets: _createTargets(),
+      onFinish: () {
+        LocalAppStorage.setTaskDetailsTutorialCompleted(true);
+      },
+      onSkip: () {
+        LocalAppStorage.setTaskDetailsTutorialCompleted(true);
+      },
+    ).show(context: context);
+  }
+
+  List<TargetFocus> _createTargets() {
+    return [
+      TutorialService.createTarget(
+        identify: "task_header",
+        keyTarget: AppTutorialKeys.taskDetailsHeaderKey,
+        title: "تفاصيل المهمة الأساسية",
+        description: "استعرض مكان المهمة ومعلومات المستفيد والوقت المتوقع",
+        contentPosition: 1,
+        stepIndex: 1,
+        totalSteps: 2,
+      ),
+      TutorialService.createTarget(
+        identify: "tab_switcher",
+        keyTarget: AppTutorialKeys.taskDetailsTabSwitcherKey,
+        title: "التنقل السريع",
+        description:
+            "انتقل هنا بين تفاصيل الغرفة وقائمة المستلزمات الطبية المطلوبة (إن وجدت)",
+        contentPosition: 1,
+        stepIndex: 2,
+        totalSteps: 2,
+      ),
+    ];
   }
 }

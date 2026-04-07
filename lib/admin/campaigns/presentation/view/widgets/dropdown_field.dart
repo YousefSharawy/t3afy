@@ -65,10 +65,7 @@ class DropdownField extends StatelessWidget {
           child: Container(
             constraints: BoxConstraints(minHeight: AppHeight.s42),
             decoration: BoxDecoration(
-              border: Border.all(
-                width: 1.sp,
-                color: ColorManager.natural200,
-              ),
+              border: Border.all(width: 1.sp, color: ColorManager.natural200),
               color: ColorManager.natural100,
               borderRadius: BorderRadius.circular(AppRadius.s12),
             ),

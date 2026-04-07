@@ -15,11 +15,11 @@ void main() {
   late MockGetPendingUsersUsecase mockGetPending;
 
   VolunteersCubit buildCubit() => VolunteersCubit(
-        mockGetVolunteers,
-        mockRepo,
-        mockAddVolunteer,
-        mockGetPending,
-      );
+    mockGetVolunteers,
+    mockRepo,
+    mockAddVolunteer,
+    mockGetPending,
+  );
 
   setUp(() {
     mockGetVolunteers = MockGetVolunteersUsecase();
@@ -39,8 +39,9 @@ void main() {
     group('loadVolunteers', () {
       test('success → final state is loaded with volunteer list', () async {
         final volunteers = [fakeAdminVolunteer()];
-        when(() => mockGetVolunteers())
-            .thenAnswer((_) async => Right(volunteers));
+        when(
+          () => mockGetVolunteers(),
+        ).thenAnswer((_) async => Right(volunteers));
 
         final cubit = buildCubit();
         await Future<void>.delayed(Duration.zero);
@@ -55,8 +56,9 @@ void main() {
       });
 
       test('failure → final state is error', () async {
-        when(() => mockGetVolunteers())
-            .thenAnswer((_) async => Left(Failture(0, 'خطأ')));
+        when(
+          () => mockGetVolunteers(),
+        ).thenAnswer((_) async => Left(Failture(0, 'خطأ')));
 
         final cubit = buildCubit();
         await Future<void>.delayed(Duration.zero);
@@ -68,8 +70,9 @@ void main() {
 
     group('setFilter', () {
       test('updates filter field in loaded state', () async {
-        when(() => mockGetVolunteers())
-            .thenAnswer((_) async => Right([fakeAdminVolunteer()]));
+        when(
+          () => mockGetVolunteers(),
+        ).thenAnswer((_) async => Right([fakeAdminVolunteer()]));
 
         final cubit = buildCubit();
         await Future<void>.delayed(Duration.zero);
@@ -86,8 +89,9 @@ void main() {
       });
 
       test('does nothing when state is not loaded', () async {
-        when(() => mockGetVolunteers())
-            .thenAnswer((_) async => Left(Failture(0, 'خطأ')));
+        when(
+          () => mockGetVolunteers(),
+        ).thenAnswer((_) async => Left(Failture(0, 'خطأ')));
 
         final cubit = buildCubit();
         await Future<void>.delayed(Duration.zero);
@@ -100,8 +104,9 @@ void main() {
 
     group('setSearchQuery', () {
       test('updates searchQuery in loaded state', () async {
-        when(() => mockGetVolunteers())
-            .thenAnswer((_) async => Right([fakeAdminVolunteer()]));
+        when(
+          () => mockGetVolunteers(),
+        ).thenAnswer((_) async => Right([fakeAdminVolunteer()]));
 
         final cubit = buildCubit();
         await Future<void>.delayed(Duration.zero);
@@ -121,15 +126,18 @@ void main() {
     group('addVolunteer', () {
       test('success → reloads and final state is loaded', () async {
         final volunteers = [fakeAdminVolunteer()];
-        when(() => mockGetVolunteers())
-            .thenAnswer((_) async => Right(volunteers));
-        when(() => mockAddVolunteer(
-              name: any(named: 'name'),
-              email: any(named: 'email'),
-              phone: any(named: 'phone'),
-              region: any(named: 'region'),
-              qualification: any(named: 'qualification'),
-            )).thenAnswer((_) async => const Right(null));
+        when(
+          () => mockGetVolunteers(),
+        ).thenAnswer((_) async => Right(volunteers));
+        when(
+          () => mockAddVolunteer(
+            name: any(named: 'name'),
+            email: any(named: 'email'),
+            phone: any(named: 'phone'),
+            region: any(named: 'region'),
+            qualification: any(named: 'qualification'),
+          ),
+        ).thenAnswer((_) async => const Right(null));
 
         final cubit = buildCubit();
         await Future<void>.delayed(Duration.zero);
@@ -146,15 +154,18 @@ void main() {
       });
 
       test('failure → emits error', () async {
-        when(() => mockGetVolunteers())
-            .thenAnswer((_) async => Right([fakeAdminVolunteer()]));
-        when(() => mockAddVolunteer(
-              name: any(named: 'name'),
-              email: any(named: 'email'),
-              phone: any(named: 'phone'),
-              region: any(named: 'region'),
-              qualification: any(named: 'qualification'),
-            )).thenAnswer((_) async => Left(Failture(0, 'فشل الإضافة')));
+        when(
+          () => mockGetVolunteers(),
+        ).thenAnswer((_) async => Right([fakeAdminVolunteer()]));
+        when(
+          () => mockAddVolunteer(
+            name: any(named: 'name'),
+            email: any(named: 'email'),
+            phone: any(named: 'phone'),
+            region: any(named: 'region'),
+            qualification: any(named: 'qualification'),
+          ),
+        ).thenAnswer((_) async => Left(Failture(0, 'فشل الإضافة')));
 
         final cubit = buildCubit();
         await Future<void>.delayed(Duration.zero);
@@ -170,10 +181,10 @@ void main() {
       test('success → pendingUsers populated in loaded state', () async {
         final volunteers = [fakeAdminVolunteer()];
         final pending = [fakeAdminVolunteer(id: 'pending-1', role: 'user')];
-        when(() => mockGetVolunteers())
-            .thenAnswer((_) async => Right(volunteers));
-        when(() => mockGetPending())
-            .thenAnswer((_) async => Right(pending));
+        when(
+          () => mockGetVolunteers(),
+        ).thenAnswer((_) async => Right(volunteers));
+        when(() => mockGetPending()).thenAnswer((_) async => Right(pending));
 
         final cubit = buildCubit();
         await Future<void>.delayed(Duration.zero);
@@ -191,10 +202,12 @@ void main() {
       });
 
       test('failure → keeps pendingLoading false', () async {
-        when(() => mockGetVolunteers())
-            .thenAnswer((_) async => Right([fakeAdminVolunteer()]));
-        when(() => mockGetPending())
-            .thenAnswer((_) async => Left(Failture(0, 'error')));
+        when(
+          () => mockGetVolunteers(),
+        ).thenAnswer((_) async => Right([fakeAdminVolunteer()]));
+        when(
+          () => mockGetPending(),
+        ).thenAnswer((_) async => Left(Failture(0, 'error')));
 
         final cubit = buildCubit();
         await Future<void>.delayed(Duration.zero);

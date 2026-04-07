@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -7,11 +6,7 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 class AddItemHeader extends StatelessWidget {
-  const AddItemHeader({
-    super.key,
-    required this.label,
-    required this.onAdd,
-  });
+  const AddItemHeader({super.key, required this.label, required this.onAdd});
   final String label;
   final VoidCallback onAdd;
   @override

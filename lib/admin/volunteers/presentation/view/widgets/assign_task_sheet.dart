@@ -63,8 +63,9 @@ class _AssignTaskSheetState extends State<AssignTaskSheet> {
           ),
           decoration: BoxDecoration(
             color: ColorManager.natural50,
-            borderRadius:
-                BorderRadius.vertical(top: Radius.circular(AppRadius.s20)),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(AppRadius.s20),
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.max,
@@ -140,10 +141,7 @@ class _ExistingTaskTab extends StatelessWidget {
     return BlocBuilder<VolunteerDetailsCubit, VolunteerDetailsState>(
       builder: (context, state) {
         if (state is VolunteerDetailsActionLoading) {
-          return const SizedBox(
-            height: 120,
-            child: LoadingIndicator(),
-          );
+          return const SizedBox(height: 120, child: LoadingIndicator());
         }
         if (state is VolunteerDetailsAvailableTasks) {
           if (state.tasks.isEmpty) {
@@ -192,9 +190,9 @@ class _ExistingTaskItem extends StatelessWidget {
         if (confirmed && context.mounted) {
           final adminId = LocalAppStorage.getUserId() ?? '';
           context.read<VolunteerDetailsCubit>().assignTask(
-                taskId: task['id'] as String,
-                adminId: adminId,
-              );
+            taskId: task['id'] as String,
+            adminId: adminId,
+          );
         }
       },
       child: Container(
@@ -223,8 +221,10 @@ class _ExistingTaskItem extends StatelessWidget {
                   if (date.isNotEmpty || location.isNotEmpty) ...[
                     SizedBox(height: AppHeight.s4),
                     Text(
-                      [if (date.isNotEmpty) date, if (location.isNotEmpty) location]
-                          .join(' · '),
+                      [
+                        if (date.isNotEmpty) date,
+                        if (location.isNotEmpty) location,
+                      ].join(' · '),
                       style: getRegularStyle(
                         color: ColorManager.natural400,
                         fontSize: FontSize.s11,
@@ -336,7 +336,10 @@ class _NewTaskFormState extends State<_NewTaskForm> {
   }
 
   Future<void> _pickTimeStart() async {
-    final picked = await showTimePicker(context: context, initialTime: _timeStart);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _timeStart,
+    );
     if (picked != null) {
       setState(() {
         _timeStart = picked;
@@ -346,7 +349,10 @@ class _NewTaskFormState extends State<_NewTaskForm> {
   }
 
   Future<void> _pickTimeEnd() async {
-    final picked = await showTimePicker(context: context, initialTime: _timeEnd);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _timeEnd,
+    );
     if (picked != null) {
       setState(() {
         _timeEnd = picked;
@@ -364,29 +370,29 @@ class _NewTaskFormState extends State<_NewTaskForm> {
         '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
 
     context.read<VolunteerDetailsCubit>().assignCustomTask(
-          adminId: adminId,
-          title: _titleCtrl.text.trim(),
-          type: _selectedType,
-          description: _descriptionCtrl.text.trim().isEmpty
-              ? null
-              : _descriptionCtrl.text.trim(),
-          locationName: _locationCtrl.text.trim(),
-          locationAddress: _locationAddressCtrl.text.trim().isEmpty
-              ? null
-              : _locationAddressCtrl.text.trim(),
-          date: dateStr,
-          timeStart: _fmtTime(_timeStart),
-          timeEnd: _fmtTime(_timeEnd),
-          durationHours: 0.0, // calculated in datasource from timeStart/timeEnd
-          points: int.tryParse(_pointsCtrl.text.trim()) ?? 10,
-          supervisorName: _supervisorNameCtrl.text.trim().isEmpty
-              ? null
-              : _supervisorNameCtrl.text.trim(),
-          supervisorPhone: _supervisorPhoneCtrl.text.trim().isEmpty
-              ? null
-              : _supervisorPhoneCtrl.text.trim(),
-          notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-        );
+      adminId: adminId,
+      title: _titleCtrl.text.trim(),
+      type: _selectedType,
+      description: _descriptionCtrl.text.trim().isEmpty
+          ? null
+          : _descriptionCtrl.text.trim(),
+      locationName: _locationCtrl.text.trim(),
+      locationAddress: _locationAddressCtrl.text.trim().isEmpty
+          ? null
+          : _locationAddressCtrl.text.trim(),
+      date: dateStr,
+      timeStart: _fmtTime(_timeStart),
+      timeEnd: _fmtTime(_timeEnd),
+      durationHours: 0.0, // calculated in datasource from timeStart/timeEnd
+      points: int.tryParse(_pointsCtrl.text.trim()) ?? 10,
+      supervisorName: _supervisorNameCtrl.text.trim().isEmpty
+          ? null
+          : _supervisorNameCtrl.text.trim(),
+      supervisorPhone: _supervisorPhoneCtrl.text.trim().isEmpty
+          ? null
+          : _supervisorPhoneCtrl.text.trim(),
+      notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+    );
   }
 
   @override
@@ -408,7 +414,8 @@ class _NewTaskFormState extends State<_NewTaskForm> {
               focusedBorderColor: ColorManager.cyanPrimary,
               textColor: ColorManager.natural900,
               hintColor: ColorManager.natural400,
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
             ),
             SizedBox(height: AppHeight.s12),
 
@@ -417,7 +424,8 @@ class _NewTaskFormState extends State<_NewTaskForm> {
               label: 'نوع المهمة',
               value: _selectedType,
               items: campaignTypes,
-              onChanged: (v) => setState(() => _selectedType = v ?? _selectedType),
+              onChanged: (v) =>
+                  setState(() => _selectedType = v ?? _selectedType),
             ),
             SizedBox(height: AppHeight.s12),
 
@@ -447,7 +455,8 @@ class _NewTaskFormState extends State<_NewTaskForm> {
               focusedBorderColor: ColorManager.cyanPrimary,
               textColor: ColorManager.natural900,
               hintColor: ColorManager.natural400,
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
             ),
             SizedBox(height: AppHeight.s12),
 
@@ -475,7 +484,8 @@ class _NewTaskFormState extends State<_NewTaskForm> {
               onTap: _pickDate,
               icon: IconAssets.calendar,
               textAlign: TextAlign.right,
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
             ),
             SizedBox(height: AppHeight.s12),
 

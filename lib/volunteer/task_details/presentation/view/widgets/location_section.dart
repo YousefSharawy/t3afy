@@ -29,10 +29,7 @@ class LocationSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(
-            icon: IconAssets.location,
-            title: 'الموقع',
-          ),
+          const SectionHeader(icon: IconAssets.location, title: 'الموقع'),
           SizedBox(height: AppHeight.s8),
           if (task.locationName != null)
             Text(
@@ -56,8 +53,10 @@ class LocationSection extends StatelessWidget {
                   width: double.infinity,
                   child: FlutterMap(
                     options: MapOptions(
-                      initialCenter:
-                          LatLng(task.locationLat!, task.locationLng!),
+                      initialCenter: LatLng(
+                        task.locationLat!,
+                        task.locationLng!,
+                      ),
                       initialZoom: 14,
                       interactionOptions: const InteractionOptions(
                         flags: InteractiveFlag.none,
@@ -72,8 +71,7 @@ class LocationSection extends StatelessWidget {
                       MarkerLayer(
                         markers: [
                           Marker(
-                            point: LatLng(
-                                task.locationLat!, task.locationLng!),
+                            point: LatLng(task.locationLat!, task.locationLng!),
                             width: 36.r,
                             height: 36.r,
                             child: Icon(

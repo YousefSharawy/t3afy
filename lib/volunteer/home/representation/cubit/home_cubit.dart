@@ -109,11 +109,13 @@ class HomeCubit extends Cubit<HomeState> {
       (stats) {
         tasksResult.fold(
           (_) {},
-          (tasks) => emit(HomeState.loaded(
-            stats: stats,
-            todayTasks: tasks,
-            unreadCount: unreadCount,
-          )),
+          (tasks) => emit(
+            HomeState.loaded(
+              stats: stats,
+              todayTasks: tasks,
+              unreadCount: unreadCount,
+            ),
+          ),
         );
       },
     );
@@ -140,19 +142,20 @@ class HomeCubit extends Cubit<HomeState> {
     final tasksResult = await _getTodayTasks(userId);
     final unreadCount = await _fetchUnreadCount(userId);
 
-    statsResult.fold(
-      (failure) => emit(HomeState.error(failure.message)),
-      (stats) {
-        tasksResult.fold(
-          (failure) => emit(HomeState.error(failure.message)),
-          (tasks) => emit(HomeState.loaded(
+    statsResult.fold((failure) => emit(HomeState.error(failure.message)), (
+      stats,
+    ) {
+      tasksResult.fold(
+        (failure) => emit(HomeState.error(failure.message)),
+        (tasks) => emit(
+          HomeState.loaded(
             stats: stats,
             todayTasks: tasks,
             unreadCount: unreadCount,
-          )),
-        );
-      },
-    );
+          ),
+        ),
+      );
+    });
   }
 
   Future<int> _fetchUnreadCount(String userId) async {

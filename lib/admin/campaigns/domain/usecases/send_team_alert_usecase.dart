@@ -12,12 +12,11 @@ class SendTeamAlertUsecase {
     required String title,
     required String body,
     required List<String> volunteerIds,
-  }) =>
-      _repo.sendTeamAlert(
-        taskId: taskId,
-        adminId: adminId,
-        title: title,
-        body: body,
-        volunteerIds: volunteerIds,
-      );
+  }) => _repo.sendTeamAlert(
+    taskId: taskId,
+    adminId: adminId,
+    title: title,
+    body: body,
+    volunteerIds: volunteerIds,
+  );
 }

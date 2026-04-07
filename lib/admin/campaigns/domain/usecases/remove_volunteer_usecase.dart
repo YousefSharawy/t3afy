@@ -9,6 +9,5 @@ class RemoveVolunteerUsecase {
   Future<Either<Failture, void>> call({
     required String taskId,
     required String userId,
-  }) =>
-      _repo.removeVolunteer(taskId: taskId, userId: userId);
+  }) => _repo.removeVolunteer(taskId: taskId, userId: userId);
 }

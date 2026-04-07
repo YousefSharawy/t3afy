@@ -21,7 +21,6 @@ class HomeActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: AppWidth.s165,
         height: AppHeight.s86,
         padding: EdgeInsets.symmetric(vertical: AppHeight.s12),
         decoration: BoxDecoration(

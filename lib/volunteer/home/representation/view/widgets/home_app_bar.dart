@@ -6,10 +6,7 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 class HomeAppBar extends StatelessWidget {
-  const HomeAppBar({
-    super.key,
-    this.onProfileTap,
-  });
+  const HomeAppBar({super.key, this.onProfileTap});
 
   final VoidCallback? onProfileTap;
 

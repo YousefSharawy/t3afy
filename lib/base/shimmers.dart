@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+
 class CustomShimmerWrapW extends StatelessWidget {
   const CustomShimmerWrapW({
     super.key,
@@ -33,7 +34,10 @@ class CustomShimmerWrapW extends StatelessWidget {
         children: List.generate(
           itemCount,
           (index) => CustomShimmerCardW(
-              width: width, height: height, borderRadius: borderRadius),
+            width: width,
+            height: height,
+            borderRadius: borderRadius,
+          ),
         ),
       ),
     );
@@ -60,32 +64,25 @@ class CustomShimmerCardW extends StatelessWidget {
     return Padding(
       padding: padding ?? EdgeInsets.only(left: AppWidth.s6),
       child: Shimmer(
-          gradient: const LinearGradient(
-            colors: [
-              Color(0xFFEBEBF4),
-              Color(0xFFF4F4F4),
-              Color(0xFFEBEBF4),
-            ],
-            stops: [
-              0.1,
-              0.3,
-              0.4,
-            ],
-            begin: Alignment(-1.0, -0.3),
-            end: Alignment(1.0, 0.3),
-            tileMode: TileMode.clamp,
+        gradient: const LinearGradient(
+          colors: [Color(0xFFEBEBF4), Color(0xFFF4F4F4), Color(0xFFEBEBF4)],
+          stops: [0.1, 0.3, 0.4],
+          begin: Alignment(-1.0, -0.3),
+          end: Alignment(1.0, 0.3),
+          tileMode: TileMode.clamp,
+        ),
+        child: Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            shape: circler ? BoxShape.circle : BoxShape.rectangle,
+            borderRadius: circler
+                ? null
+                : borderRadius ?? BorderRadius.circular(AppRadius.s8),
+            color: ColorManager.black,
           ),
-          child: Container(
-            width: width,
-            height: height,
-            decoration: BoxDecoration(
-              shape: circler ? BoxShape.circle : BoxShape.rectangle,
-              borderRadius: circler
-                  ? null
-                  : borderRadius ?? BorderRadius.circular(AppRadius.s8),
-              color: ColorManager.black,
-            ),
-          )),
+        ),
+      ),
     );
   }
 }

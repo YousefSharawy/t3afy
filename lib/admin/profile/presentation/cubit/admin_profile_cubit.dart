@@ -7,7 +7,7 @@ export 'admin_profile_state.dart';
 
 class AdminProfileCubit extends Cubit<AdminProfileState> {
   AdminProfileCubit(this._getProfile, this._updateProfile)
-      : super(AdminProfileInitial());
+    : super(AdminProfileInitial());
 
   final GetAdminProfileUsecase _getProfile;
   final UpdateAdminProfileUsecase _updateProfile;

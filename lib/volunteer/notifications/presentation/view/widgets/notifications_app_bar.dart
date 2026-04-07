@@ -18,8 +18,11 @@ class NotificationsAppBar {
       elevation: 0,
       leading: GestureDetector(
         onTap: () => context.pop(),
-        child: Icon(Icons.arrow_back_ios_new_rounded,
-            color: Colors.black, size: 20.sp),
+        child: Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: Colors.black,
+          size: 20.sp,
+        ),
       ),
       centerTitle: true,
       title: Text(
@@ -44,10 +47,7 @@ class NotificationsAppBar {
             onPressed: onClearAll,
             child: Text(
               'مسح الكل',
-              style: getMediumStyle(
-                color: ColorManager.error,
-                fontSize: 13.sp,
-              ),
+              style: getMediumStyle(color: ColorManager.error, fontSize: 13.sp),
             ),
           ),
       ],

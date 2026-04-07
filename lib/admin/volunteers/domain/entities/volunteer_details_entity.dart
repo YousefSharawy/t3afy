@@ -6,6 +6,8 @@ class VolunteerTaskAssignmentEntity {
   final double durationHours;
   final bool isVerified;
   final double? verifiedHours;
+  final DateTime? checkedInAt;
+  final DateTime? checkedOutAt;
 
   const VolunteerTaskAssignmentEntity({
     required this.id,
@@ -15,11 +17,15 @@ class VolunteerTaskAssignmentEntity {
     this.durationHours = 0,
     this.isVerified = false,
     this.verifiedHours,
+    this.checkedInAt,
+    this.checkedOutAt,
   });
 
   factory VolunteerTaskAssignmentEntity.fromJson(Map<String, dynamic> json) {
     final task = json['tasks'] as Map<String, dynamic>?;
     final assignedStr = json['assigned_at'] as String?;
+    final checkedInStr = json['checked_in_at'] as String?;
+    final checkedOutStr = json['checked_out_at'] as String?;
     return VolunteerTaskAssignmentEntity(
       id: json['id'] as String? ?? '',
       title: task?['title'] as String? ?? '',
@@ -28,6 +34,12 @@ class VolunteerTaskAssignmentEntity {
       durationHours: ((task?['duration_hours'] as num?) ?? 0).toDouble(),
       isVerified: (json['is_verified'] as bool?) ?? false,
       verifiedHours: (json['verified_hours'] as num?)?.toDouble(),
+      checkedInAt: checkedInStr != null
+          ? DateTime.tryParse(checkedInStr)
+          : null,
+      checkedOutAt: checkedOutStr != null
+          ? DateTime.tryParse(checkedOutStr)
+          : null,
     );
   }
 }
@@ -169,8 +181,7 @@ class VolunteerDetailsEntity {
       qualification: json['qualification'] as String?,
       joinedAt: joinedStr != null ? DateTime.tryParse(joinedStr) : null,
       isOnline: (json['is_online'] as bool?) ?? false,
-      lastSeenAt:
-          lastSeenStr != null ? DateTime.tryParse(lastSeenStr) : null,
+      lastSeenAt: lastSeenStr != null ? DateTime.tryParse(lastSeenStr) : null,
       role: json['role'] as String? ?? 'user',
       tasks: tasks,
       volunteerAreas: volunteerAreas,

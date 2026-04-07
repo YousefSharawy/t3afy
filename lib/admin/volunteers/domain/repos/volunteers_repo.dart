@@ -23,7 +23,8 @@ abstract class VolunteersRepo {
 
   // ── Volunteer Detail Actions ──
   Future<Either<Failture, List<Map<String, dynamic>>>> getAvailableTasks(
-      String volunteerId);
+    String volunteerId,
+  );
   Future<Either<Failture, void>> assignTask({
     required String volunteerId,
     required String taskId,

@@ -15,16 +15,12 @@ class ExistingReportView extends StatelessWidget {
     final status = report['status'] as String? ?? 'pending';
     final (statusLabel, statusColor, statusIcon) = switch (status) {
       'approved' => (
-          'تمت الموافقة',
-          const Color(0xFF4CAF50),
-          Icons.check_circle_rounded
-        ),
+        'تمت الموافقة',
+        const Color(0xFF4CAF50),
+        Icons.check_circle_rounded,
+      ),
       'rejected' => ('مرفوض', Colors.red, Icons.cancel_rounded),
-      _ => (
-          'قيد المراجعة',
-          ColorManager.amber400,
-          Icons.hourglass_top_rounded
-        ),
+      _ => ('قيد المراجعة', ColorManager.amber400, Icons.hourglass_top_rounded),
     };
 
     return SingleChildScrollView(

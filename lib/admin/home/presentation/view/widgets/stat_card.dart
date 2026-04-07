@@ -24,12 +24,10 @@ class StatCard extends StatelessWidget {
     return Container(
       width: AppWidth.s165,
       height: AppHeight.s142,
-      padding: EdgeInsets.symmetric(
-        vertical: AppHeight.s8,
-      ),
+      padding: EdgeInsets.symmetric(vertical: AppHeight.s8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadius.s16),
-      color: ColorManager.white,
+        color: ColorManager.white,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,

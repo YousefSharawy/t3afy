@@ -4,7 +4,8 @@ import 'package:t3afy/admin/notifications/data/models/admin_notification_model.d
 
 abstract class AdminNotificationsRepository {
   Future<Either<Failture, List<AdminNotification>>> getNotifications(
-      String adminId);
+    String adminId,
+  );
   Future<Either<Failture, void>> markAsRead(String noteId);
   Future<Either<Failture, void>> markAllAsRead(String adminId);
 }

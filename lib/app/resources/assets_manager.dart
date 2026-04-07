@@ -50,9 +50,9 @@ class IconAssets {
   static const String warning = '$ICON_PATH/warning.png';
   static const String announcement = '$ICON_PATH/announcement.png';
   static const String calendar = '$ICON_PATH/calendar.png';
-  static const String message= '$ICON_PATH/message.png';
-  static const String promotion= '$ICON_PATH/promotion.png';
-  static const String edit= '$ICON_PATH/edit.png';
+  static const String message = '$ICON_PATH/message.png';
+  static const String promotion = '$ICON_PATH/promotion.png';
+  static const String edit = '$ICON_PATH/edit.png';
   static const String settings = '$ICON_PATH/settings.png';
   static const String camp = '$ICON_PATH/camp.png';
   static const String camp2 = '$ICON_PATH/camp.png';
@@ -71,8 +71,8 @@ class IconAssets {
   static const String add2 = '$ICON_PATH/add2.png';
   static const String add3 = '$ICON_PATH/add3.png';
   static const String hospital = '$ICON_PATH/hospital.png';
-  static const String group2= '$ICON_PATH/group2.png';
-  static const String x= '$ICON_PATH/x.png';
+  static const String group2 = '$ICON_PATH/group2.png';
+  static const String x = '$ICON_PATH/x.png';
 }
 
 class DemoAssets {}

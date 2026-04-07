@@ -38,8 +38,7 @@ TextStyle getRegularStyle({
   double fontSize = 12,
   Color color = ColorManager.darkPrimary,
   double? height,
-    String ? fontFamily,
-
+  String? fontFamily,
 }) {
   return _getTextStyle(
     fontSize,
@@ -54,8 +53,7 @@ TextStyle getMediumStyle({
   double fontSize = 12,
   Color color = ColorManager.darkPrimary,
   double? height,
-    String ? fontFamily,
-
+  String? fontFamily,
 }) {
   return _getTextStyle(
     fontSize,
@@ -69,8 +67,8 @@ TextStyle getMediumStyle({
 TextStyle getSemiBoldStyle({
   double fontSize = 12,
   Color color = ColorManager.darkPrimary,
-  double? height,    String ? fontFamily,
-
+  double? height,
+  String? fontFamily,
 }) {
   return _getTextStyle(
     fontSize,
@@ -85,8 +83,7 @@ TextStyle getBoldStyle({
   double fontSize = 12,
   Color color = ColorManager.darkPrimary,
   double? height,
-      String ? fontFamily,
-
+  String? fontFamily,
 }) {
   return _getTextStyle(
     fontSize,
@@ -101,8 +98,7 @@ TextStyle getExtraBoldStyle({
   double fontSize = 12,
   Color color = ColorManager.darkPrimary,
   double? height,
-      String ? fontFamily,
-
+  String? fontFamily,
 }) {
   return _getTextStyle(
     fontSize,
@@ -117,8 +113,7 @@ TextStyle getBlackStyle({
   double fontSize = 12,
   Color color = ColorManager.darkPrimary,
   double? height,
-      String ? fontFamily,
-
+  String? fontFamily,
 }) {
   return _getTextStyle(
     fontSize,

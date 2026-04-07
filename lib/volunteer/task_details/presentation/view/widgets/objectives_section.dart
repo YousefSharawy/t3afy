@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -19,10 +18,7 @@ class ObjectivesSection extends StatelessWidget {
     return GradientCard(
       child: Column(
         children: [
-           SectionHeader(
-          icon:  IconAssets.target,
-            title: 'الأهداف المطلوبة',
-          ),
+          SectionHeader(icon: IconAssets.target, title: 'الأهداف المطلوبة'),
           SizedBox(height: AppHeight.s16),
           ...objectives.asMap().entries.map(
             (e) => Padding(
@@ -30,17 +26,15 @@ class ObjectivesSection extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                    Container(
+                  Container(
                     width: AppWidth.s15,
                     height: AppHeight.s15,
                     decoration: const BoxDecoration(
-                     gradient: LinearGradient(
-                      begin: .topLeft,
-                      end: .bottomRight,
-                      colors: [
-                      Color(0xff36DFF1),
-                      Color(0xff2764E7),
-                     ]),
+                      gradient: LinearGradient(
+                        begin: .topLeft,
+                        end: .bottomRight,
+                        colors: [Color(0xff36DFF1), Color(0xff2764E7)],
+                      ),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -63,7 +57,6 @@ class ObjectivesSection extends StatelessWidget {
                       color: ColorManager.natural400,
                     ),
                   ),
-                
                 ],
               ),
             ),

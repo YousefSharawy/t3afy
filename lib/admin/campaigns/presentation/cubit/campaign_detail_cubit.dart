@@ -117,7 +117,11 @@ class CampaignDetailCubit extends Cubit<CampaignDetailState> {
       (f) => emit(CampaignDetailActionError(f.message)),
       (_) => success = true,
     );
-    if (success) await _refresh(taskId);
+    if (success) {
+      await LocalAppStorage.invalidateCache('campaigns_list');
+      await LocalAppStorage.invalidateCache('campaigns_stats');
+      await _refresh(taskId);
+    }
     return success;
   }
 
@@ -127,19 +131,22 @@ class CampaignDetailCubit extends Cubit<CampaignDetailState> {
   }) async {
     final detail = _currentDetail;
     final result = await _removeVolunteer(taskId: taskId, userId: userId);
-    await result.fold(
-      (f) async => emit(CampaignDetailActionError(f.message)),
-      (_) async {
-        if (detail != null) {
-          emit(CampaignDetailLoaded(
+    await result.fold((f) async => emit(CampaignDetailActionError(f.message)), (
+      _,
+    ) async {
+      await LocalAppStorage.invalidateCache('campaigns_list');
+      await LocalAppStorage.invalidateCache('campaigns_stats');
+      if (detail != null) {
+        emit(
+          CampaignDetailLoaded(
             detail.copyWith(
               members: detail.members.where((m) => m.id != userId).toList(),
             ),
-          ));
-        }
-        await _refresh(taskId);
-      },
-    );
+          ),
+        );
+      }
+      await _refresh(taskId);
+    });
   }
 
   Future<void> sendAlert({
@@ -159,7 +166,11 @@ class CampaignDetailCubit extends Cubit<CampaignDetailState> {
     );
     result.fold(
       (f) => emit(CampaignDetailActionError(f.message)),
-      (_) => emit(const CampaignDetailAlertSent()),
+      (_) async {
+        await LocalAppStorage.invalidateCache('campaigns_list');
+        await LocalAppStorage.invalidateCache('campaigns_stats');
+        emit(const CampaignDetailAlertSent());
+      },
     );
   }
 
@@ -171,7 +182,9 @@ class CampaignDetailCubit extends Cubit<CampaignDetailState> {
         emit(CampaignDetailActionError(f.message));
         return false;
       },
-      (_) {
+      (_) async {
+        await LocalAppStorage.invalidateCache('campaigns_list');
+        await LocalAppStorage.invalidateCache('campaigns_stats');
         emit(const CampaignDetailDeleted());
         return true;
       },
@@ -181,15 +194,16 @@ class CampaignDetailCubit extends Cubit<CampaignDetailState> {
   Future<void> pauseCampaign(String taskId) async {
     final detail = _currentDetail;
     final result = await _updateCampaign(taskId, {'status': 'paused'});
-    await result.fold(
-      (f) async => emit(CampaignDetailActionError(f.message)),
-      (_) async {
-        if (detail != null) {
-          emit(CampaignDetailLoaded(detail.copyWith(status: 'paused')));
-        }
-        await _refresh(taskId);
-      },
-    );
+    await result.fold((f) async => emit(CampaignDetailActionError(f.message)), (
+      _,
+    ) async {
+      await LocalAppStorage.invalidateCache('campaigns_list');
+      await LocalAppStorage.invalidateCache('campaigns_stats');
+      if (detail != null) {
+        emit(CampaignDetailLoaded(detail.copyWith(status: 'paused')));
+      }
+      await _refresh(taskId);
+    });
   }
 
   Future<List<VolunteerEntity>> getUnassignedVolunteers(String taskId) async {

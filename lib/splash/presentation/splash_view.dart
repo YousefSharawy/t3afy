@@ -32,7 +32,7 @@ class _SplashViewState extends State<SplashView>
   // Phase 3: Arc split — logo goes left (CCW), text goes right (CW)
   late Animation<double> _arcSplit;
 
-  bool _hasCompletedOnboarding = false;
+  final bool _hasCompletedOnboarding = false;
 
   static final String _splashText = LocaleKeys.app_name.tr();
 
@@ -162,7 +162,11 @@ class _SplashViewState extends State<SplashView>
             // ── Logo position along CCW arc ────────────────────────
             // Starts at top of arc (angle = -π/2 = 12 o'clock relative to center)
             // Ends at left (angle = -π = 9 o'clock) → counter-clockwise quarter
-            final double logoAngle = ui.lerpDouble(-pi / 2, -pi, _arcSplit.value)!;
+            final double logoAngle = ui.lerpDouble(
+              -pi / 2,
+              -pi,
+              _arcSplit.value,
+            )!;
             final double logoCurrentX =
                 centerX + logoArcRadius * cos(logoAngle);
             final double logoCurrentY =
@@ -277,7 +281,7 @@ class _SplashViewState extends State<SplashView>
           color: ColorManager.white,
         ),
       ),
-textDirection: ui.TextDirection.rtl,
+      textDirection: ui.TextDirection.rtl,
       maxLines: 1,
     )..layout();
     return textPainter.width;

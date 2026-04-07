@@ -41,18 +41,16 @@ class LocationCubit extends Cubit<LocationState> {
         if (checkedOutStr != null) {
           final checkedInAt = DateTime.parse(checkedInStr!);
           final checkedOutAt = DateTime.parse(checkedOutStr);
-          final verifiedHours =
-              ((status['verified_hours'] as num?) ?? 0).toDouble();
+          final verifiedHours = ((status['verified_hours'] as num?) ?? 0)
+              .toDouble();
           emit(LocationCheckedOut(checkedInAt, checkedOutAt, verifiedHours));
           return;
         }
 
         if (checkedInStr != null) {
           _checkedInAt = DateTime.parse(checkedInStr);
-          final lat =
-              ((status['check_in_lat'] as num?) ?? taskLat).toDouble();
-          final lng =
-              ((status['check_in_lng'] as num?) ?? taskLng).toDouble();
+          final lat = ((status['check_in_lat'] as num?) ?? taskLat).toDouble();
+          final lng = ((status['check_in_lng'] as num?) ?? taskLng).toDouble();
           emit(LocationCheckedIn(_checkedInAt!, lat, lng));
           _startGpsPings();
           return;
@@ -103,7 +101,9 @@ class LocationCubit extends Cubit<LocationState> {
       _startPositionStream();
     } on TimeoutException {
       if (!isClosed) {
-        emit(LocationError('تعذر تحديد موقعك. تأكد من تفعيل GPS وحاول مرة أخرى'));
+        emit(
+          LocationError('تعذر تحديد موقعك. تأكد من تفعيل GPS وحاول مرة أخرى'),
+        );
       }
     } catch (e) {
       if (!isClosed) {
@@ -114,30 +114,39 @@ class LocationCubit extends Cubit<LocationState> {
 
   void _startPositionStream() {
     _positionStream?.cancel();
-    _positionStream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
-      ),
-    ).listen(
-      (pos) {
-        if (isClosed) return;
-        // Don't override terminal states
-        if (state is LocationCheckedIn || state is LocationCheckedOut) return;
-        _emitDistanceState(pos);
-      },
-      onError: (Object e) {
-        if (!isClosed && state is! LocationCheckedIn && state is! LocationCheckedOut) {
-          emit(LocationError('تعذر تتبع الموقع'));
-        }
-      },
-      cancelOnError: false,
-    );
+    _positionStream =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 10,
+          ),
+        ).listen(
+          (pos) {
+            if (isClosed) return;
+            // Don't override terminal states
+            if (state is LocationCheckedIn || state is LocationCheckedOut) {
+              return;
+            }
+            _emitDistanceState(pos);
+          },
+          onError: (Object e) {
+            if (!isClosed &&
+                state is! LocationCheckedIn &&
+                state is! LocationCheckedOut) {
+              emit(LocationError('تعذر تتبع الموقع'));
+            }
+          },
+          cancelOnError: false,
+        );
   }
 
   void _emitDistanceState(Position pos) {
     final dist = Geolocator.distanceBetween(
-        pos.latitude, pos.longitude, taskLat, taskLng);
+      pos.latitude,
+      pos.longitude,
+      taskLat,
+      taskLng,
+    );
     if (dist <= _checkInRadiusMeters) {
       emit(LocationNearTask(dist, pos.latitude, pos.longitude));
     } else {
@@ -154,7 +163,11 @@ class LocationCubit extends Cubit<LocationState> {
         ),
       );
       final dist = Geolocator.distanceBetween(
-          pos.latitude, pos.longitude, taskLat, taskLng);
+        pos.latitude,
+        pos.longitude,
+        taskLat,
+        taskLng,
+      );
       if (dist > _checkInRadiusMeters) {
         emit(LocationFarFromTask(dist, pos.latitude, pos.longitude));
         return;
@@ -194,7 +207,12 @@ class LocationCubit extends Cubit<LocationState> {
 
       final userId = LocalAppStorage.getUserId() ?? '';
       await dataSource.checkOut(
-          taskId, userId, pos.latitude, pos.longitude, verifiedHours);
+        taskId,
+        userId,
+        pos.latitude,
+        pos.longitude,
+        verifiedHours,
+      );
 
       _gpsPingTimer?.cancel();
       emit(LocationCheckedOut(checkedInAt, now, verifiedHours));
@@ -221,7 +239,11 @@ class LocationCubit extends Cubit<LocationState> {
         );
         final userId = LocalAppStorage.getUserId() ?? '';
         await dataSource.recordLocation(
-            taskId, userId, pos.latitude, pos.longitude);
+          taskId,
+          userId,
+          pos.latitude,
+          pos.longitude,
+        );
       } catch (_) {}
     });
   }

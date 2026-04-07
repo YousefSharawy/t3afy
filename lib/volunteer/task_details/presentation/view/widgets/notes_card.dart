@@ -26,7 +26,7 @@ class NotesCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Image.asset(IconAssets.warning),
-                 SizedBox(width: AppWidth.s8),
+              SizedBox(width: AppWidth.s8),
               Text(
                 'ملاحظات مهمة',
                 style: getBoldStyle(
@@ -35,8 +35,6 @@ class NotesCard extends StatelessWidget {
                   color: ColorManager.warningLight,
                 ),
               ),
-           
-             
             ],
           ),
           SizedBox(height: AppHeight.s9),

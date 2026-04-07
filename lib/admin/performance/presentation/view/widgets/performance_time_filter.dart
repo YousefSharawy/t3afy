@@ -39,9 +39,9 @@ class PerformanceTimeFilter extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () {
                     if (selected) return;
-                    context
-                        .read<AdminPerformanceCubit>()
-                        .loadPerformance(_periods[i]);
+                    context.read<AdminPerformanceCubit>().loadPerformance(
+                      _periods[i],
+                    );
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -59,8 +59,9 @@ class PerformanceTimeFilter extends StatelessWidget {
                       style: getBoldStyle(
                         fontFamily: FontConstants.fontFamily,
                         fontSize: FontSize.s12,
-                        color:
-                            selected ? Colors.white : ColorManager.natural400,
+                        color: selected
+                            ? Colors.white
+                            : ColorManager.natural400,
                       ),
                     ),
                   ),

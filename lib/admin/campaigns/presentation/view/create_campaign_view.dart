@@ -11,6 +11,9 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/extenstions.dart';
+import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/app/services/tutorial_service.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'widgets/campaign_form_body.dart';
 
 class CreateCampaignView extends StatefulWidget {
@@ -42,6 +45,7 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
   final List<File> _selectedPapers = [];
 
   bool _prefilled = false;
+  bool _tutorialShown = false;
 
   final _imagePicker = ImagePicker();
 
@@ -198,11 +202,15 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
       ).where((s) => (s['name'] as String).isNotEmpty).toList(),
       paperFiles: List.from(_selectedPapers),
       taskId: widget.taskId,
-      locationLat: (context.read<CreateCampaignCubit>().state is CreateCampaignReady)
-          ? (context.read<CreateCampaignCubit>().state as CreateCampaignReady).locationLat
+      locationLat:
+          (context.read<CreateCampaignCubit>().state is CreateCampaignReady)
+          ? (context.read<CreateCampaignCubit>().state as CreateCampaignReady)
+                .locationLat
           : null,
-      locationLng: (context.read<CreateCampaignCubit>().state is CreateCampaignReady)
-          ? (context.read<CreateCampaignCubit>().state as CreateCampaignReady).locationLng
+      locationLng:
+          (context.read<CreateCampaignCubit>().state is CreateCampaignReady)
+          ? (context.read<CreateCampaignCubit>().state as CreateCampaignReady)
+                .locationLng
           : null,
     );
   }
@@ -214,6 +222,17 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
     return BlocConsumer<CreateCampaignCubit, CreateCampaignState>(
       listener: (context, state) {
         if (state is CreateCampaignReady &&
+            !_tutorialShown &&
+            !widget.isEditing) {
+          if (!LocalAppStorage.isCreateCampaignTutorialCompleted()) {
+            _tutorialShown = true;
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) _showTutorial(context);
+            });
+          }
+        }
+
+        if (state is CreateCampaignReady &&
             state.taskData != null &&
             !_prefilled) {
           _prefilled = true;
@@ -221,7 +240,9 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
         } else if (state is CreateCampaignSaved) {
           Toast.success.show(
             context,
-            title: widget.isEditing ? 'تم تحديث الحملة بنجاح' : 'تم إنشاء الحملة بنجاح',
+            title: widget.isEditing
+                ? 'تم تحديث الحملة بنجاح'
+                : 'تم إنشاء الحملة بنجاح',
           );
           if (mounted) Navigator.of(context).pop(true);
         } else if (state is CreateCampaignActionError ||
@@ -272,7 +293,7 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
                     style: getBoldStyle(
                       fontFamily: FontConstants.fontFamily,
                       fontSize: FontSize.s14,
-                      color:  ColorManager.primary500,
+                      color: ColorManager.primary500,
                     ),
                   ),
                 ),
@@ -332,7 +353,8 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
                       }),
                       selectedPapers: _selectedPapers,
                       onAddPaper: _pickPapers,
-                      onRemovePaper: (i) => setState(() => _selectedPapers.removeAt(i)),
+                      onRemovePaper: (i) =>
+                          setState(() => _selectedPapers.removeAt(i)),
                     ),
                   ),
                 if (isSaving)
@@ -352,5 +374,67 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
         );
       },
     );
+  }
+
+  void _showTutorial(BuildContext context) {
+    TutorialService.createTutorial(
+      targets: _createTargets(),
+      onFinish: () {
+        LocalAppStorage.setCreateCampaignTutorialCompleted(true);
+      },
+      onSkip: () {
+        LocalAppStorage.setCreateCampaignTutorialCompleted(true);
+      },
+    ).show(context: context);
+  }
+
+  List<TargetFocus> _createTargets() {
+    return [
+      TutorialService.createTarget(
+        identify: "title",
+        keyTarget: AppTutorialKeys.createCampaignGeneralKey,
+        title: "بيانات الحملة الأساسية",
+        description: "أدخل هنا اسم الحملة ونوعها والوصف.",
+        contentPosition: 1,
+        stepIndex: 1,
+        totalSteps: 5,
+      ),
+      TutorialService.createTarget(
+        identify: "location",
+        keyTarget: AppTutorialKeys.createCampaignLocationKey,
+        title: "تحديد الموقع",
+        description: "اختر موقع المهمة بدقة على الخريطة.",
+        contentPosition: 0,
+        stepIndex: 2,
+        totalSteps: 5,
+      ),
+      TutorialService.createTarget(
+        identify: "date",
+        keyTarget: AppTutorialKeys.createCampaignDateKey,
+        title: "التاريخ والوقت",
+        description: "حدّد متى تبدأ المهمة ومتى تنتهي.",
+        contentPosition: 0,
+        stepIndex: 3,
+        totalSteps: 5,
+      ),
+      TutorialService.createTarget(
+        identify: "papers",
+        keyTarget: AppTutorialKeys.createCampaignPapersKey,
+        title: "إرفاق التصاريح",
+        description: "ارفع أي أوراق تصاريح خاصة بالمهمة إن لزم الأمر.",
+        contentPosition: 1,
+        stepIndex: 4,
+        totalSteps: 5,
+      ),
+      TutorialService.createTarget(
+        identify: "volunteers",
+        keyTarget: AppTutorialKeys.createCampaignVolunteersKey,
+        title: "تعيين المتطوعين",
+        description: "أخيراً.. اختر المتطوعين المناسبين لإنجاز هذه الحملة.",
+        contentPosition: 0,
+        stepIndex: 5,
+        totalSteps: 5,
+      ),
+    ];
   }
 }

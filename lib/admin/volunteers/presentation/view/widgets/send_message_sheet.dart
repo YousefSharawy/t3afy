@@ -70,58 +70,58 @@ class _SendMessageSheetState extends State<SendMessageSheet> {
           ),
           child: SingleChildScrollView(
             child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40.w,
-                  height: 4.h,
-                  decoration: BoxDecoration(
-                    color: ColorManager.natural200,
-                    borderRadius: BorderRadius.circular(2.r),
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40.w,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                      color: ColorManager.natural200,
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: AppHeight.s16),
-              Text(
-                'إرسال رسالة مباشرة',
-                style: getSemiBoldStyle(
-                  color: ColorManager.natural900,
-                  fontSize: FontSize.s18,
-                  fontFamily: FontConstants.fontFamily,
+                SizedBox(height: AppHeight.s16),
+                Text(
+                  'إرسال رسالة مباشرة',
+                  style: getSemiBoldStyle(
+                    color: ColorManager.natural900,
+                    fontSize: FontSize.s18,
+                    fontFamily: FontConstants.fontFamily,
+                  ),
                 ),
-              ),
-              SizedBox(height: AppHeight.s16),
-              PrimaryTextFF(
-                textAlign: .right,
-                hint: 'عنوان الرسالة',
-                controller: _titleCtrl,
-              ),
-              SizedBox(height: AppHeight.s12),
-              PrimaryTextFF(
-                textAlign: .right,
-                hint: 'نص الرسالة',
-                controller: _bodyCtrl,
-                maxLines: 4,
-              ),
-              SizedBox(height: AppHeight.s20),
-              PrimaryElevatedButton(
-                title: _sending ? '' : 'إرسال',
-                titleWidget: _sending
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : null,
-                onPress: _sending ? () {} : _submit,
-              ),
-            ],
-          ),
+                SizedBox(height: AppHeight.s16),
+                PrimaryTextFF(
+                  textAlign: .right,
+                  hint: 'عنوان الرسالة',
+                  controller: _titleCtrl,
+                ),
+                SizedBox(height: AppHeight.s12),
+                PrimaryTextFF(
+                  textAlign: .right,
+                  hint: 'نص الرسالة',
+                  controller: _bodyCtrl,
+                  maxLines: 4,
+                ),
+                SizedBox(height: AppHeight.s20),
+                PrimaryElevatedButton(
+                  title: _sending ? '' : 'إرسال',
+                  titleWidget: _sending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : null,
+                  onPress: _sending ? () {} : _submit,
+                ),
+              ],
+            ),
           ),
         ),
       ),

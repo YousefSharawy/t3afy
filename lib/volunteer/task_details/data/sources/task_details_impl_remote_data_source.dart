@@ -18,7 +18,7 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
       final currentUserId = LocalAppStorage.getUserId() ?? '';
       final response = await _client
           .from('tasks')
-          .select('*, task_assignments!inner(status, user_id)')
+          .select('*, task_assignments!inner(status, user_id), users!tasks_created_by_fkey(id, name)')
           .eq('id', taskId)
           .eq('task_assignments.user_id', currentUserId)
           .single();
@@ -36,9 +36,37 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
             )
           : null;
 
+      final resolvedTaskStatus = resolveCampaignStatus(
+        response['status'] as String? ?? 'upcoming',
+        response['date'] as String?,
+        response['time_end'] as String?,
+      );
+
+      final adminUser = response['users'] as Map<String, dynamic>?;
+      final adminName = adminUser?['name'] as String? ?? '';
+
       final map = Map<String, dynamic>.from(response);
       map['assignment_status'] = assignmentStatus;
+      map['status'] = resolvedTaskStatus;
+      map['time_start'] = (map['time_start'] as String?) ?? '00:00';
+      map['time_end'] = (map['time_end'] as String?) ?? '23:59';
+      map['location_name'] = (map['location_name'] as String?) ?? '';
+      map['location_address'] = (map['location_address'] as String?) ?? '';
+      map['supervisor_name'] = adminName.isNotEmpty ? adminName : ((map['supervisor_name'] as String?) ?? '');
+      map['supervisor_phone'] = (map['supervisor_phone'] as String?) ?? '';
+
+      // Calculate duration from timeStart and timeEnd if not provided
+      final durationHours = map['duration_hours'] as double?;
+      if (durationHours == null || durationHours == 0) {
+        final calculatedDuration = _calculateDuration(
+          map['time_start'] as String?,
+          map['time_end'] as String?,
+        );
+        map['duration_hours'] = calculatedDuration;
+      }
+
       map.remove('task_assignments');
+      map.remove('users');
 
       return TaskDetailsModel.fromJson(map);
     } catch (error) {
@@ -148,5 +176,20 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
   @override
   Future<void> unsubscribe(RealtimeChannel channel) async {
     await _client.removeChannel(channel);
+  }
+
+  double _calculateDuration(String? timeStart, String? timeEnd) {
+    if (timeStart == null || timeEnd == null) return 0;
+    try {
+      final startParts = timeStart.split(':');
+      final endParts = timeEnd.split(':');
+      if (startParts.length < 2 || endParts.length < 2) return 0;
+      final startMin = (int.tryParse(startParts[0]) ?? 0) * 60 + (int.tryParse(startParts[1]) ?? 0);
+      final endMin = (int.tryParse(endParts[0]) ?? 0) * 60 + (int.tryParse(endParts[1]) ?? 0);
+      final diff = endMin - startMin;
+      return diff > 0 ? (diff / 60.0 * 10).round() / 10.0 : 0;
+    } catch (_) {
+      return 0;
+    }
   }
 }

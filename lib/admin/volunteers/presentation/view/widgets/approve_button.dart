@@ -30,10 +30,7 @@ class ApproveButton extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
-            colors: [
-              ColorManager.successLight,
-              Color(0xFF166534),
-            ],
+            colors: [ColorManager.successLight, Color(0xFF166534)],
           ),
           borderRadius: BorderRadius.circular(AppRadius.s8),
         ),

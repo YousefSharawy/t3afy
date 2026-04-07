@@ -30,34 +30,73 @@ import 'package:t3afy/admin/volunteers/domain/usecases/suspend_account_usecase.d
 
 // Auth
 class MockLogin extends Mock implements Login {}
+
 class MockRegister extends Mock implements Register {}
+
 class MockLogout extends Mock implements Logout {}
 
 // Campaign use cases
 class MockGetCampaignsUsecase extends Mock implements GetCampaignsUsecase {}
-class MockGetCampaignStatsUsecase extends Mock implements GetCampaignStatsUsecase {}
-class MockGetCampaignDetailUsecase extends Mock implements GetCampaignDetailUsecase {}
+
+class MockGetCampaignStatsUsecase extends Mock
+    implements GetCampaignStatsUsecase {}
+
+class MockGetCampaignDetailUsecase extends Mock
+    implements GetCampaignDetailUsecase {}
+
 class MockCreateCampaignUsecase extends Mock implements CreateCampaignUsecase {}
+
 class MockUpdateCampaignUsecase extends Mock implements UpdateCampaignUsecase {}
+
 class MockDeleteCampaignUsecase extends Mock implements DeleteCampaignUsecase {}
-class MockAssignVolunteerUsecase extends Mock implements AssignVolunteerUsecase {}
-class MockRemoveVolunteerUsecase extends Mock implements RemoveVolunteerUsecase {}
+
+class MockAssignVolunteerUsecase extends Mock
+    implements AssignVolunteerUsecase {}
+
+class MockRemoveVolunteerUsecase extends Mock
+    implements RemoveVolunteerUsecase {}
+
 class MockSendTeamAlertUsecase extends Mock implements SendTeamAlertUsecase {}
-class MockGetUnassignedVolunteersUsecase extends Mock implements GetUnassignedVolunteersUsecase {}
-class MockGetAllVolunteersUsecase extends Mock implements GetAllVolunteersUsecase {}
+
+class MockGetUnassignedVolunteersUsecase extends Mock
+    implements GetUnassignedVolunteersUsecase {}
+
+class MockGetAllVolunteersUsecase extends Mock
+    implements GetAllVolunteersUsecase {}
 
 // Volunteer use cases
 class MockGetVolunteersUsecase extends Mock implements GetVolunteersUsecase {}
-class MockGetAvailableTasksUsecase extends Mock implements GetAvailableTasksUsecase {}
-class MockGetVolunteerDetailsUsecase extends Mock implements GetVolunteerDetailsUsecase {}
+
+class MockGetAvailableTasksUsecase extends Mock
+    implements GetAvailableTasksUsecase {}
+
+class MockGetVolunteerDetailsUsecase extends Mock
+    implements GetVolunteerDetailsUsecase {}
+
 class MockAddVolunteerUsecase extends Mock implements AddVolunteerUsecase {}
-class MockDeleteVolunteerUsecase extends Mock implements DeleteVolunteerUsecase {}
-class MockApproveVolunteerUsecase extends Mock implements ApproveVolunteerUsecase {}
-class MockGetPendingUsersUsecase extends Mock implements GetPendingUsersUsecase {}
+
+class MockDeleteVolunteerUsecase extends Mock
+    implements DeleteVolunteerUsecase {}
+
+class MockApproveVolunteerUsecase extends Mock
+    implements ApproveVolunteerUsecase {}
+
+class MockGetPendingUsersUsecase extends Mock
+    implements GetPendingUsersUsecase {}
+
 class MockAssignTaskUsecase extends Mock implements AssignTaskUsecase {}
-class MockAssignCustomTaskUsecase extends Mock implements AssignCustomTaskUsecase {}
-class MockSendDirectMessageUsecase extends Mock implements SendDirectMessageUsecase {}
+
+class MockAssignCustomTaskUsecase extends Mock
+    implements AssignCustomTaskUsecase {}
+
+class MockSendDirectMessageUsecase extends Mock
+    implements SendDirectMessageUsecase {}
+
 class MockAddRatingUsecase extends Mock implements AddRatingUsecase {}
+
 class MockUpgradeLevelUsecase extends Mock implements UpgradeLevelUsecase {}
-class MockEditVolunteerDataUsecase extends Mock implements EditVolunteerDataUsecase {}
+
+class MockEditVolunteerDataUsecase extends Mock
+    implements EditVolunteerDataUsecase {}
+
 class MockSuspendAccountUsecase extends Mock implements SuspendAccountUsecase {}

@@ -32,7 +32,9 @@ class AdminNotificationCard extends StatelessWidget {
               ? null
               : BorderDirectional(
                   start: BorderSide(
-                      color: ColorManager.primary500, width: 3.sp),
+                    color: ColorManager.primary500,
+                    width: 3.sp,
+                  ),
                 ),
         ),
         child: Column(
@@ -48,8 +50,7 @@ class AdminNotificationCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: ColorManager.errorLight,
                     borderRadius: BorderRadius.circular(AppRadius.s6),
-                    border:
-                        Border.all(color: ColorManager.error, width: 1.sp),
+                    border: Border.all(color: ColorManager.error, width: 1.sp),
                   ),
                   child: Text(
                     'تحذير عاجل',

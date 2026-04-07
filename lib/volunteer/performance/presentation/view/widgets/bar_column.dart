@@ -37,7 +37,7 @@ class BarColumn extends StatelessWidget {
           width: barWidth,
           height: (55 * ratio).sp,
           decoration: BoxDecoration(
-        color: ColorManager.primary500,
+            color: ColorManager.primary500,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(8.sp),
               topRight: Radius.circular(8.sp),

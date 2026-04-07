@@ -44,5 +44,6 @@ void main() async {
     ),
   );
 }
-// dart run easy_localization:generate -S "assets/translation" -O "lib/translation" 
+
+// dart run easy_localization:generate -S "assets/translation" -O "lib/translation"
 // dart run easy_localization:generate -S "assets/translation" -O "lib/translation" -o "locale_keys.g.dart" -f keys

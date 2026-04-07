@@ -6,8 +6,8 @@ import '../../domain/entities/campaign_detail_entity.dart';
 import '../../domain/entities/volunteer_entity.dart';
 
 abstract class CampaignsRemoteDatasource {
-  Future<List<CampaignEntity>> getCampaigns();
-  Future<Map<String, int>> getCampaignStats();
+  Future<List<CampaignEntity>> getCampaigns({bool skipCache = false});
+  Future<Map<String, int>> getCampaignStats({bool skipCache = false});
   Future<CampaignDetailEntity> getCampaignDetail(String id);
   Future<String> createCampaign(Map<String, dynamic> data);
   Future<void> updateCampaign(String id, Map<String, dynamic> data);
@@ -22,7 +22,10 @@ abstract class CampaignsRemoteDatasource {
     required List<String> userIds,
     required String adminId,
   });
-  Future<void> removeVolunteer({required String taskId, required String userId});
+  Future<void> removeVolunteer({
+    required String taskId,
+    required String userId,
+  });
   Future<void> sendTeamAlert({
     required String taskId,
     required String adminId,

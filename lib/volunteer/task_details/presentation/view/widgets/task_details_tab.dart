@@ -249,7 +249,9 @@ class _VolunteerPapersSection extends StatelessWidget {
                                 width: 100.w,
                                 height: 100.w,
                                 itemCount: 1,
-                                borderRadius: BorderRadius.circular(AppRadius.s12),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.s12,
+                                ),
                               ),
                               errorWidget: (_, __, ___) => Icon(
                                 Icons.broken_image_outlined,
@@ -276,7 +278,9 @@ class _VolunteerPapersSection extends StatelessWidget {
   }
 
   void _openFullScreen(BuildContext context, int initialIndex) {
-    final imagePapers = papers.where((p) => !p.fileName.toLowerCase().endsWith('.pdf')).toList();
+    final imagePapers = papers
+        .where((p) => !p.fileName.toLowerCase().endsWith('.pdf'))
+        .toList();
     final imageIndex = papers
         .where((p) => !p.fileName.toLowerCase().endsWith('.pdf'))
         .toList()

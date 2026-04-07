@@ -19,7 +19,7 @@ class TasksCubit extends Cubit<TasksState> {
   Timer? _debounce;
 
   TasksCubit(this._getTodayTasks, this._getCompletedTasks, this._getTasksStats)
-      : super(const TasksState.initial()) {
+    : super(const TasksState.initial()) {
     final userId = LocalAppStorage.getUserId();
     if (userId != null) _subscribeToRealtime(userId);
   }
@@ -63,26 +63,28 @@ class TasksCubit extends Cubit<TasksState> {
     await LocalAppStorage.invalidateCache('today_tasks_${userId}_$today');
     await LocalAppStorage.invalidateCache('completed_tasks_$userId');
     await LocalAppStorage.invalidateCache('tasks_stats_$userId');
-    final todayResult = await _getTodayTasks(userId);
-    final completedResult = await _getCompletedTasks(userId);
-    final statsResult = await _getTasksStats(userId);
-    statsResult.fold(
-      (_) {},
-      (stats) {
-        final todayTasks = todayResult.fold((_) => <TaskEntity>[], (t) => t);
-        final completedTasks = completedResult.fold((_) => <TaskEntity>[], (t) => t);
-        final currentTab = state.maybeWhen(
-          loaded: (todayTasks, completedTasks, stats, tab) => tab,
-          orElse: () => 0,
-        );
-        emit(TasksState.loaded(
+    final todayResult = await _getTodayTasks(userId, skipCache: true);
+    final completedResult = await _getCompletedTasks(userId, skipCache: true);
+    final statsResult = await _getTasksStats(userId, skipCache: true);
+    statsResult.fold((_) {}, (stats) {
+      final todayTasks = todayResult.fold((_) => <TaskEntity>[], (t) => t);
+      final completedTasks = completedResult.fold(
+        (_) => <TaskEntity>[],
+        (t) => t,
+      );
+      final currentTab = state.maybeWhen(
+        loaded: (todayTasks, completedTasks, stats, tab) => tab,
+        orElse: () => 0,
+      );
+      emit(
+        TasksState.loaded(
           todayTasks: todayTasks,
           completedTasks: completedTasks,
           stats: stats,
           selectedTab: currentTab,
-        ));
-      },
-    );
+        ),
+      );
+    });
   }
 
   @override
@@ -108,30 +110,30 @@ class TasksCubit extends Cubit<TasksState> {
     await LocalAppStorage.invalidateCache('completed_tasks_$userId');
     await LocalAppStorage.invalidateCache('tasks_stats_$userId');
 
-    final todayResult = await _getTodayTasks(userId);
-    final completedResult = await _getCompletedTasks(userId);
-    final statsResult = await _getTasksStats(userId);
+    final todayResult = await _getTodayTasks(userId, skipCache: true);
+    final completedResult = await _getCompletedTasks(userId, skipCache: true);
+    final statsResult = await _getTasksStats(userId, skipCache: true);
 
-    statsResult.fold(
-      (failure) => emit(TasksState.error(failure.message)),
-      (stats) {
-        final todayTasks = todayResult.fold((_) => <TaskEntity>[], (t) => t);
-        final completedTasks =
-            completedResult.fold((_) => <TaskEntity>[], (t) => t);
-            
+    statsResult.fold((failure) => emit(TasksState.error(failure.message)), (
+      stats,
+    ) {
+      final todayTasks = todayResult.fold((_) => <TaskEntity>[], (t) => t);
+      final completedTasks = completedResult.fold(
+        (_) => <TaskEntity>[],
+        (t) => t,
+      );
 
-        emit(
-          TasksState.loaded(
-            todayTasks: todayTasks,
-            completedTasks: completedTasks,
-            stats: stats,
-          ),
-        );
-      },
-    );
+      emit(
+        TasksState.loaded(
+          todayTasks: todayTasks,
+          completedTasks: completedTasks,
+          stats: stats,
+        ),
+      );
+    });
   }
 
-void switchTab(int index) {
+  void switchTab(int index) {
     final currentState = state;
     if (currentState is TasksStateLoaded) {
       emit(currentState.copyWith(selectedTab: index));

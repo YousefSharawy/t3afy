@@ -36,8 +36,7 @@ class _EditVolunteerDataSheetState extends State<EditVolunteerDataSheet> {
     _phoneCtrl = TextEditingController(text: widget.details.phone ?? '');
     _emailCtrl = TextEditingController(text: widget.details.email ?? '');
     _regionCtrl = TextEditingController(text: widget.details.region ?? '');
-    _qualCtrl =
-        TextEditingController(text: widget.details.qualification ?? '');
+    _qualCtrl = TextEditingController(text: widget.details.qualification ?? '');
   }
 
   @override
@@ -125,7 +124,9 @@ class _EditVolunteerDataSheetState extends State<EditVolunteerDataSheet> {
                 SizedBox(height: AppHeight.s16),
                 PrimaryTextFF(
                   textAlign: .right,
-                  hint: 'الاسم', controller: _nameCtrl),
+                  hint: 'الاسم',
+                  controller: _nameCtrl,
+                ),
                 SizedBox(height: AppHeight.s12),
                 PrimaryTextFF(
                   textAlign: .right,
@@ -143,16 +144,20 @@ class _EditVolunteerDataSheetState extends State<EditVolunteerDataSheet> {
                 SizedBox(height: AppHeight.s12),
                 PrimaryTextFF(
                   textAlign: .right,
-                  hint: 'المنطقة', controller: _regionCtrl),
+                  hint: 'المنطقة',
+                  controller: _regionCtrl,
+                ),
                 SizedBox(height: AppHeight.s12),
                 PrimaryTextFF(
                   textAlign: .right,
-                  hint: 'المؤهل', controller: _qualCtrl),
+                  hint: 'المؤهل',
+                  controller: _qualCtrl,
+                ),
                 SizedBox(height: AppHeight.s20),
                 PrimaryElevatedButton(
                   title: _sending ? '' : 'حفظ التعديلات',
                   titleWidget: _sending
-                      ?  SizedBox(
+                      ? SizedBox(
                           width: AppWidth.s20,
                           height: AppHeight.s20,
                           child: CircularProgressIndicator(

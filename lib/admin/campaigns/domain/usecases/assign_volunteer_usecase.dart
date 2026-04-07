@@ -10,6 +10,9 @@ class AssignVolunteerUsecase {
     required String taskId,
     required List<String> userIds,
     required String adminId,
-  }) =>
-      _repo.assignVolunteers(taskId: taskId, userIds: userIds, adminId: adminId);
+  }) => _repo.assignVolunteers(
+    taskId: taskId,
+    userIds: userIds,
+    adminId: adminId,
+  );
 }

@@ -28,12 +28,17 @@ class VolunteerActionRow extends StatelessWidget {
           vertical: AppHeight.s8,
         ),
         decoration: BoxDecoration(
-      color: ColorManager.white,
+          color: ColorManager.white,
           borderRadius: BorderRadius.circular(AppRadius.s16),
         ),
         child: Row(
           children: [
-            Image.asset(icon,width: AppWidth.s24,height: AppHeight.s24,fit: BoxFit.contain,),
+            Image.asset(
+              icon,
+              width: AppWidth.s24,
+              height: AppHeight.s24,
+              fit: BoxFit.contain,
+            ),
             SizedBox(width: AppWidth.s8),
             Text(
               label,

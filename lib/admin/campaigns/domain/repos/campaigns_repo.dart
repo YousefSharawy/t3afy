@@ -7,11 +7,14 @@ import '../entities/volunteer_entity.dart';
 abstract class CampaignsRepo {
   void subscribeRealtime(void Function() onChanged);
   void disposeRealtime();
-  Future<Either<Failture, List<CampaignEntity>>> getCampaigns();
-  Future<Either<Failture, Map<String, int>>> getCampaignStats();
+  Future<Either<Failture, List<CampaignEntity>>> getCampaigns({bool skipCache = false});
+  Future<Either<Failture, Map<String, int>>> getCampaignStats({bool skipCache = false});
   Future<Either<Failture, CampaignDetailEntity>> getCampaignDetail(String id);
   Future<Either<Failture, String>> createCampaign(Map<String, dynamic> data);
-  Future<Either<Failture, void>> updateCampaign(String id, Map<String, dynamic> data);
+  Future<Either<Failture, void>> updateCampaign(
+    String id,
+    Map<String, dynamic> data,
+  );
   Future<Either<Failture, void>> deleteCampaign(String id);
   Future<Either<Failture, void>> assignVolunteers({
     required String taskId,
@@ -29,6 +32,8 @@ abstract class CampaignsRepo {
     required String body,
     required List<String> volunteerIds,
   });
-  Future<Either<Failture, List<VolunteerEntity>>> getUnassignedVolunteers(String taskId);
+  Future<Either<Failture, List<VolunteerEntity>>> getUnassignedVolunteers(
+    String taskId,
+  );
   Future<Either<Failture, List<VolunteerEntity>>> getAllVolunteers();
 }

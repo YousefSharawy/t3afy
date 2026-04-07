@@ -16,11 +16,11 @@ void main() {
   late MockUpdateCampaignUsecase mockUpdate;
 
   CreateCampaignCubit buildCubit() => CreateCampaignCubit(
-        mockGetAllVolunteers,
-        mockGetDetail,
-        mockCreate,
-        mockUpdate,
-      );
+    mockGetAllVolunteers,
+    mockGetDetail,
+    mockCreate,
+    mockUpdate,
+  );
 
   setUpAll(() {
     registerFallbackValue('');
@@ -43,8 +43,9 @@ void main() {
     group('loadVolunteers', () {
       test('success → emits [loading, ready] with volunteer list', () async {
         final volunteers = [fakeCampaignVolunteer()];
-        when(() => mockGetAllVolunteers())
-            .thenAnswer((_) async => Right(volunteers));
+        when(
+          () => mockGetAllVolunteers(),
+        ).thenAnswer((_) async => Right(volunteers));
 
         final cubit = buildCubit();
         final states = <CreateCampaignState>[];
@@ -62,8 +63,9 @@ void main() {
       });
 
       test('failure → emits [loading, error]', () async {
-        when(() => mockGetAllVolunteers())
-            .thenAnswer((_) async => Left(Failture(0, 'فشل التحميل')));
+        when(
+          () => mockGetAllVolunteers(),
+        ).thenAnswer((_) async => Left(Failture(0, 'فشل التحميل')));
 
         final cubit = buildCubit();
         final states = <CreateCampaignState>[];
@@ -86,10 +88,10 @@ void main() {
           timeStart: '09:00',
           timeEnd: '12:00',
         );
-        when(() => mockGetAllVolunteers())
-            .thenAnswer((_) async => Right([fakeCampaignVolunteer()]));
-        when(() => mockGetDetail(any()))
-            .thenAnswer((_) async => Right(detail));
+        when(
+          () => mockGetAllVolunteers(),
+        ).thenAnswer((_) async => Right([fakeCampaignVolunteer()]));
+        when(() => mockGetDetail(any())).thenAnswer((_) async => Right(detail));
 
         final cubit = buildCubit();
         final states = <CreateCampaignState>[];
@@ -108,10 +110,12 @@ void main() {
 
     group('save (create)', () {
       test('valid data → emits [saving, saved]', () async {
-        when(() => mockCreate(any()))
-            .thenAnswer((_) async => const Right('new-camp-id'));
-        when(() => mockGetAllVolunteers())
-            .thenAnswer((_) async => Right([fakeCampaignVolunteer()]));
+        when(
+          () => mockCreate(any()),
+        ).thenAnswer((_) async => const Right('new-camp-id'));
+        when(
+          () => mockGetAllVolunteers(),
+        ).thenAnswer((_) async => Right([fakeCampaignVolunteer()]));
 
         final cubit = buildCubit();
         await cubit.loadVolunteers();
@@ -145,8 +149,9 @@ void main() {
       });
 
       test('missing date → emits validationError then back to ready', () async {
-        when(() => mockGetAllVolunteers())
-            .thenAnswer((_) async => Right([fakeCampaignVolunteer()]));
+        when(
+          () => mockGetAllVolunteers(),
+        ).thenAnswer((_) async => Right([fakeCampaignVolunteer()]));
 
         final cubit = buildCubit();
         await cubit.loadVolunteers();
@@ -180,10 +185,12 @@ void main() {
 
     group('save (edit)', () {
       test('with taskId → calls update, emits [saving, saved]', () async {
-        when(() => mockUpdate(any(), any()))
-            .thenAnswer((_) async => const Right(null));
-        when(() => mockGetAllVolunteers())
-            .thenAnswer((_) async => Right([fakeCampaignVolunteer()]));
+        when(
+          () => mockUpdate(any(), any()),
+        ).thenAnswer((_) async => const Right(null));
+        when(
+          () => mockGetAllVolunteers(),
+        ).thenAnswer((_) async => Right([fakeCampaignVolunteer()]));
 
         final cubit = buildCubit();
         await cubit.loadVolunteers();
@@ -220,9 +227,9 @@ void main() {
 
     group('toggleVolunteer', () {
       test('toggle on → selectedIds contains id', () async {
-        when(() => mockGetAllVolunteers()).thenAnswer(
-          (_) async => Right([fakeCampaignVolunteer(id: 'vol-1')]),
-        );
+        when(
+          () => mockGetAllVolunteers(),
+        ).thenAnswer((_) async => Right([fakeCampaignVolunteer(id: 'vol-1')]));
 
         final cubit = buildCubit();
         await cubit.loadVolunteers();
@@ -234,9 +241,9 @@ void main() {
       });
 
       test('toggle off → selectedIds does not contain id', () async {
-        when(() => mockGetAllVolunteers()).thenAnswer(
-          (_) async => Right([fakeCampaignVolunteer(id: 'vol-1')]),
-        );
+        when(
+          () => mockGetAllVolunteers(),
+        ).thenAnswer((_) async => Right([fakeCampaignVolunteer(id: 'vol-1')]));
 
         final cubit = buildCubit();
         await cubit.loadVolunteers();
@@ -251,8 +258,7 @@ void main() {
 
     group('setDate / setTimeStart / setTimeEnd', () {
       test('setDate emits ready with selectedDate updated', () async {
-        when(() => mockGetAllVolunteers())
-            .thenAnswer((_) async => Right([]));
+        when(() => mockGetAllVolunteers()).thenAnswer((_) async => Right([]));
 
         final cubit = buildCubit();
         await cubit.loadVolunteers();
@@ -266,8 +272,7 @@ void main() {
       });
 
       test('setTimeStart emits ready with timeStart updated', () async {
-        when(() => mockGetAllVolunteers())
-            .thenAnswer((_) async => Right([]));
+        when(() => mockGetAllVolunteers()).thenAnswer((_) async => Right([]));
 
         final cubit = buildCubit();
         await cubit.loadVolunteers();
@@ -280,8 +285,7 @@ void main() {
       });
 
       test('setTimeEnd emits ready with timeEnd updated', () async {
-        when(() => mockGetAllVolunteers())
-            .thenAnswer((_) async => Right([]));
+        when(() => mockGetAllVolunteers()).thenAnswer((_) async => Right([]));
 
         final cubit = buildCubit();
         await cubit.loadVolunteers();

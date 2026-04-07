@@ -2,12 +2,11 @@
 
 // ignore_for_file: constant_identifier_names
 
-abstract class  LocaleKeys {
+abstract class LocaleKeys {
   static const app_name = 'app_name';
   static const home = 'home';
   static const tasks = 'tasks';
   static const map = 'map';
   static const performance = 'performance';
   static const bot = 'bot';
-
 }

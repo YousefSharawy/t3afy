@@ -40,9 +40,7 @@ class VolunteerDetailsHeader extends StatelessWidget {
                         width: 0.5.sp,
                       ),
                     ),
-                    child: Image.asset(
-                      IconAssets.volHome,
-                    ),
+                    child: Image.asset(IconAssets.volHome),
                   ),
                 ],
               ),
@@ -77,7 +75,11 @@ class VolunteerDetailsHeader extends StatelessWidget {
                   Row(
                     children: [
                       ...List.generate(5, (i) {
-                        return Image.asset(i < details.rating.round() ? IconAssets.star : IconAssets.unstar);
+                        return Image.asset(
+                          i < details.rating.round()
+                              ? IconAssets.star
+                              : IconAssets.unstar,
+                        );
                       }),
                       SizedBox(width: AppWidth.s7),
                       Text(
@@ -126,5 +128,4 @@ class VolunteerDetailsHeader extends StatelessWidget {
       ),
     );
   }
-
 }

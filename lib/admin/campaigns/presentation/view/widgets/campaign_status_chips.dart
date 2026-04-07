@@ -12,16 +12,16 @@ class CampaignStatusChips extends StatelessWidget {
   final String selectedStatus;
 
   static const _statusColors = {
-    'ongoing':   ColorManager.info,
-    'upcoming':  ColorManager.warning,
-    'done':      ColorManager.success,
+    'ongoing': ColorManager.info,
+    'upcoming': ColorManager.warning,
+    'done': ColorManager.success,
     'completed': ColorManager.success,
     'suspended': ColorManager.error,
   };
   static const _statusLightColors = {
-    'ongoing':   ColorManager.infoLight,
-    'upcoming':  ColorManager.warningLight,
-    'done':      ColorManager.successLight,
+    'ongoing': ColorManager.infoLight,
+    'upcoming': ColorManager.warningLight,
+    'done': ColorManager.successLight,
     'completed': ColorManager.successLight,
     'suspended': ColorManager.errorLight,
   };
@@ -34,13 +34,17 @@ class CampaignStatusChips extends StatelessWidget {
       children: _statuses.map((status) {
         final isSelected = selectedStatus == status;
         final color = _statusColors[status] ?? ColorManager.natural400;
-        final lightColor = _statusLightColors[status] ?? ColorManager.natural200;
+        final lightColor =
+            _statusLightColors[status] ?? ColorManager.natural200;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           margin: EdgeInsets.only(
             left: status == _statuses.last ? 0 : AppWidth.s8,
           ),
-          padding: EdgeInsets.symmetric(vertical: AppHeight.s2, horizontal: AppWidth.s10),
+          padding: EdgeInsets.symmetric(
+            vertical: AppHeight.s2,
+            horizontal: AppWidth.s10,
+          ),
           decoration: BoxDecoration(
             color: isSelected ? lightColor : ColorManager.white,
             borderRadius: BorderRadius.circular(AppRadius.s6),

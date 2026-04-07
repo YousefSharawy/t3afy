@@ -11,9 +11,6 @@ class EditVolunteerDataUsecase {
     required String volunteerId,
     required Map<String, dynamic> fields,
   }) {
-    return _repo.editVolunteerData(
-      volunteerId: volunteerId,
-      fields: fields,
-    );
+    return _repo.editVolunteerData(volunteerId: volunteerId, fields: fields);
   }
 }

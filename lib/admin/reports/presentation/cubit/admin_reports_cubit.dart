@@ -25,10 +25,9 @@ class AdminReportsCubit extends Cubit<AdminReportsState> {
 
   List<AdminReportEntity> get filteredReports {
     return state.maybeWhen(
-      loaded: (reports, filter) =>
-          filter == 'all'
-              ? reports
-              : reports.where((r) => r.status == filter).toList(),
+      loaded: (reports, filter) => filter == 'all'
+          ? reports
+          : reports.where((r) => r.status == filter).toList(),
       orElse: () => [],
     );
   }
@@ -70,12 +69,9 @@ class AdminReportsCubit extends Cubit<AdminReportsState> {
       feedback: feedback,
       adminId: adminId,
     );
-    result.fold(
-      (f) => emit(AdminReportsState.error(f.message)),
-      (_) {
-        emit(const AdminReportsState.reviewed());
-        loadReports();
-      },
-    );
+    result.fold((f) => emit(AdminReportsState.error(f.message)), (_) {
+      emit(const AdminReportsState.reviewed());
+      loadReports();
+    });
   }
 }

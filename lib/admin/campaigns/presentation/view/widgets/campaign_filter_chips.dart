@@ -52,18 +52,21 @@ class CampaignFilterChips extends StatelessWidget {
               child: Center(
                 child: Text(
                   '$label ($count)',
-                  style: isSelected? getBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s10,
-                    color: ColorManager.white,
-                  ) :getRegularStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s10,
-                    color: ColorManager.primary50, 
+                  style: isSelected
+                      ? getBoldStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          fontSize: FontSize.s10,
+                          color: ColorManager.white,
+                        )
+                      : getRegularStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          fontSize: FontSize.s10,
+                          color: ColorManager.primary50,
+                        ),
                 ),
               ),
             ),
-          ),);
+          );
         },
       ),
     );

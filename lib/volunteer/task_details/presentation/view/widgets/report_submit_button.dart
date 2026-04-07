@@ -23,8 +23,9 @@ class ReportSubmitButton extends StatelessWidget {
         onPressed: isSubmitting ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF00ABD2),
-          disabledBackgroundColor:
-              const Color(0xFF00ABD2).withValues(alpha: 0.5),
+          disabledBackgroundColor: const Color(
+            0xFF00ABD2,
+          ).withValues(alpha: 0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.s12),
           ),

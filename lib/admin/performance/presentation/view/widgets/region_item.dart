@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
@@ -53,10 +52,7 @@ class RegionItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.s8),
             child: Stack(
               children: [
-                Container(
-                  height: AppHeight.s6,
-                  color: ColorManager.primary50,
-                ),
+                Container(height: AppHeight.s6, color: ColorManager.primary50),
                 FractionallySizedBox(
                   widthFactor: fraction,
                   child: Container(
@@ -65,7 +61,10 @@ class RegionItem extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: .centerRight,
                         end: .centerLeft,
-                        colors: [ColorManager.primary500, ColorManager.primary300],
+                        colors: [
+                          ColorManager.primary500,
+                          ColorManager.primary300,
+                        ],
                       ),
                     ),
                   ),

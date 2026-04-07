@@ -103,7 +103,8 @@ class VolunteersRepoImpl implements VolunteersRepo {
 
   @override
   Future<Either<Failture, List<Map<String, dynamic>>>> getAvailableTasks(
-      String volunteerId) async {
+    String volunteerId,
+  ) async {
     try {
       final tasks = await _datasource.getAvailableTasks(volunteerId);
       return Right(tasks);

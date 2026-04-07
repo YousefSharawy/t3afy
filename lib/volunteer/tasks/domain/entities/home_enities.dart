@@ -34,19 +34,19 @@ class TaskEntity {
   final String type;
   final String description;
   final String status;
-  final String date;              // keep as String like home uses
+  final String date; // keep as String like home uses
   final String timeStart;
   final String timeEnd;
   final double durationHours;
   final int points;
   final String locationName;
   final String locationAddress;
-  final double? locationLat;      // NEW
-  final double? locationLng;      // NEW
+  final double? locationLat; // NEW
+  final double? locationLng; // NEW
   final String supervisorName;
   final String supervisorPhone;
   final String? notes;
-  final String assignmentStatus;  // NEW — default 'assigned'
+  final String assignmentStatus; // NEW — default 'assigned'
 
   const TaskEntity({
     required this.id,

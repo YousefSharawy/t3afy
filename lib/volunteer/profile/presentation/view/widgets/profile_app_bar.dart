@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
+
 class ProfileAppBar extends StatelessWidget {
   const ProfileAppBar({super.key});
 

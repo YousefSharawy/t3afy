@@ -13,7 +13,7 @@ class GradientCard extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(AppSize.s12),
       decoration: BoxDecoration(
-       color: ColorManager.white,
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s8),
       ),
       child: child,

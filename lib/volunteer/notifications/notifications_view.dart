@@ -118,7 +118,9 @@ class _NotificationsViewState extends State<NotificationsView> {
                           child: ListView.separated(
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: EdgeInsets.symmetric(
-                                horizontal: 16.w, vertical: 16.h),
+                              horizontal: 16.w,
+                              vertical: 16.h,
+                            ),
                             itemCount: state.notes.length,
                             separatorBuilder: (_, _) => SizedBox(height: 12.h),
                             itemBuilder: (context, index) {

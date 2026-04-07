@@ -33,8 +33,10 @@ class _LiveMapTabState extends State<LiveMapTab> {
   void initState() {
     super.initState();
     _fetchPins();
-    _refreshTimer =
-        Timer.periodic(const Duration(seconds: 30), (_) => _fetchPins());
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _fetchPins(),
+    );
     _channel = _client
         .channel('live_map_${widget.detail.id}')
         .onPostgresChanges(
@@ -87,7 +89,8 @@ class _LiveMapTabState extends State<LiveMapTab> {
           name: member?.name ?? 'متطوع',
           lat: (row['latitude'] as num).toDouble(),
           lng: (row['longitude'] as num).toDouble(),
-          isCheckedIn: member?.checkedInAt != null && member?.checkedOutAt == null,
+          isCheckedIn:
+              member?.checkedInAt != null && member?.checkedOutAt == null,
         );
       }).toList();
 
@@ -104,7 +107,8 @@ class _LiveMapTabState extends State<LiveMapTab> {
 
   @override
   Widget build(BuildContext context) {
-    final hasCoords = widget.detail.locationLat != null &&
+    final hasCoords =
+        widget.detail.locationLat != null &&
         widget.detail.locationLng != null &&
         widget.detail.locationLat != 0 &&
         widget.detail.locationLng != 0;
@@ -152,8 +156,9 @@ class _LiveMapTabState extends State<LiveMapTab> {
                       radius: 200,
                       useRadiusInMeter: true,
                       color: ColorManager.primary500.withValues(alpha: 0.08),
-                      borderColor:
-                          ColorManager.primary500.withValues(alpha: 0.4),
+                      borderColor: ColorManager.primary500.withValues(
+                        alpha: 0.4,
+                      ),
                       borderStrokeWidth: 1.5,
                     ),
                   ],
@@ -182,13 +187,16 @@ class _LiveMapTabState extends State<LiveMapTab> {
                           children: [
                             Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 4.w, vertical: 2.h),
+                                horizontal: 4.w,
+                                vertical: 2.h,
+                              ),
                               decoration: BoxDecoration(
                                 color: pin.isCheckedIn
                                     ? ColorManager.success
                                     : ColorManager.natural400,
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.s4),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.s4,
+                                ),
                               ),
                               child: Text(
                                 pin.name.split(' ').first,
@@ -209,7 +217,9 @@ class _LiveMapTabState extends State<LiveMapTab> {
                                     : ColorManager.natural400,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                    color: ColorManager.white, width: 1.5),
+                                  color: ColorManager.white,
+                                  width: 1.5,
+                                ),
                               ),
                             ),
                           ],
@@ -267,8 +277,11 @@ class _LiveMapTabState extends State<LiveMapTab> {
                 },
                 child: Row(
                   children: [
-                    Icon(Icons.refresh_rounded,
-                        size: 14.r, color: ColorManager.primary500),
+                    Icon(
+                      Icons.refresh_rounded,
+                      size: 14.r,
+                      color: ColorManager.primary500,
+                    ),
                     SizedBox(width: 4.w),
                     Text(
                       'تحديث',

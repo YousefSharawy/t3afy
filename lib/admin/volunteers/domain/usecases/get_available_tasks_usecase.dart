@@ -8,7 +8,8 @@ class GetAvailableTasksUsecase {
   GetAvailableTasksUsecase(this._repo);
 
   Future<Either<Failture, List<Map<String, dynamic>>>> call(
-      String volunteerId) {
+    String volunteerId,
+  ) {
     return _repo.getAvailableTasks(volunteerId);
   }
 }

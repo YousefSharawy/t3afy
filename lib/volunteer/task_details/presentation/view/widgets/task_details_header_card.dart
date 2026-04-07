@@ -40,20 +40,23 @@ class TaskDetailsHeaderCard extends StatelessWidget {
                 ),
                 child: Icon(
                   taskTypeIcon(task.type),
-                  size: 20,
+                  size: 20.sp,
                   color: ColorManager.natural600,
                 ),
               ),
+              SizedBox(width: AppWidth.s8),
+
               Column(
+                crossAxisAlignment: .start,
                 children: [
                   Row(
+                    
                     children: [
                       StatusBadge(status: task.assignmentStatus ?? task.status),
-                      SizedBox(width: AppWidth.s3),
                       TaskTypeBadge(type: task.type),
                     ],
                   ),
-                  SizedBox(height: AppHeight.s4),
+                  SizedBox(height: AppHeight.s3),
                   Text(
                     task.title,
                     style: getBoldStyle(
@@ -92,13 +95,13 @@ class TaskDetailsHeaderCard extends StatelessWidget {
                 borderColor: ColorManager.warning,
               ),
 
-              if (task.durationHours != null) ...[
-                SizedBox(width: AppWidth.s20),
+              if (_getDurationHours() > 0) ...[
+                SizedBox(width: AppWidth.s8),
                 TaskInfoRow(
                   color: ColorManager.natural50,
                   icon: IconAssets.alarm,
                   label:
-                      '${task.durationHours!.toStringAsFixed(task.durationHours! == task.durationHours!.roundToDouble() ? 0 : 1)} ساعة',
+                      '${_getDurationHours().toStringAsFixed(_getDurationHours() == _getDurationHours().roundToDouble() ? 0 : 1)} ساعة',
                 ),
               ],
             ],
@@ -151,6 +154,27 @@ class TaskDetailsHeaderCard extends StatelessWidget {
       return '$h:$minute $period';
     } catch (_) {
       return time;
+    }
+  }
+
+  double _getDurationHours() {
+    if (task.durationHours != null && task.durationHours! > 0) {
+      return task.durationHours!;
+    }
+    return _calculateDuration(task.timeStart, task.timeEnd);
+  }
+
+  double _calculateDuration(String timeStart, String timeEnd) {
+    try {
+      final startParts = timeStart.split(':');
+      final endParts = timeEnd.split(':');
+      if (startParts.length < 2 || endParts.length < 2) return 0;
+      final startMin = (int.tryParse(startParts[0]) ?? 0) * 60 + (int.tryParse(startParts[1]) ?? 0);
+      final endMin = (int.tryParse(endParts[0]) ?? 0) * 60 + (int.tryParse(endParts[1]) ?? 0);
+      final diff = endMin - startMin;
+      return diff > 0 ? (diff / 60.0 * 10).round() / 10.0 : 0;
+    } catch (_) {
+      return 0;
     }
   }
 }

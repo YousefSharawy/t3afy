@@ -19,11 +19,7 @@ extension PerformanceStatsMapper on PerformanceStatsModel {
 
 extension MonthlyHoursMapper on MonthlyHoursModel {
   MonthlyHoursEntity toEntity() {
-    return MonthlyHoursEntity(
-      year: year,
-      month: month,
-      hours: hours,
-    );
+    return MonthlyHoursEntity(year: year, month: month, hours: hours);
   }
 }
 

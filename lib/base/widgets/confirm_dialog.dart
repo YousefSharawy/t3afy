@@ -12,8 +12,9 @@ Future<bool> showConfirmDialog(
   required String confirmLabel,
   bool isDestructive = false,
 }) async {
-  final confirmColor =
-      isDestructive ? ColorManager.error : ColorManager.primary500;
+  final confirmColor = isDestructive
+      ? ColorManager.error
+      : ColorManager.primary500;
 
   final result = await showDialog<bool>(
     context: context,

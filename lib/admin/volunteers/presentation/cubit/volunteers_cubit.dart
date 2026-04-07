@@ -20,7 +20,10 @@ class VolunteersCubit extends Cubit<VolunteersState> {
   ) : super(const VolunteersState.initial()) {
     loadVolunteers();
     _repo.subscribeRealtime(loadVolunteers);
-    _stalenessTimer = Timer.periodic(const Duration(minutes: 1), (_) => _refreshIfLoaded());
+    _stalenessTimer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => _refreshIfLoaded(),
+    );
   }
 
   final GetVolunteersUsecase _getVolunteersUsecase;
@@ -34,13 +37,10 @@ class VolunteersCubit extends Cubit<VolunteersState> {
   Future<void> loadVolunteers() async {
     emit(const VolunteersState.loading());
     final result = await _getVolunteersUsecase();
-    result.fold(
-      (f) => emit(VolunteersState.error(f.message)),
-      (list) {
-        _allVolunteers = list;
-        emit(VolunteersState.loaded(list, pendingUsers: _pendingUsers));
-      },
-    );
+    result.fold((f) => emit(VolunteersState.error(f.message)), (list) {
+      _allVolunteers = list;
+      emit(VolunteersState.loaded(list, pendingUsers: _pendingUsers));
+    });
   }
 
   Future<void> loadPendingUsers() async {
@@ -48,13 +48,10 @@ class VolunteersCubit extends Cubit<VolunteersState> {
     if (s is! _Loaded) return;
     emit(s.copyWith(pendingLoading: true));
     final result = await _getPendingUsersUsecase();
-    result.fold(
-      (f) => emit(s.copyWith(pendingLoading: false)),
-      (list) {
-        _pendingUsers = list;
-        emit(s.copyWith(pendingUsers: list, pendingLoading: false));
-      },
-    );
+    result.fold((f) => emit(s.copyWith(pendingLoading: false)), (list) {
+      _pendingUsers = list;
+      emit(s.copyWith(pendingUsers: list, pendingLoading: false));
+    });
   }
 
   Future<void> addVolunteer({

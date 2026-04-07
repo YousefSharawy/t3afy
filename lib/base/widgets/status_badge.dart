@@ -70,7 +70,7 @@ class StatusBadge extends StatelessWidget {
       ),
       _ => (
         label: status,
-      textColor: ColorManager.natural500,
+        textColor: ColorManager.natural500,
         fillColor: ColorManager.natural200,
       ),
     };

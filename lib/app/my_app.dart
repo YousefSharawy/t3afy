@@ -27,10 +27,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          lazy: false,
-          create: (_) => getIt<OnlineStatusCubit>(),
-        ),
+        BlocProvider(lazy: false, create: (_) => getIt<OnlineStatusCubit>()),
         BlocProvider(
           create: (context) => AuthCubit(
             getIt(),

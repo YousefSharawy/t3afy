@@ -15,8 +15,7 @@ class TasksHeaderStats extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-       
-         _buildStatBox('${stats.todayCount}', 'اليوم'),
+        _buildStatBox('${stats.todayCount}', 'اليوم'),
         SizedBox(width: 8.w),
         _buildStatBox('${stats.completedCount}', 'مكتملة'),
         SizedBox(width: 8.w),
@@ -31,7 +30,7 @@ class TasksHeaderStats extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 8.h),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.s16),
-       color: ColorManager.white,
+          color: ColorManager.white,
         ),
         child: Column(
           children: [

@@ -80,6 +80,17 @@ class PerformanceCubit extends Cubit<PerformanceState> {
     return super.close();
   }
 
+  /// Invalidates all performance cache keys then reloads fresh data.
+  /// Wire this to RefreshIndicator.onRefresh instead of loadPerformance().
+  Future<void> refreshPerformance() async {
+    final userId = _currentUserId;
+    if (userId == null) return;
+    await LocalAppStorage.invalidateCache('perf_stats_$userId');
+    await LocalAppStorage.invalidateCache('monthly_hours_$userId');
+    await LocalAppStorage.invalidateCache('leaderboard_v2');
+    await loadPerformance(userId);
+  }
+
   Future<void> loadPerformance(String userId) async {
     if (_currentUserId != userId) {
       _currentUserId = userId;
@@ -99,12 +110,14 @@ class PerformanceCubit extends Cubit<PerformanceState> {
           (monthly) {
             leaderboardResult.fold(
               (failure) => emit(PerformanceState.error(failure.message)),
-              (leaderboard) => emit(PerformanceState.loaded(
-                stats: stats,
-                monthlyHours: monthly,
-                leaderboard: leaderboard,
-                currentUserId: userId,
-              )),
+              (leaderboard) => emit(
+                PerformanceState.loaded(
+                  stats: stats,
+                  monthlyHours: monthly,
+                  leaderboard: leaderboard,
+                  currentUserId: userId,
+                ),
+              ),
             );
           },
         );

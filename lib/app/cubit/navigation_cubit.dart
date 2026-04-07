@@ -3,6 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 part 'navigation_state.dart';
 part 'navigation_cubit.freezed.dart';
+
 class NavigationCubit extends Cubit<NavigationState> {
   Timer? _debounceTimer;
   static const _debounceDuration = Duration(milliseconds: 200);
@@ -12,23 +13,24 @@ class NavigationCubit extends Cubit<NavigationState> {
   void updateIndex(int newIndex) {
     // Cancel any pending navigation
     _debounceTimer?.cancel();
-    
+
     _debounceTimer = Timer(_debounceDuration, () {
-       if (isClosed) return;
+      if (isClosed) return;
       state.maybeWhen(
         loaded: (currentIndex, previousIndex) {
           if (currentIndex != newIndex) {
-            emit(NavigationState.loaded(
-              currentIndex: newIndex,
-              previousIndex: currentIndex,
-            ));
+            emit(
+              NavigationState.loaded(
+                currentIndex: newIndex,
+                previousIndex: currentIndex,
+              ),
+            );
           }
         },
         orElse: () {
-          emit(NavigationState.loaded(
-            currentIndex: newIndex,
-            previousIndex: 0,
-          ));
+          emit(
+            NavigationState.loaded(currentIndex: newIndex, previousIndex: 0),
+          );
         },
       );
     });
@@ -39,17 +41,16 @@ class NavigationCubit extends Cubit<NavigationState> {
     state.maybeWhen(
       loaded: (currentIndex, previousIndex) {
         if (currentIndex != newIndex) {
-          emit(NavigationState.loaded(
-            currentIndex: newIndex,
-            previousIndex: currentIndex,
-          ));
+          emit(
+            NavigationState.loaded(
+              currentIndex: newIndex,
+              previousIndex: currentIndex,
+            ),
+          );
         }
       },
       orElse: () {
-        emit(NavigationState.loaded(
-          currentIndex: newIndex,
-          previousIndex: 0,
-        ));
+        emit(NavigationState.loaded(currentIndex: newIndex, previousIndex: 0));
       },
     );
   }

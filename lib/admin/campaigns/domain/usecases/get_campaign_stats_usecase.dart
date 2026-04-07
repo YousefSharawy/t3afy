@@ -6,5 +6,6 @@ class GetCampaignStatsUsecase {
   final CampaignsRepo _repo;
   GetCampaignStatsUsecase(this._repo);
 
-  Future<Either<Failture, Map<String, int>>> call() => _repo.getCampaignStats();
+  Future<Either<Failture, Map<String, int>>> call({bool skipCache = false}) =>
+    _repo.getCampaignStats(skipCache: skipCache);
 }

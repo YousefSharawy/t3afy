@@ -13,12 +13,11 @@ class AddVolunteerUsecase {
     String? phone,
     String? region,
     String? qualification,
-  }) =>
-      _repo.addVolunteer(
-        name: name,
-        email: email,
-        phone: phone,
-        region: region,
-        qualification: qualification,
-      );
+  }) => _repo.addVolunteer(
+    name: name,
+    email: email,
+    phone: phone,
+    region: region,
+    qualification: qualification,
+  );
 }

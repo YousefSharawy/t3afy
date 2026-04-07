@@ -101,7 +101,9 @@ class PerformanceBarChart extends StatelessWidget {
                           show: true,
                           drawVerticalLine: false,
                           getDrawingHorizontalLine: (_) => FlLine(
-                            color: ColorManager.primary500.withValues(alpha: 0.06),
+                            color: ColorManager.primary500.withValues(
+                              alpha: 0.06,
+                            ),
                             strokeWidth: 1,
                           ),
                         ),
@@ -173,7 +175,9 @@ class PerformanceBarChart extends StatelessWidget {
                                 toY: bars[i].count.toDouble(),
                                 color: ColorManager.primary500,
                                 width: barWidth,
-                                borderRadius: BorderRadius.circular(AppRadius.s16),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.s16,
+                                ),
                               ),
                             ],
                           );

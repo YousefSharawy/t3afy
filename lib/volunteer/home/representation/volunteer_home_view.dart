@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
@@ -14,6 +15,8 @@ import 'package:t3afy/volunteer/home/representation/view/widgets/greeting_card.d
 import 'package:t3afy/volunteer/home/representation/view/widgets/home_app_bar.dart';
 import 'package:t3afy/volunteer/home/representation/view/widgets/stats_grid.dart';
 import 'package:t3afy/volunteer/home/representation/view/widgets/todays_task_section.dart';
+import 'package:t3afy/app/services/tutorial_service.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class VolunteerHomeView extends StatefulWidget {
   const VolunteerHomeView({super.key});
@@ -23,6 +26,13 @@ class VolunteerHomeView extends StatefulWidget {
 }
 
 class _VolunteerHomeViewState extends State<VolunteerHomeView> {
+  final GlobalKey _greetingKey = GlobalKey();
+  final GlobalKey _statsGridKey = GlobalKey();
+  final GlobalKey _todayTasksKey = GlobalKey();
+
+  late final VoidCallback _tutorialListener;
+  bool _tutorialShown = false;
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +47,34 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
     context.read<HomeCubit>()
       ..subscribeToUserUpdates(userId)
       ..loadHome(userId);
+
+    _tutorialListener = () => _checkTutorial();
+    TutorialPhaseService.instance.phaseNotifier.addListener(_tutorialListener);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkTutorial());
+  }
+
+  @override
+  void dispose() {
+    TutorialPhaseService.instance.phaseNotifier.removeListener(
+      _tutorialListener,
+    );
+    super.dispose();
+  }
+
+  void _checkTutorial() {
+    if (_tutorialShown) return;
+    if (!TutorialPhaseService.instance.isRunning) return;
+    if (TutorialPhaseService.instance.currentPhase != 1 ||
+        TutorialPhaseService.instance.isAdmin) {
+      return;
+    }
+
+    _tutorialShown = true;
+    debugPrint('📘 TUTORIAL: Home screen starting phase 1');
+
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) _showHomeTutorial();
+    });
   }
 
   @override
@@ -44,6 +82,27 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
     return BlocConsumer<HomeCubit, HomeState>(
       listener: (context, state) {
         state.maybeWhen(
+          loaded: (s, t, u) {
+            // First-time flow: show welcome dialog then start tutorial.
+            if (!_tutorialShown &&
+                !LocalAppStorage.isVolunteerTutorialCompleted() &&
+                !TutorialPhaseService.instance.isRunning) {
+              TutorialService.showWelcomeOverlay(context, isAdmin: false).then((
+                start,
+              ) {
+                if (!mounted) return;
+                if (start == true) {
+                  TutorialPhaseService.instance.start(isAdmin: false);
+                  _checkTutorial();
+                } else {
+                  LocalAppStorage.setVolunteerTutorialCompleted(true);
+                }
+              });
+            }
+            // Restart path: tutorial already running at phase 1 — data just
+            // loaded so GlobalKeys are now valid.
+            _checkTutorial();
+          },
           error: (message) {
             if (message == '__suspended__') {
               LocalAppStorage.clearUserSession();
@@ -103,6 +162,7 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         GreetingCard(
+                          key: _greetingKey,
                           name: stats.name,
                           level: stats.level,
                           levelTitle: stats.levelTitle,
@@ -118,6 +178,7 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                         ),
                         SizedBox(height: AppHeight.s8),
                         StatsGrid(
+                          key: _statsGridKey,
                           placesVisited: stats.placesVisited,
                           totalHours: stats.totalHours,
                           rating: stats.rating,
@@ -126,6 +187,7 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                         ),
                         SizedBox(height: AppHeight.s8),
                         TodayTasksSection(
+                          key: _todayTasksKey,
                           tasks: todayTasks,
                           onViewAll: () {
                             StatefulNavigationShell.of(context).goBranch(1);
@@ -139,8 +201,12 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                             if (changed == true && context.mounted) {
                               final userId = LocalAppStorage.getUserId();
                               if (userId != null) {
-                                await LocalAppStorage.invalidateCacheByPrefix('today_tasks_${userId}_');
-                                await LocalAppStorage.invalidateCache('vol_stats_v2_$userId');
+                                await LocalAppStorage.invalidateCacheByPrefix(
+                                  'today_tasks_${userId}_',
+                                );
+                                await LocalAppStorage.invalidateCache(
+                                  'vol_stats_v2_$userId',
+                                );
                                 cubit.loadHome(userId);
                               }
                             }
@@ -157,5 +223,97 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
         );
       },
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase 1 tutorial — 4 steps on the home screen.
+  // On finish → advanceToNextPhase() switches to Tasks tab (index 1).
+  // ---------------------------------------------------------------------------
+  void _showHomeTutorial() {
+    final targets = <TargetFocus>[];
+    const total = 4;
+
+    if (_greetingKey.currentContext != null) {
+      targets.add(
+        TutorialService.buildTarget(
+          identify: 'home_greeting',
+          keyTarget: _greetingKey,
+          title: 'الترحيب',
+          description: 'هنا يظهر اسمك ومستواك الحالي',
+          contentAlign: ContentAlign.bottom,
+          stepIndex: 1,
+          totalSteps: total,
+        ),
+      );
+    }
+
+    if (_statsGridKey.currentContext != null) {
+      targets.add(
+        TutorialService.buildTarget(
+          identify: 'home_stats',
+          keyTarget: _statsGridKey,
+          title: 'إحصائياتك',
+          description: 'ملخص أدائك: الساعات، المهام، النقاط، والتقييم',
+          contentAlign: ContentAlign.bottom,
+          stepIndex: 2,
+          totalSteps: total,
+        ),
+      );
+    }
+
+    if (_todayTasksKey.currentContext != null) {
+      targets.add(
+        TutorialService.buildTarget(
+          identify: 'home_today_tasks',
+          keyTarget: _todayTasksKey,
+          title: 'مهام اليوم',
+          description:
+              'المهام المطلوبة منك اليوم. اضغط على أي مهمة لعرض تفاصيلها',
+          contentAlign: ContentAlign.top,
+          stepIndex: 3,
+          totalSteps: total,
+        ),
+      );
+    }
+
+    if (AppTutorialKeys.volunteerNotificationKey.currentContext != null) {
+      targets.add(
+        TutorialService.buildTarget(
+          identify: 'home_notification',
+          keyTarget: AppTutorialKeys.volunteerNotificationKey,
+          title: 'الإشعارات',
+          description: 'ستصلك هنا رسائل وتنبيهات المشرفين',
+          contentAlign: ContentAlign.bottom,
+          shape: ShapeLightFocus.Circle,
+          stepIndex: 4,
+          totalSteps: total,
+        ),
+      );
+    }
+
+    if (targets.isEmpty) {
+      debugPrint(
+        '📘 TUTORIAL: VolunteerHome screen has no targets, advancing to next phase',
+      );
+      TutorialPhaseService.instance.advanceToNextPhase();
+      return;
+    }
+
+    TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      opacityShadow: 0.8,
+      textSkip: "تخطي",
+      paddingFocus: 10,
+      focusAnimationDuration: const Duration(milliseconds: 300),
+      unFocusAnimationDuration: const Duration(milliseconds: 300),
+      pulseAnimationDuration: const Duration(milliseconds: 600),
+      textStyleSkip: TextStyle(color: Colors.white, fontSize: 14.sp, fontFamily: FontConstants.fontFamily),
+      onFinish: () => TutorialPhaseService.instance.advanceToNextPhase(),
+      onSkip: () {
+        TutorialPhaseService.instance.advanceToNextPhase(); // Continue chain, don't kill it
+        return true;
+      },
+    ).show(context: context, rootOverlay: true);
   }
 }

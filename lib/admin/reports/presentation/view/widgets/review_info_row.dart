@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
 
 class ReviewInfoRow extends StatelessWidget {
   const ReviewInfoRow({
@@ -19,7 +18,8 @@ class ReviewInfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: [ Text(
+      children: [
+        Text(
           label,
           style: getRegularStyle(
             fontFamily: FontConstants.fontFamily,
@@ -36,7 +36,6 @@ class ReviewInfoRow extends StatelessWidget {
             color: valueColor ?? ColorManager.natural900,
           ),
         ),
-       
       ],
     );
   }

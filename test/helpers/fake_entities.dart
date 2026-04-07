@@ -13,8 +13,7 @@ UserEntity fakeUserEntity({
   String email = 'test@test.com',
   String name = 'يوسف',
   String role = 'admin',
-}) =>
-    UserEntity(id: id, email: email, name: name, role: role);
+}) => UserEntity(id: id, email: email, name: name, role: role);
 
 VolunteerDetailsEntity fakeVolunteerDetails({
   String id = 'vol-1',
@@ -29,24 +28,23 @@ VolunteerDetailsEntity fakeVolunteerDetails({
   bool isOnline = true,
   String role = 'volunteer',
   List<VolunteerTaskAssignmentEntity>? tasks,
-}) =>
-    VolunteerDetailsEntity(
-      id: id,
-      name: name,
-      rating: rating,
-      level: level,
-      levelTitle: levelTitle,
-      totalTasks: totalTasks,
-      totalHours: totalHours,
-      totalPoints: totalPoints,
-      placesVisited: placesVisited,
-      isOnline: isOnline,
-      role: role,
-      tasks: tasks ?? const [],
-      region: 'القاهرة',
-      email: 'vol@test.com',
-      phone: '01000000000',
-    );
+}) => VolunteerDetailsEntity(
+  id: id,
+  name: name,
+  rating: rating,
+  level: level,
+  levelTitle: levelTitle,
+  totalTasks: totalTasks,
+  totalHours: totalHours,
+  totalPoints: totalPoints,
+  placesVisited: placesVisited,
+  isOnline: isOnline,
+  role: role,
+  tasks: tasks ?? const [],
+  region: 'القاهرة',
+  email: 'vol@test.com',
+  phone: '01000000000',
+);
 
 AdminVolunteerEntity fakeAdminVolunteer({
   String id = 'vol-1',
@@ -56,17 +54,16 @@ AdminVolunteerEntity fakeAdminVolunteer({
   int totalTasks = 46,
   bool isOnline = true,
   String role = 'volunteer',
-}) =>
-    AdminVolunteerEntity(
-      id: id,
-      name: name,
-      rating: rating,
-      totalHours: totalHours,
-      totalTasks: totalTasks,
-      isOnline: isOnline,
-      role: role,
-      region: 'القاهرة',
-    );
+}) => AdminVolunteerEntity(
+  id: id,
+  name: name,
+  rating: rating,
+  totalHours: totalHours,
+  totalTasks: totalTasks,
+  isOnline: isOnline,
+  role: role,
+  region: 'القاهرة',
+);
 
 CampaignEntity fakeCampaignEntity({
   String id = 'camp-1',
@@ -78,18 +75,17 @@ CampaignEntity fakeCampaignEntity({
   int targetBeneficiaries = 100,
   int reachedBeneficiaries = 80,
   int points = 50,
-}) =>
-    CampaignEntity(
-      id: id,
-      title: title,
-      type: type,
-      status: status,
-      date: date,
-      volunteerCount: volunteerCount,
-      targetBeneficiaries: targetBeneficiaries,
-      reachedBeneficiaries: reachedBeneficiaries,
-      points: points,
-    );
+}) => CampaignEntity(
+  id: id,
+  title: title,
+  type: type,
+  status: status,
+  date: date,
+  volunteerCount: volunteerCount,
+  targetBeneficiaries: targetBeneficiaries,
+  reachedBeneficiaries: reachedBeneficiaries,
+  points: points,
+);
 
 CampaignMemberEntity fakeCampaignMember({
   String id = 'member-1',
@@ -97,14 +93,13 @@ CampaignMemberEntity fakeCampaignMember({
   double rating = 3.5,
   bool isOnline = false,
   String role = 'volunteer',
-}) =>
-    CampaignMemberEntity(
-      id: id,
-      name: name,
-      rating: rating,
-      isOnline: isOnline,
-      role: role,
-    );
+}) => CampaignMemberEntity(
+  id: id,
+  name: name,
+  rating: rating,
+  isOnline: isOnline,
+  role: role,
+);
 
 CampaignDetailEntity fakeCampaignDetail({
   String id = 'camp-1',
@@ -120,26 +115,24 @@ CampaignDetailEntity fakeCampaignDetail({
   List<CampaignMemberEntity>? members,
   List<CampaignObjectiveEntity>? objectives,
   List<CampaignSupplyEntity>? supplies,
-}) =>
-    CampaignDetailEntity(
-      id: id,
-      title: title,
-      type: type,
-      status: status,
-      date: date,
-      timeStart: timeStart,
-      timeEnd: timeEnd,
-      targetBeneficiaries: targetBeneficiaries,
-      reachedBeneficiaries: reachedBeneficiaries,
-      points: points,
-      members: members ?? const [],
-      objectives: objectives ?? const [],
-      supplies: supplies ?? const [],
-    );
+}) => CampaignDetailEntity(
+  id: id,
+  title: title,
+  type: type,
+  status: status,
+  date: date,
+  timeStart: timeStart,
+  timeEnd: timeEnd,
+  targetBeneficiaries: targetBeneficiaries,
+  reachedBeneficiaries: reachedBeneficiaries,
+  points: points,
+  members: members ?? const [],
+  objectives: objectives ?? const [],
+  supplies: supplies ?? const [],
+);
 
 VolunteerEntity fakeCampaignVolunteer({
   String id = 'vol-1',
   String name = 'يوسف',
   double rating = 4.0,
-}) =>
-    VolunteerEntity(id: id, name: name, rating: rating);
+}) => VolunteerEntity(id: id, name: name, rating: rating);

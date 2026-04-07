@@ -43,6 +43,6 @@ class FontSize {
   static double s32 = 32.sp;
   static double s36 = 36.sp;
   static double s40 = 40.sp;
-  static double s42= 42.sp;
+  static double s42 = 42.sp;
   static double s48 = 48.sp;
 }

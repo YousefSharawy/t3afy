@@ -21,14 +21,12 @@ class PerfStatBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        vertical: AppHeight.s12,
-      ),
-      decoration: decoration ??
+      padding: EdgeInsets.symmetric(vertical: AppHeight.s12),
+      decoration:
+          decoration ??
           BoxDecoration(
-           color: ColorManager.primary100,
+            color: ColorManager.white,
             borderRadius: BorderRadius.circular(AppRadius.s16),
-           
           ),
       child: Column(
         children: [
@@ -41,7 +39,7 @@ class PerfStatBox extends StatelessWidget {
             style: getExtraBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s16,
-              color: ColorManager.primary500
+              color: ColorManager.primary500,
             ),
           ),
           Text(

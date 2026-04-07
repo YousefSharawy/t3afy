@@ -95,7 +95,7 @@ class StatusBanner extends StatelessWidget {
               vertical: AppHeight.s4,
             ),
             decoration: BoxDecoration(
-               color: ColorManager.successLight,
+              color: ColorManager.successLight,
               borderRadius: BorderRadius.circular(AppRadius.s8),
             ),
             child: Text(

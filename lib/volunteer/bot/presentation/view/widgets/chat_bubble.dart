@@ -7,12 +7,9 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/volunteer/bot/presentation/view/widgets/chat_message.dart';
 import 'package:t3afy/volunteer/bot/presentation/view/widgets/quick_actions_chips.dart';
+
 class ChatBubble extends StatelessWidget {
-  const ChatBubble({
-    super.key,
-    required this.message,
-    this.onChipTap,
-  });
+  const ChatBubble({super.key, required this.message, this.onChipTap});
   final ChatMessage message;
   final Function(String)? onChipTap;
   bool get _isBot => message.sender == MessageSender.bot;
@@ -24,13 +21,17 @@ class ChatBubble extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: AppHeight.s8,horizontal: AppWidth.s12),
+        padding: EdgeInsets.symmetric(
+          vertical: AppHeight.s8,
+          horizontal: AppWidth.s12,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment:
-                  _isBot ? MainAxisAlignment.start : MainAxisAlignment.end,
+              mainAxisAlignment: _isBot
+                  ? MainAxisAlignment.start
+                  : MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (_isBot) ...[
@@ -94,7 +95,10 @@ class ChatBubble extends StatelessWidget {
 
   Widget _userBubble() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppWidth.s22, vertical: AppHeight.s9),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppWidth.s22,
+        vertical: AppHeight.s9,
+      ),
       decoration: BoxDecoration(
         color: ColorManager.blueOne500,
         borderRadius: BorderRadius.only(

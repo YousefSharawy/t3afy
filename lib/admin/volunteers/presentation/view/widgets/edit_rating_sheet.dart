@@ -43,12 +43,12 @@ class _EditRatingSheetState extends State<EditRatingSheet> {
     setState(() => _sending = true);
     final adminId = LocalAppStorage.getUserId() ?? '';
     context.read<VolunteerDetailsCubit>().addRating(
-          adminId: adminId,
-          rating: _selectedRating,
-          comment: _commentCtrl.text.trim().isEmpty
-              ? null
-              : _commentCtrl.text.trim(),
-        );
+      adminId: adminId,
+      rating: _selectedRating,
+      comment: _commentCtrl.text.trim().isEmpty
+          ? null
+          : _commentCtrl.text.trim(),
+    );
   }
 
   @override
@@ -75,74 +75,74 @@ class _EditRatingSheetState extends State<EditRatingSheet> {
           ),
           child: SingleChildScrollView(
             child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40.w,
-                  height: 4.h,
-                  decoration: BoxDecoration(
-                    color: ColorManager.natural200,
-                    borderRadius: BorderRadius.circular(2.r),
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40.w,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                      color: ColorManager.natural200,
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: AppHeight.s16),
-              Text(
-                'تعديل التقييم',
-                style: getSemiBoldStyle(
-                  color: ColorManager.natural900,
-                  fontSize: FontSize.s18,
-                  fontFamily: FontConstants.fontFamily,
+                SizedBox(height: AppHeight.s16),
+                Text(
+                  'تعديل التقييم',
+                  style: getSemiBoldStyle(
+                    color: ColorManager.natural900,
+                    fontSize: FontSize.s18,
+                    fontFamily: FontConstants.fontFamily,
+                  ),
                 ),
-              ),
-              SizedBox(height: AppHeight.s16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  final starIndex = index + 1;
-                  return GestureDetector(
-                    onTap: () =>
-                        setState(() => _selectedRating = starIndex),
-                    child: Padding(
-                      padding:
-                          EdgeInsetsDirectional.symmetric(horizontal: 4.w),
-                      child: Icon(
-                        starIndex <= _selectedRating
-                            ? Icons.star
-                            : Icons.star_border,
-                        color: ColorManager.warning,
-                        size: 36.sp,
-                      ),
-                    ),
-                  );
-                }),
-              ),
-              SizedBox(height: AppHeight.s16),
-              PrimaryTextFF(
-                textAlign: .right,
-                hint: 'تعليق (اختياري)',
-                controller: _commentCtrl,
-                maxLines: 3,
-              ),
-              SizedBox(height: AppHeight.s20),
-              PrimaryElevatedButton(
-                title: _sending ? '' : 'حفظ التقييم',
-                titleWidget: _sending
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
+                SizedBox(height: AppHeight.s16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (index) {
+                    final starIndex = index + 1;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedRating = starIndex),
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.symmetric(
+                          horizontal: 4.w,
                         ),
-                      )
-                    : null,
-                onPress: _sending ? () {} : _submit,
-              ),
-            ],
-          ),
+                        child: Icon(
+                          starIndex <= _selectedRating
+                              ? Icons.star
+                              : Icons.star_border,
+                          color: ColorManager.warning,
+                          size: 36.sp,
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                SizedBox(height: AppHeight.s16),
+                PrimaryTextFF(
+                  textAlign: .right,
+                  hint: 'تعليق (اختياري)',
+                  controller: _commentCtrl,
+                  maxLines: 3,
+                ),
+                SizedBox(height: AppHeight.s20),
+                PrimaryElevatedButton(
+                  title: _sending ? '' : 'حفظ التقييم',
+                  titleWidget: _sending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : null,
+                  onPress: _sending ? () {} : _submit,
+                ),
+              ],
+            ),
           ),
         ),
       ),

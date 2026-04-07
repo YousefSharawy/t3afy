@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
@@ -14,11 +13,15 @@ Future<void> openDirections(double lat, double lng) async {
   final geoUrl = 'geo:$lat,$lng?q=$lat,$lng';
 
   if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-    await launchUrl(Uri.parse(googleMapsUrl),
-        mode: LaunchMode.externalApplication);
+    await launchUrl(
+      Uri.parse(googleMapsUrl),
+      mode: LaunchMode.externalApplication,
+    );
   } else if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
-    await launchUrl(Uri.parse(appleMapsUrl),
-        mode: LaunchMode.externalApplication);
+    await launchUrl(
+      Uri.parse(appleMapsUrl),
+      mode: LaunchMode.externalApplication,
+    );
   } else {
     await launchUrl(Uri.parse(geoUrl), mode: LaunchMode.externalApplication);
   }
@@ -79,7 +82,8 @@ class MapButton extends StatelessWidget {
       final query = locationName ?? locationAddress ?? '';
       if (query.isEmpty) return;
       final searchUrl = Uri.parse(
-          'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}');
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}',
+      );
       if (await canLaunchUrl(searchUrl)) {
         await launchUrl(searchUrl, mode: LaunchMode.externalApplication);
       }

@@ -19,7 +19,7 @@ class SuppliesCard extends StatelessWidget {
         vertical: AppHeight.s16,
       ),
       decoration: BoxDecoration(
-       color: ColorManager.white,
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
       child: Column(
@@ -43,7 +43,7 @@ class SuppliesCard extends StatelessWidget {
                 style: getRegularStyle(
                   fontFamily: FontConstants.fontFamily,
                   fontSize: FontSize.s13,
-                  color: ColorManager.natural500
+                  color: ColorManager.natural500,
                 ),
               ),
             )

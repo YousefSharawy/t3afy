@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/performance/domain/entities/admin_performance_entity.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -95,8 +94,10 @@ class CampaignCompletionCard extends StatelessWidget {
                     horizontal: AppWidth.s8,
                   ),
                   decoration: BoxDecoration(
-                    color: isPositive ? ColorManager.infoLight : ColorManager.errorLight,
-                    borderRadius: BorderRadius.circular(AppRadius.s8)
+                    color: isPositive
+                        ? ColorManager.infoLight
+                        : ColorManager.errorLight,
+                    borderRadius: BorderRadius.circular(AppRadius.s8),
                   ),
                   child: Text(
                     isPositive

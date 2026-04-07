@@ -27,25 +27,27 @@ class CampaignsRepoImpl implements CampaignsRepo {
   }
 
   @override
-  Future<Either<Failture, List<CampaignEntity>>> getCampaigns() async {
+  Future<Either<Failture, List<CampaignEntity>>> getCampaigns({bool skipCache = false}) async {
     try {
-      return Right(await _datasource.getCampaigns());
+      return Right(await _datasource.getCampaigns(skipCache: skipCache));
     } on Failture catch (f) {
       return Left(f);
     }
   }
 
   @override
-  Future<Either<Failture, Map<String, int>>> getCampaignStats() async {
+  Future<Either<Failture, Map<String, int>>> getCampaignStats({bool skipCache = false}) async {
     try {
-      return Right(await _datasource.getCampaignStats());
+      return Right(await _datasource.getCampaignStats(skipCache: skipCache));
     } on Failture catch (f) {
       return Left(f);
     }
   }
 
   @override
-  Future<Either<Failture, CampaignDetailEntity>> getCampaignDetail(String id) async {
+  Future<Either<Failture, CampaignDetailEntity>> getCampaignDetail(
+    String id,
+  ) async {
     try {
       return Right(await _datasource.getCampaignDetail(id));
     } on Failture catch (f) {
@@ -54,7 +56,9 @@ class CampaignsRepoImpl implements CampaignsRepo {
   }
 
   @override
-  Future<Either<Failture, String>> createCampaign(Map<String, dynamic> data) async {
+  Future<Either<Failture, String>> createCampaign(
+    Map<String, dynamic> data,
+  ) async {
     try {
       return Right(await _datasource.createCampaign(data));
     } on Failture catch (f) {
@@ -63,7 +67,10 @@ class CampaignsRepoImpl implements CampaignsRepo {
   }
 
   @override
-  Future<Either<Failture, void>> updateCampaign(String id, Map<String, dynamic> data) async {
+  Future<Either<Failture, void>> updateCampaign(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       await _datasource.updateCampaign(id, data);
       return const Right(null);
@@ -89,7 +96,11 @@ class CampaignsRepoImpl implements CampaignsRepo {
     required String adminId,
   }) async {
     try {
-      await _datasource.assignVolunteers(taskId: taskId, userIds: userIds, adminId: adminId);
+      await _datasource.assignVolunteers(
+        taskId: taskId,
+        userIds: userIds,
+        adminId: adminId,
+      );
       return const Right(null);
     } on Failture catch (f) {
       return Left(f);
@@ -132,7 +143,9 @@ class CampaignsRepoImpl implements CampaignsRepo {
   }
 
   @override
-  Future<Either<Failture, List<VolunteerEntity>>> getUnassignedVolunteers(String taskId) async {
+  Future<Either<Failture, List<VolunteerEntity>>> getUnassignedVolunteers(
+    String taskId,
+  ) async {
     try {
       return Right(await _datasource.getUnassignedVolunteers(taskId));
     } on Failture catch (f) {

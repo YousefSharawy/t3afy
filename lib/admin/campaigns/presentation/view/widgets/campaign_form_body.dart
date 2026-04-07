@@ -12,6 +12,7 @@ import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/services/tutorial_service.dart';
 import 'package:t3afy/base/primary_widgets.dart';
 import 'add_item_header.dart';
 import 'campaign_form_helpers.dart';
@@ -91,8 +92,9 @@ class CampaignFormBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedVolunteers =
-        volunteers.where((v) => selectedIds.contains(v.id)).toList();
+    final selectedVolunteers = volunteers
+        .where((v) => selectedIds.contains(v.id))
+        .toList();
 
     return ListView(
       padding: EdgeInsets.symmetric(
@@ -104,6 +106,7 @@ class CampaignFormBody extends StatelessWidget {
         const FormFieldLabel('اسم الحملة'),
         SizedBox(height: AppHeight.s8),
         PrimaryTextFF(
+          key: AppTutorialKeys.createCampaignGeneralKey,
           textAlign: .right,
           controller: titleCtrl,
           hint: 'أدخل اسم الحملة',
@@ -142,9 +145,12 @@ class CampaignFormBody extends StatelessWidget {
         ),
         SizedBox(height: AppHeight.s8),
         // Map picker button / mini preview
-        _LocationPickerSection(
-          selectedLat: selectedLat,
-          selectedLng: selectedLng,
+        Container(
+          key: AppTutorialKeys.createCampaignLocationKey,
+          child: _LocationPickerSection(
+            selectedLat: selectedLat,
+            selectedLng: selectedLng,
+          ),
         ),
         SizedBox(height: AppHeight.s8),
 
@@ -152,7 +158,8 @@ class CampaignFormBody extends StatelessWidget {
         const FormFieldLabel('التاريخ'),
         SizedBox(height: AppHeight.s8),
         PrimaryTextFF(
-                textAlign: .right,
+          key: AppTutorialKeys.createCampaignDateKey,
+          textAlign: .right,
           controller: TextEditingController(
             text: selectedDate != null ? formatArabicDate(selectedDate!) : '',
           ),
@@ -166,7 +173,7 @@ class CampaignFormBody extends StatelessWidget {
         const FormFieldLabel('الوقت'),
         SizedBox(height: AppHeight.s8),
         PrimaryTextFF(
-                textAlign: .right,
+          textAlign: .right,
           controller: TextEditingController(
             text: (timeStart != null || timeEnd != null)
                 ? combinedTimeLabel(timeStart, timeEnd)
@@ -182,7 +189,7 @@ class CampaignFormBody extends StatelessWidget {
         const FormFieldLabel('العدد المستهدف'),
         SizedBox(height: AppHeight.s8),
         PrimaryTextFF(
-                textAlign: .right,
+          textAlign: .right,
           controller: targetCtrl,
           hint: '0',
           keyboardType: TextInputType.number,
@@ -206,7 +213,6 @@ class CampaignFormBody extends StatelessWidget {
         SizedBox(height: AppHeight.s8),
         ...supplyNameCtrls.asMap().entries.map(
           (e) => SupplyField(
-
             index: e.key,
             nameController: e.value,
             quantityController: supplyQtyCtrls[e.key],
@@ -216,7 +222,10 @@ class CampaignFormBody extends StatelessWidget {
         SizedBox(height: AppHeight.s8),
 
         // ── 7b. Permission papers ─────────────────────────────────────────
-        AddItemHeader(label: 'أوراق التصاريح', onAdd: onAddPaper),
+        Container(
+          key: AppTutorialKeys.createCampaignPapersKey,
+          child: AddItemHeader(label: 'أوراق التصاريح', onAdd: onAddPaper),
+        ),
         SizedBox(height: AppHeight.s8),
         if (selectedPapers.isNotEmpty)
           SizedBox(
@@ -259,7 +268,9 @@ class CampaignFormBody extends StatelessWidget {
                             width: 22.r,
                             height: 22.r,
                             decoration: BoxDecoration(
-                              color: ColorManager.natural900.withValues(alpha: 0.6),
+                              color: ColorManager.natural900.withValues(
+                                alpha: 0.6,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -305,7 +316,7 @@ class CampaignFormBody extends StatelessWidget {
         const FormFieldLabel('وصف الحملة'),
         SizedBox(height: AppHeight.s8),
         PrimaryTextFF(
-                textAlign: .right,
+          textAlign: .right,
           controller: descCtrl,
           hint: 'أدخل وصف الحملة',
           maxLines: 5,
@@ -327,7 +338,10 @@ class CampaignFormBody extends StatelessWidget {
             ),
           ),
           padding: EdgeInsetsDirectional.fromSTEB(
-            AppWidth.s14, AppHeight.s12, AppWidth.s8, AppHeight.s12,
+            AppWidth.s14,
+            AppHeight.s12,
+            AppWidth.s8,
+            AppHeight.s12,
           ),
           child: Row(
             children: [
@@ -367,8 +381,9 @@ class CampaignFormBody extends StatelessWidget {
                 onChanged: (v) =>
                     context.read<CreateCampaignCubit>().setForceCompleted(v),
                 activeThumbColor: ColorManager.primary500,
-                activeTrackColor:
-                    ColorManager.primary500.withValues(alpha: 0.25),
+                activeTrackColor: ColorManager.primary500.withValues(
+                  alpha: 0.25,
+                ),
                 inactiveThumbColor: ColorManager.natural400,
                 inactiveTrackColor: ColorManager.natural200,
               ),
@@ -380,12 +395,16 @@ class CampaignFormBody extends StatelessWidget {
         // ── 10. Volunteers ────────────────────────────────────────────────
         const FormFieldLabel('المتطوعون'),
         SizedBox(height: AppHeight.s8),
-        VolunteerSelectionList(
-          volunteers: volunteers,
-          selectedIds: selectedIds,
-          onToggle: (id) => context.read<CreateCampaignCubit>().toggleVolunteer(id),
-          onAddPressed: () => _showVolunteerPicker(context),
-          selectedVolunteers: selectedVolunteers,
+        Container(
+          key: AppTutorialKeys.createCampaignVolunteersKey,
+          child: VolunteerSelectionList(
+            volunteers: volunteers,
+            selectedIds: selectedIds,
+            onToggle: (id) =>
+                context.read<CreateCampaignCubit>().toggleVolunteer(id),
+            onAddPressed: () => _showVolunteerPicker(context),
+            selectedVolunteers: selectedVolunteers,
+          ),
         ),
         SizedBox(height: AppHeight.s100),
       ],
@@ -416,7 +435,10 @@ class _LocationPickerSection extends StatelessWidget {
   final double? selectedLng;
 
   bool get _hasLocation =>
-      selectedLat != null && selectedLng != null && selectedLat != 0 && selectedLng != 0;
+      selectedLat != null &&
+      selectedLng != null &&
+      selectedLat != 0 &&
+      selectedLng != 0;
 
   Future<void> _openPicker(BuildContext context) async {
     final cubit = context.read<CreateCampaignCubit>();

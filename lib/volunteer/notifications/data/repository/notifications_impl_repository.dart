@@ -11,7 +11,8 @@ class NotificationsImplRepository implements NotificationsRepository {
 
   @override
   Future<Either<Failture, List<AdminNote>>> getNotifications(
-      String volunteerId) async {
+    String volunteerId,
+  ) async {
     try {
       final result = await _dataSource.getNotifications(volunteerId);
       return Right(result);
@@ -42,7 +43,8 @@ class NotificationsImplRepository implements NotificationsRepository {
 
   @override
   Future<Either<Failture, void>> clearAllNotifications(
-      String volunteerId) async {
+    String volunteerId,
+  ) async {
     try {
       await _dataSource.clearAllNotifications(volunteerId);
       return const Right(null);

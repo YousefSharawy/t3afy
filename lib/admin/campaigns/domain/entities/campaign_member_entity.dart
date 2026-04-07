@@ -9,6 +9,10 @@ class CampaignMemberEntity {
   final String role;
   final DateTime? checkedInAt;
   final DateTime? checkedOutAt;
+  final double? checkInLat;
+  final double? checkInLng;
+  final double? checkOutLat;
+  final double? checkOutLng;
   final double? verifiedHours;
   final bool isVerified;
 
@@ -23,6 +27,10 @@ class CampaignMemberEntity {
     required this.role,
     this.checkedInAt,
     this.checkedOutAt,
+    this.checkInLat,
+    this.checkInLng,
+    this.checkOutLat,
+    this.checkOutLng,
     this.verifiedHours,
     this.isVerified = false,
   });

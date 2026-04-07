@@ -7,10 +7,7 @@ import 'package:t3afy/base/primary_widgets.dart';
 class ProfileLogoutButton extends StatelessWidget {
   final VoidCallback onPress;
 
-  const ProfileLogoutButton({
-    super.key,
-    required this.onPress,
-  });
+  const ProfileLogoutButton({super.key, required this.onPress});
 
   @override
   Widget build(BuildContext context) {

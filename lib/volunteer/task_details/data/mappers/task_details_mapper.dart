@@ -49,20 +49,12 @@ extension TaskDetailsModelMapper on TaskDetailsModel {
 
 extension TaskObjectiveModelMapper on TaskObjectiveModel {
   TaskObjectiveEntity toEntity() {
-    return TaskObjectiveEntity(
-      id: id,
-      title: title,
-      orderIndex: orderIndex,
-    );
+    return TaskObjectiveEntity(id: id, title: title, orderIndex: orderIndex);
   }
 }
 
 extension TaskSupplyModelMapper on TaskSupplyModel {
   TaskSupplyEntity toEntity() {
-    return TaskSupplyEntity(
-      id: id,
-      name: name,
-      quantity: quantity,
-    );
+    return TaskSupplyEntity(id: id, name: name, quantity: quantity);
   }
 }

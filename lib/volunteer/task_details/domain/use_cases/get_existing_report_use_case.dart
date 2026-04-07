@@ -10,6 +10,5 @@ class GetExistingReportUseCase {
   Future<Either<Failture, Map<String, dynamic>?>> call(
     String taskId,
     String userId,
-  ) =>
-      _repo.getExistingReport(taskId, userId);
+  ) => _repo.getExistingReport(taskId, userId);
 }

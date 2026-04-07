@@ -61,7 +61,10 @@ class AdminPerformanceCubit extends Cubit<AdminPerformanceState> {
     return super.close();
   }
 
-  Future<void> loadPerformance(String period, {bool forceRefresh = false}) async {
+  Future<void> loadPerformance(
+    String period, {
+    bool forceRefresh = false,
+  }) async {
     _currentPeriod = period;
 
     if (forceRefresh) {

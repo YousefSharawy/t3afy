@@ -56,6 +56,24 @@ class CampaignDetailEntity {
     this.papers = const [],
   });
 
+  /// Task expected duration in decimal hours, derived from timeStart/timeEnd.
+  double get durationHours {
+    if (timeStart == null || timeEnd == null) return 0;
+    try {
+      final sParts = timeStart!.split(':');
+      final eParts = timeEnd!.split(':');
+      final startMinutes = int.parse(sParts[0]) * 60 + int.parse(sParts[1]);
+      final endMinutes = int.parse(eParts[0]) * 60 + int.parse(eParts[1]);
+      final diff = endMinutes - startMinutes;
+      return diff > 0 ? diff / 60.0 : 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  double get attendanceRate =>
+      members.isEmpty ? 0 : (verifiedAttendanceCount / members.length) * 100;
+
   CampaignDetailEntity copyWith({
     String? id,
     String? title,
@@ -101,7 +119,8 @@ class CampaignDetailEntity {
       targetBeneficiaries: targetBeneficiaries ?? this.targetBeneficiaries,
       reachedBeneficiaries: reachedBeneficiaries ?? this.reachedBeneficiaries,
       points: points ?? this.points,
-      verifiedAttendanceCount: verifiedAttendanceCount ?? this.verifiedAttendanceCount,
+      verifiedAttendanceCount:
+          verifiedAttendanceCount ?? this.verifiedAttendanceCount,
       totalVerifiedHours: totalVerifiedHours ?? this.totalVerifiedHours,
       members: members ?? this.members,
       objectives: objectives ?? this.objectives,

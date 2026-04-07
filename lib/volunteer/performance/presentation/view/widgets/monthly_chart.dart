@@ -33,16 +33,16 @@ class MonthlyChart extends StatelessWidget {
     final maxHours = monthlyHours.isEmpty
         ? 1.0
         : monthlyHours
-            .map((m) => m.hours)
-            .reduce((a, b) => a > b ? a : b)
-            .clamp(1.0, double.infinity);
+              .map((m) => m.hours)
+              .reduce((a, b) => a > b ? a : b)
+              .clamp(1.0, double.infinity);
 
     return Container(
       width: double.infinity,
       height: 192.sp,
       padding: EdgeInsets.all(12.sp),
       decoration: BoxDecoration(
-       color: ColorManager.white,
+        color: ColorManager.white,
         borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
       child: Column(
@@ -76,8 +76,10 @@ class MonthlyChart extends StatelessWidget {
                       final chartWidth = minWidth > constraints.maxWidth
                           ? minWidth
                           : constraints.maxWidth;
-                      final barWidth = (chartWidth / count)
-                          .clamp(AppWidth.s64, AppWidth.s81);
+                      final barWidth = (chartWidth / count).clamp(
+                        AppWidth.s64,
+                        AppWidth.s81,
+                      );
                       return SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         reverse: true,

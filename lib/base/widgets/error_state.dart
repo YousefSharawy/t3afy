@@ -5,11 +5,7 @@ import 'package:t3afy/app/resources/style_manager.dart';
 /// Full error state with message and retry button for BLoC error states.
 /// Always provide [onRetry] (e.g. call cubit's load method again).
 class ErrorState extends StatelessWidget {
-  const ErrorState({
-    super.key,
-    required this.message,
-    required this.onRetry,
-  });
+  const ErrorState({super.key, required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;

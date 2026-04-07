@@ -5,7 +5,11 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 class OverviewSectionCard extends StatelessWidget {
-  const OverviewSectionCard({super.key, required this.title, required this.body});
+  const OverviewSectionCard({
+    super.key,
+    required this.title,
+    required this.body,
+  });
   final String title;
   final String body;
 

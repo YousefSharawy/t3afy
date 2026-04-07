@@ -1,4 +1,12 @@
+import 'dart:io';
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:t3afy/admin/volunteers/data/services/volunteer_pdf_service.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/add_rating_usecase.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/assign_custom_task_usecase.dart';
@@ -58,21 +66,23 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
     );
   }
 
-  Future<void> approveVolunteer(String volunteerId, {bool isPending = false}) async {
+  Future<void> approveVolunteer(
+    String volunteerId, {
+    bool isPending = false,
+  }) async {
     final details = _currentDetails;
     if (details == null) return;
     emit(VolunteerDetailsLoading());
     final result = await _approveVolunteer(volunteerId);
-    result.fold(
-      (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (_) {
-        if (isPending) {
-          emit(VolunteerDetailsActionSuccess(details, 'تم قبول المتطوع'));
-        } else {
-          load(volunteerId);
-        }
-      },
-    );
+    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
+      _,
+    ) {
+      if (isPending) {
+        emit(VolunteerDetailsActionSuccess(details, 'تم قبول المتطوع'));
+      } else {
+        load(volunteerId);
+      }
+    });
   }
 
   Future<void> deleteVolunteer(String volunteerId) async {
@@ -120,13 +130,12 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       taskId: taskId,
       adminId: adminId,
     );
-    result.fold(
-      (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (_) {
-        emit(VolunteerDetailsActionSuccess(details, 'تم تعيين المهمة بنجاح'));
-        _refresh(details.id);
-      },
-    );
+    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
+      _,
+    ) {
+      emit(VolunteerDetailsActionSuccess(details, 'تم تعيين المهمة بنجاح'));
+      _refresh(details.id);
+    });
   }
 
   Future<void> assignCustomTask({
@@ -165,13 +174,12 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       supervisorPhone: supervisorPhone,
       notes: notes,
     );
-    result.fold(
-      (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (_) {
-        emit(VolunteerDetailsActionSuccess(details, 'تم تعيين المهمة بنجاح'));
-        _refresh(details.id);
-      },
-    );
+    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
+      _,
+    ) {
+      emit(VolunteerDetailsActionSuccess(details, 'تم تعيين المهمة بنجاح'));
+      _refresh(details.id);
+    });
   }
 
   Future<void> sendDirectMessage({
@@ -190,8 +198,9 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
     );
     result.fold(
       (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (_) =>
-          emit(VolunteerDetailsActionSuccess(details, 'تم إرسال الرسالة بنجاح')),
+      (_) => emit(
+        VolunteerDetailsActionSuccess(details, 'تم إرسال الرسالة بنجاح'),
+      ),
     );
   }
 
@@ -209,14 +218,13 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       rating: rating,
       comment: comment,
     );
-    result.fold(
-      (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (_) {
-        final updated = details.copyWith(rating: rating.toDouble());
-        emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث التقييم'));
-        _refresh(details.id);
-      },
-    );
+    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
+      _,
+    ) {
+      final updated = details.copyWith(rating: rating.toDouble());
+      emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث التقييم'));
+      _refresh(details.id);
+    });
   }
 
   Future<void> upgradeLevel({
@@ -231,14 +239,13 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       level: level,
       levelTitle: levelTitle,
     );
-    result.fold(
-      (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (_) {
-        final updated = details.copyWith(level: level, levelTitle: levelTitle);
-        emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث المستوى'));
-        _refresh(details.id);
-      },
-    );
+    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
+      _,
+    ) {
+      final updated = details.copyWith(level: level, levelTitle: levelTitle);
+      emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث المستوى'));
+      _refresh(details.id);
+    });
   }
 
   Future<void> editVolunteerData(Map<String, dynamic> fields) async {
@@ -249,19 +256,19 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       volunteerId: details.id,
       fields: fields,
     );
-    result.fold(
-      (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (_) {
-        final updated = details.copyWith(
-          name: fields['name'] as String? ?? details.name,
-          phone: fields['phone'] as String? ?? details.phone,
-          region: fields['region'] as String? ?? details.region,
-          qualification: fields['qualification'] as String? ?? details.qualification,
-        );
-        emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث البيانات'));
-        _refresh(details.id);
-      },
-    );
+    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
+      _,
+    ) {
+      final updated = details.copyWith(
+        name: fields['name'] as String? ?? details.name,
+        phone: fields['phone'] as String? ?? details.phone,
+        region: fields['region'] as String? ?? details.region,
+        qualification:
+            fields['qualification'] as String? ?? details.qualification,
+      );
+      emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث البيانات'));
+      _refresh(details.id);
+    });
   }
 
   Future<void> suspendAccount() async {
@@ -273,6 +280,93 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       (f) => emit(VolunteerDetailsActionError(details, f.message)),
       (_) => emit(VolunteerDetailsSuspended()),
     );
+  }
+
+  Future<void> exportVolunteerPdf(VolunteerDetailsEntity details) async {
+    emit(VolunteerDetailsActionLoading(details));
+    try {
+      final client = Supabase.instance.client;
+
+      List<dynamic> assessmentsRaw = [];
+      try {
+        assessmentsRaw = await client
+            .from('assessments')
+            .select(
+              'rating, comment, created_at, admin_id, users!assessments_admin_id_fkey(name)',
+            )
+            .eq('volunteer_id', details.id)
+            .order('created_at', ascending: false);
+      } catch (e, st) {
+        if (kDebugMode) {
+          debugPrint('Failed to fetch assessments: $e\n$st');
+        }
+      }
+
+      List<dynamic> tasksRaw = [];
+      try {
+        tasksRaw = await client
+            .from('task_assignments')
+            .select(
+              'status, checked_in_at, checked_out_at, verified_hours, is_verified, assigned_at, tasks!inner(title, type, date, duration_hours, time_start, time_end)',
+            )
+            .eq('user_id', details.id)
+            .order('assigned_at', ascending: false);
+      } catch (e, st) {
+        if (kDebugMode) {
+          debugPrint('Failed to fetch tasks: $e\n$st');
+        }
+      }
+
+      late final Uint8List pdfBytes;
+      try {
+        pdfBytes = await VolunteerPdfService.generate(
+          details: details,
+          assessments: List<Map<String, dynamic>>.from(assessmentsRaw),
+          tasks: List<Map<String, dynamic>>.from(tasksRaw),
+        );
+      } catch (e, st) {
+        if (kDebugMode) {
+          debugPrint('PDF creation error: $e\n$st');
+        }
+        emit(VolunteerDetailsActionError(details, 'فشل إنشاء ملف PDF'));
+        return;
+      }
+
+      try {
+        final dir = await getTemporaryDirectory();
+        final safeDate = DateTime.now().millisecondsSinceEpoch;
+        final fileName = 'volunteer_${details.name}_$safeDate.pdf';
+        final file = File('${dir.path}/$fileName');
+        await file.writeAsBytes(pdfBytes);
+
+        await Share.shareXFiles(
+          [XFile(file.path, mimeType: 'application/pdf')],
+          subject: 'تقرير بيانات المتطوع - ${details.name}',
+          sharePositionOrigin: const Rect.fromLTWH(0, 0, 10, 10),
+        );
+      } catch (e, st) {
+        if (kDebugMode) {
+          debugPrint('File save / share error: $e\n$st');
+        }
+        emit(VolunteerDetailsActionError(details, 'فشل حفظ الملف'));
+        return;
+      }
+
+      // Don't emit success immediately - delay briefly to ensure proper state transition
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (!isClosed) {
+          emit(VolunteerDetailsActionSuccess(details, 'تم تصدير البيانات بنجاح'));
+        }
+      });
+    } catch (e, st) {
+      final details = _currentDetails;
+      if (kDebugMode) {
+        debugPrint('General export error: $e\n$st');
+      }
+      if (details != null) {
+        emit(VolunteerDetailsActionError(details, 'فشل تصدير البيانات'));
+      }
+    }
   }
 
   /// Helper to extract details from any state that carries them.

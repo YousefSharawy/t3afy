@@ -7,5 +7,6 @@ class GetCampaignsUsecase {
   final CampaignsRepo _repo;
   GetCampaignsUsecase(this._repo);
 
-  Future<Either<Failture, List<CampaignEntity>>> call() => _repo.getCampaigns();
+  Future<Either<Failture, List<CampaignEntity>>> call({bool skipCache = false}) =>
+    _repo.getCampaigns(skipCache: skipCache);
 }

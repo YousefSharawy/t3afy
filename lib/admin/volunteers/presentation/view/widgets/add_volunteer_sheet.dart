@@ -91,7 +91,12 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
           ),
           child: SingleChildScrollView(
             child: Padding(
-              padding:  EdgeInsetsDirectional.fromSTEB(18.sp, 18.sp, 18.sp, 26.sp),
+              padding: EdgeInsetsDirectional.fromSTEB(
+                18.sp,
+                18.sp,
+                18.sp,
+                26.sp,
+              ),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -198,7 +203,7 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
                     Text(
                       'المنطقة',
                       style: getBoldStyle(
-                       fontFamily: FontConstants.fontFamily,
+                        fontFamily: FontConstants.fontFamily,
                         fontSize: FontSize.s14,
                         color: ColorManager.natural600,
                       ),
@@ -213,7 +218,7 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
                     Text(
                       'مجالات التطوع',
                       style: getBoldStyle(
-                          fontFamily: FontConstants.fontFamily,
+                        fontFamily: FontConstants.fontFamily,
                         fontSize: FontSize.s14,
                         color: ColorManager.natural600,
                       ),

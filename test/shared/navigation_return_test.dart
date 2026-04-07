@@ -19,8 +19,7 @@ void main() {
   });
 
   group('Refetch after navigation return', () {
-    test(
-        'CampaignDetailCubit.load called after CreateCampaignView pops true — '
+    test('CampaignDetailCubit.load called after CreateCampaignView pops true — '
         'state transitions through loading to loaded', () async {
       final mockGetDetail = MockGetCampaignDetailUsecase();
       final mockAssign = MockAssignVolunteerUsecase();
@@ -52,11 +51,13 @@ void main() {
       // Instead test the use-case call count to verify load triggers a fetch.
       // Actually we test the assignVolunteers path which also triggers _refresh
       // and doesn't call _subscribeToAssignments.
-      when(() => mockAssign(
-            taskId: any(named: 'taskId'),
-            userIds: any(named: 'userIds'),
-            adminId: any(named: 'adminId'),
-          )).thenAnswer((_) async => const Right(null));
+      when(
+        () => mockAssign(
+          taskId: any(named: 'taskId'),
+          userIds: any(named: 'userIds'),
+          adminId: any(named: 'adminId'),
+        ),
+      ).thenAnswer((_) async => const Right(null));
 
       await cubit.assignVolunteers(
         taskId: 'camp-1',
@@ -71,8 +72,7 @@ void main() {
       cubit.close();
     });
 
-    test(
-        'VolunteersCubit.loadVolunteers called — '
+    test('VolunteersCubit.loadVolunteers called — '
         'produces a loaded state with fresh data', () async {
       final mockGetVolunteers = MockGetVolunteersUsecase();
       final mockRepo = MockVolunteersRepo();
@@ -82,9 +82,13 @@ void main() {
       when(() => mockRepo.subscribeRealtime(any())).thenReturn(null);
       when(() => mockRepo.disposeRealtime()).thenReturn(null);
 
-      final volunteers = [fakeAdminVolunteer(), fakeAdminVolunteer(id: 'vol-2')];
-      when(() => mockGetVolunteers())
-          .thenAnswer((_) async => Right(volunteers));
+      final volunteers = [
+        fakeAdminVolunteer(),
+        fakeAdminVolunteer(id: 'vol-2'),
+      ];
+      when(
+        () => mockGetVolunteers(),
+      ).thenAnswer((_) async => Right(volunteers));
 
       final cubit = VolunteersCubit(
         mockGetVolunteers,
@@ -103,9 +107,9 @@ void main() {
       expect(count, 2);
 
       // Simulate: VolunteerDetailsView popped true → parent calls loadVolunteers()
-      when(() => mockGetVolunteers()).thenAnswer(
-        (_) async => Right([fakeAdminVolunteer(id: 'vol-3')]),
-      );
+      when(
+        () => mockGetVolunteers(),
+      ).thenAnswer((_) async => Right([fakeAdminVolunteer(id: 'vol-3')]));
       await cubit.loadVolunteers();
       await Future<void>.delayed(Duration.zero);
 

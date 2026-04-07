@@ -41,11 +41,18 @@ class SupplyRow extends StatelessWidget {
                 height: AppHeight.s36,
                 decoration: BoxDecoration(
                   color: ColorManager.primary50,
-                  border: Border.all(color: ColorManager.primary600, width: 0.5.sp),
+                  border: Border.all(
+                    color: ColorManager.primary600,
+                    width: 0.5.sp,
+                  ),
                   borderRadius: BorderRadius.circular(AppRadius.s10),
                 ),
                 child: Center(
-                  child: Image.asset(icon, width: AppWidth.s20, height: AppHeight.s20),
+                  child: Image.asset(
+                    icon,
+                    width: AppWidth.s20,
+                    height: AppHeight.s20,
+                  ),
                 ),
               ),
               SizedBox(width: AppWidth.s10),
@@ -67,7 +74,10 @@ class SupplyRow extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: ColorManager.primary50,
                   borderRadius: BorderRadius.circular(AppRadius.s5),
-                  border: Border.all(color: ColorManager.primary600,width: 0.5.sp),
+                  border: Border.all(
+                    color: ColorManager.primary600,
+                    width: 0.5.sp,
+                  ),
                 ),
                 child: Text(
                   '${supply.quantity} ${_unit(supply.name)}',

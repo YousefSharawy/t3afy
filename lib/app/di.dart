@@ -1,4 +1,3 @@
-
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/auth/data/repository/auth_impl_repository.dart';
@@ -157,9 +156,10 @@ Future<void> initAppModule() async {
   getIt.registerLazySingleton<Register>(() => Register(getIt()));
 
   // Cubits
-  getIt.registerFactory<AuthCubit>(() => AuthCubit(getIt(), getIt(),getIt(),getIt()));
-getIt.registerFactory(() => HomeCubit(getIt(), getIt(), getIt()));
-
+  getIt.registerFactory<AuthCubit>(
+    () => AuthCubit(getIt(), getIt(), getIt(), getIt()),
+  );
+  getIt.registerFactory(() => HomeCubit(getIt(), getIt(), getIt()));
 
   getIt.registerLazySingleton<VolunteerHomeRemoteDataSource>(
     () => VolunteerImplHomeRemoteDataSource(),
@@ -172,14 +172,14 @@ getIt.registerFactory(() => HomeCubit(getIt(), getIt(), getIt()));
   getIt.registerLazySingleton(() => GetVolunteerStats(getIt()));
   getIt.registerLazySingleton(() => GetHomeTodayTasks(getIt()));
   getIt.registerLazySingleton(() => GetUnreadNotificationsCount(getIt()));
-getIt.registerLazySingleton<ProfileRemoteDataSource>(
+  getIt.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileImplRemoteDataSource(),
   );
 
   getIt.registerLazySingleton<ProfileRepository>(
     () => ProfileImplRepository(getIt()),
   );
-getIt.registerLazySingleton<Logout>(() => Logout(getIt<AuthRepository>()));
+  getIt.registerLazySingleton<Logout>(() => Logout(getIt<AuthRepository>()));
 
   getIt.registerLazySingleton(() => GetProfile(getIt()));
 
@@ -200,42 +200,42 @@ getIt.registerLazySingleton<Logout>(() => Logout(getIt<AuthRepository>()));
 
   getIt.registerFactory(() => PerformanceCubit(getIt(), getIt(), getIt()));
 
-
-
-
   // ===== Tasks =====
-// Data source
-getIt.registerLazySingleton<TasksRemoteDataSource>(
-  () => TasksImplRemoteDataSource(Supabase.instance.client),
-);
+  // Data source
+  getIt.registerLazySingleton<TasksRemoteDataSource>(
+    () => TasksImplRemoteDataSource(Supabase.instance.client),
+  );
 
-// Repository
-getIt.registerLazySingleton<TasksRepository>(
-  () => TasksImplRepository(getIt<TasksRemoteDataSource>()),
-);
+  // Repository
+  getIt.registerLazySingleton<TasksRepository>(
+    () => TasksImplRepository(getIt<TasksRemoteDataSource>()),
+  );
 
-// Use cases
-getIt.registerLazySingleton(() => GetTodayTasks(getIt<TasksRepository>()));
-getIt.registerLazySingleton(() => GetCompletedTasks(getIt<TasksRepository>()));
-getIt.registerLazySingleton(() => GetTasksStats(getIt<TasksRepository>()));
+  // Use cases
+  getIt.registerLazySingleton(() => GetTodayTasks(getIt<TasksRepository>()));
+  getIt.registerLazySingleton(
+    () => GetCompletedTasks(getIt<TasksRepository>()),
+  );
+  getIt.registerLazySingleton(() => GetTasksStats(getIt<TasksRepository>()));
 
-// Cubit
-getIt.registerFactory(() => TasksCubit(
-  getIt<GetTodayTasks>(),
-  getIt<GetCompletedTasks>(),
-  getIt<GetTasksStats>(),
-));
+  // Cubit
+  getIt.registerFactory(
+    () => TasksCubit(
+      getIt<GetTodayTasks>(),
+      getIt<GetCompletedTasks>(),
+      getIt<GetTasksStats>(),
+    ),
+  );
 
   // ===== Task Details =====
   getIt.registerLazySingleton<TaskDetailsRemoteDataSource>(
     () => TaskDetailsImplRemoteDataSource(),
   );
   getIt.registerLazySingleton<TaskDetailsImplRemoteDataSource>(
-    () => getIt<TaskDetailsRemoteDataSource>() as TaskDetailsImplRemoteDataSource,
+    () =>
+        getIt<TaskDetailsRemoteDataSource>() as TaskDetailsImplRemoteDataSource,
   );
-  getIt.registerLazySingleton<CheckInDataSource>(
-    () => CheckInImplDataSource(),
-  );
+  getIt.registerLazySingleton<CheckInDataSource>(() => CheckInImplDataSource());
   getIt.registerLazySingleton<TaskDetailsRepository>(
     () => TaskDetailsImplRepository(
       getIt<TaskDetailsRemoteDataSource>(),
@@ -306,18 +306,20 @@ getIt.registerFactory(() => TasksCubit(
   );
   getIt.registerLazySingleton<AdminNotificationsRepository>(
     () => AdminNotificationsImplRepository(
-        getIt<AdminNotificationsRemoteDataSource>()),
+      getIt<AdminNotificationsRemoteDataSource>(),
+    ),
   );
   getIt.registerLazySingleton(
     () => GetAdminNotificationsUseCase(getIt<AdminNotificationsRepository>()),
   );
   getIt.registerLazySingleton(
-    () => MarkAdminNotificationReadUseCase(
-        getIt<AdminNotificationsRepository>()),
+    () =>
+        MarkAdminNotificationReadUseCase(getIt<AdminNotificationsRepository>()),
   );
   getIt.registerLazySingleton(
     () => MarkAllAdminNotificationsReadUseCase(
-        getIt<AdminNotificationsRepository>()),
+      getIt<AdminNotificationsRepository>(),
+    ),
   );
   getIt.registerFactory(
     () => AdminNotificationsCubit(
@@ -333,9 +335,12 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton<AdminReportsRepo>(
     () => AdminReportsRepoImpl(getIt<AdminReportsRemoteDatasource>()),
   );
-  getIt.registerLazySingleton(() => GetReportsUsecase(getIt<AdminReportsRepo>()));
   getIt.registerLazySingleton(
-      () => ReviewReportUsecase(getIt<AdminReportsRepo>()));
+    () => GetReportsUsecase(getIt<AdminReportsRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => ReviewReportUsecase(getIt<AdminReportsRepo>()),
+  );
   getIt.registerFactory(
     () => AdminReportsCubit(
       getIt<GetReportsUsecase>(),
@@ -371,17 +376,39 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton<CampaignsRepo>(
     () => CampaignsRepoImpl(getIt<CampaignsRemoteDatasource>()),
   );
-  getIt.registerLazySingleton(() => GetCampaignsUsecase(getIt<CampaignsRepo>()));
-  getIt.registerLazySingleton(() => GetCampaignStatsUsecase(getIt<CampaignsRepo>()));
-  getIt.registerLazySingleton(() => GetCampaignDetailUsecase(getIt<CampaignsRepo>()));
-  getIt.registerLazySingleton(() => CreateCampaignUsecase(getIt<CampaignsRepo>()));
-  getIt.registerLazySingleton(() => UpdateCampaignUsecase(getIt<CampaignsRepo>()));
-  getIt.registerLazySingleton(() => DeleteCampaignUsecase(getIt<CampaignsRepo>()));
-  getIt.registerLazySingleton(() => AssignVolunteerUsecase(getIt<CampaignsRepo>()));
-  getIt.registerLazySingleton(() => RemoveVolunteerUsecase(getIt<CampaignsRepo>()));
-  getIt.registerLazySingleton(() => SendTeamAlertUsecase(getIt<CampaignsRepo>()));
-  getIt.registerLazySingleton(() => GetUnassignedVolunteersUsecase(getIt<CampaignsRepo>()));
-  getIt.registerLazySingleton(() => GetAllVolunteersUsecase(getIt<CampaignsRepo>()));
+  getIt.registerLazySingleton(
+    () => GetCampaignsUsecase(getIt<CampaignsRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetCampaignStatsUsecase(getIt<CampaignsRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetCampaignDetailUsecase(getIt<CampaignsRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => CreateCampaignUsecase(getIt<CampaignsRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => UpdateCampaignUsecase(getIt<CampaignsRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => DeleteCampaignUsecase(getIt<CampaignsRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => AssignVolunteerUsecase(getIt<CampaignsRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => RemoveVolunteerUsecase(getIt<CampaignsRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => SendTeamAlertUsecase(getIt<CampaignsRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetUnassignedVolunteersUsecase(getIt<CampaignsRepo>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetAllVolunteersUsecase(getIt<CampaignsRepo>()),
+  );
   getIt.registerFactory(
     () => CreateCampaignCubit(
       getIt<GetAllVolunteersUsecase>(),
@@ -454,15 +481,11 @@ getIt.registerFactory(() => TasksCubit(
   getIt.registerLazySingleton(
     () => GetAvailableTasksUsecase(getIt<VolunteersRepo>()),
   );
-  getIt.registerLazySingleton(
-    () => AssignTaskUsecase(getIt<VolunteersRepo>()),
-  );
+  getIt.registerLazySingleton(() => AssignTaskUsecase(getIt<VolunteersRepo>()));
   getIt.registerLazySingleton(
     () => SendDirectMessageUsecase(getIt<VolunteersRepo>()),
   );
-  getIt.registerLazySingleton(
-    () => AddRatingUsecase(getIt<VolunteersRepo>()),
-  );
+  getIt.registerLazySingleton(() => AddRatingUsecase(getIt<VolunteersRepo>()));
   getIt.registerLazySingleton(
     () => UpgradeLevelUsecase(getIt<VolunteersRepo>()),
   );

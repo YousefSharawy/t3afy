@@ -8,12 +8,15 @@ class CheckInImplDataSource implements CheckInDataSource {
 
   @override
   Future<Map<String, dynamic>?> getCheckInStatus(
-      String taskId, String userId) async {
+    String taskId,
+    String userId,
+  ) async {
     try {
       final res = await _client
           .from('task_assignments')
           .select(
-              'checked_in_at, checked_out_at, verified_hours, is_verified, check_in_lat, check_in_lng')
+            'checked_in_at, checked_out_at, verified_hours, is_verified, check_in_lat, check_in_lng',
+          )
           .eq('task_id', taskId)
           .eq('user_id', userId)
           .maybeSingle();
@@ -25,7 +28,11 @@ class CheckInImplDataSource implements CheckInDataSource {
 
   @override
   Future<void> checkIn(
-      String taskId, String userId, double lat, double lng) async {
+    String taskId,
+    String userId,
+    double lat,
+    double lng,
+  ) async {
     try {
       await _client
           .from('task_assignments')
@@ -43,8 +50,13 @@ class CheckInImplDataSource implements CheckInDataSource {
   }
 
   @override
-  Future<void> checkOut(String taskId, String userId, double lat, double lng,
-      double verifiedHours) async {
+  Future<void> checkOut(
+    String taskId,
+    String userId,
+    double lat,
+    double lng,
+    double verifiedHours,
+  ) async {
     try {
       await _client
           .from('task_assignments')
@@ -64,7 +76,11 @@ class CheckInImplDataSource implements CheckInDataSource {
 
   @override
   Future<void> recordLocation(
-      String taskId, String userId, double lat, double lng) async {
+    String taskId,
+    String userId,
+    double lat,
+    double lng,
+  ) async {
     try {
       await _client.from('volunteer_locations').insert({
         'user_id': userId,

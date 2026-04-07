@@ -20,7 +20,7 @@ class BadgeChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: ColorManager.primary50,
         borderRadius: BorderRadius.circular(AppRadius.s6),
-        border: Border.all(color: ColorManager.primary500,width: 0.5.sp)
+        border: Border.all(color: ColorManager.primary500, width: 0.5.sp),
       ),
       child: Text(
         label,

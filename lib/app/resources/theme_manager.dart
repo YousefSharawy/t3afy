@@ -22,9 +22,17 @@ ThemeData getApplicationTheme() {
     dialogTheme: DialogThemeData(
       backgroundColor: ColorManager.natural50,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.s20)),
-      titleTextStyle: getSemiBoldStyle(color: ColorManager.natural900, fontSize: FontSize.s18),
-      contentTextStyle: getRegularStyle(color: ColorManager.natural900, fontSize: FontSize.s14),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.s20),
+      ),
+      titleTextStyle: getSemiBoldStyle(
+        color: ColorManager.natural900,
+        fontSize: FontSize.s18,
+      ),
+      contentTextStyle: getRegularStyle(
+        color: ColorManager.natural900,
+        fontSize: FontSize.s14,
+      ),
       elevation: 0,
     ),
 
@@ -54,7 +62,8 @@ ThemeData getApplicationTheme() {
         borderRadius: BorderRadius.circular(AppRadius.s2),
       ),
       side: WidgetStateBorderSide.resolveWith(
-        (states) => BorderSide(width: AppSize.s1, color: ColorManager.primary500),
+        (states) =>
+            BorderSide(width: AppSize.s1, color: ColorManager.primary500),
       ),
     ),
     timePickerTheme: TimePickerThemeData(
@@ -67,18 +76,37 @@ ThemeData getApplicationTheme() {
       dialHandColor: ColorManager.primary500,
       dialTextColor: ColorManager.natural900,
       entryModeIconColor: ColorManager.primary500,
-      helpTextStyle: getSemiBoldStyle(color: ColorManager.natural900, fontSize: FontSize.s16),
-      hourMinuteTextStyle: getBoldStyle(color: ColorManager.natural900, fontSize: FontSize.s40),
-      dayPeriodTextStyle: getMediumStyle(color: ColorManager.natural900, fontSize: FontSize.s14),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.s20)),
-      hourMinuteShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.s12)),
-      dayPeriodShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.s8)),
-      dayPeriodBorderSide: BorderSide(color: ColorManager.primary500.withValues(alpha: 0.2)),
+      helpTextStyle: getSemiBoldStyle(
+        color: ColorManager.natural900,
+        fontSize: FontSize.s16,
+      ),
+      hourMinuteTextStyle: getBoldStyle(
+        color: ColorManager.natural900,
+        fontSize: FontSize.s40,
+      ),
+      dayPeriodTextStyle: getMediumStyle(
+        color: ColorManager.natural900,
+        fontSize: FontSize.s14,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.s20),
+      ),
+      hourMinuteShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.s12),
+      ),
+      dayPeriodShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.s8),
+      ),
+      dayPeriodBorderSide: BorderSide(
+        color: ColorManager.primary500.withValues(alpha: 0.2),
+      ),
       confirmButtonStyle: ButtonStyle(
         foregroundColor: WidgetStatePropertyAll(ColorManager.primary500),
       ),
       cancelButtonStyle: ButtonStyle(
-        foregroundColor: WidgetStatePropertyAll(ColorManager.natural900.withValues(alpha: 0.6)),
+        foregroundColor: WidgetStatePropertyAll(
+          ColorManager.natural900.withValues(alpha: 0.6),
+        ),
       ),
     ),
     datePickerTheme: DatePickerThemeData(
@@ -86,7 +114,9 @@ ThemeData getApplicationTheme() {
       headerBackgroundColor: ColorManager.primary500,
       headerForegroundColor: Colors.white,
       dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.selected)) return ColorManager.primary500;
+        if (states.contains(WidgetState.selected)) {
+          return ColorManager.primary500;
+        }
         return Colors.transparent;
       }),
       dayForegroundColor: WidgetStateProperty.resolveWith((states) {
@@ -97,12 +127,16 @@ ThemeData getApplicationTheme() {
       todayForegroundColor: WidgetStatePropertyAll(ColorManager.primary500),
       todayBorder: BorderSide(color: ColorManager.primary500),
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.s20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.s20),
+      ),
       confirmButtonStyle: ButtonStyle(
         foregroundColor: WidgetStatePropertyAll(ColorManager.primary500),
       ),
       cancelButtonStyle: ButtonStyle(
-        foregroundColor: WidgetStatePropertyAll(ColorManager.natural900.withValues(alpha: 0.6)),
+        foregroundColor: WidgetStatePropertyAll(
+          ColorManager.natural900.withValues(alpha: 0.6),
+        ),
       ),
     ),
   );
@@ -127,7 +161,10 @@ InputDecorationTheme _inputDecorationTheme() {
       maxHeight: AppHeight.s44,
       minHeight: AppHeight.s44,
     ),
-    focusedBorder: getOutlineInputBorder(color: ColorManager.primary500, width: 1),
+    focusedBorder: getOutlineInputBorder(
+      color: ColorManager.primary500,
+      width: 1,
+    ),
     disabledBorder: getOutlineInputBorder(),
     enabledBorder: getOutlineInputBorder(),
     errorBorder: getOutlineInputBorder(color: ColorManager.error, width: 1),
@@ -135,7 +172,7 @@ InputDecorationTheme _inputDecorationTheme() {
   );
 }
 
-getOutlineInputBorder({Color? color, double? width}) {
+OutlineInputBorder getOutlineInputBorder({Color? color, double? width}) {
   return OutlineInputBorder(
     borderSide: BorderSide(
       width: width ?? 0,
@@ -188,7 +225,7 @@ ElevatedButtonThemeData _elevatedButtonTheme() {
   );
 }
 
-_outlineButtonTheme() {
+OutlinedButtonThemeData _outlineButtonTheme() {
   return OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
       textStyle: getRegularStyle(

@@ -1,7 +1,22 @@
+/// Formats a [DateTime] as Arabic 12-hour time (e.g. "١٠:٣٠ ص").
+/// Returns '—' if [dateTime] is null.
+String formatTimeArabic(DateTime? dateTime) {
+  if (dateTime == null) return '—';
+  final local = dateTime.toLocal();
+  final rawHour = local.hour;
+  final hour = rawHour % 12 == 0 ? 12 : rawHour % 12;
+  final minute = local.minute.toString().padLeft(2, '0');
+  final period = rawHour >= 12 ? 'م' : 'ص';
+  return '$hour:$minute $period';
+}
+
 /// Resolves the assignment status for a volunteer task.
 /// Delegates to [resolveCampaignStatus] — single source of truth for both sides.
 String resolveAssignmentStatus(
-    String rawStatus, String? date, String? timeEnd) {
+  String rawStatus,
+  String? date,
+  String? timeEnd,
+) {
   return resolveCampaignStatus(rawStatus, date, timeEnd);
 }
 
@@ -9,8 +24,7 @@ String resolveAssignmentStatus(
 /// Terminal statuses ('completed', 'pending_review', 'cancelled', 'missed') are never overridden.
 /// Statuses 'upcoming', 'active', and 'assigned' are checked against the deadline
 /// and converted to 'missed' if the deadline has passed.
-String resolveCampaignStatus(
-    String rawStatus, String? date, String? timeEnd) {
+String resolveCampaignStatus(String rawStatus, String? date, String? timeEnd) {
   switch (rawStatus) {
     case 'completed':
     case 'pending_review':
@@ -51,7 +65,6 @@ String _resolveMissed(String rawStatus, String? date, String? timeEnd) {
 // import 'package:t3afy/app/resources/font_manager.dart';
 // import 'package:t3afy/app/resources/style_manager.dart';
 // import 'package:t3afy/app/resources/values_manager.dart';
-
 
 // class UiUtils {
 //   // ==================== TOAST MESSAGES ====================
@@ -170,6 +183,5 @@ String _resolveMissed(String rawStatus, String? date, String? timeEnd) {
 //       ),
 //     );
 //   }
-
 
 // }

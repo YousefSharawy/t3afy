@@ -14,7 +14,7 @@ part 'task_details_cubit.freezed.dart';
 
 class TaskDetailsCubit extends Cubit<TaskDetailsState> {
   TaskDetailsCubit(this._getTaskDetails, this._dataSource)
-      : super(const TaskDetailsState.initial());
+    : super(const TaskDetailsState.initial());
 
   final GetTaskDetailsUseCase _getTaskDetails;
   final TaskDetailsImplRemoteDataSource _dataSource;
@@ -29,19 +29,23 @@ class TaskDetailsCubit extends Cubit<TaskDetailsState> {
     emit(const TaskDetailsState.loading());
 
     final result = await _getTaskDetails(taskId);
-    result.fold(
-      (failure) => emit(TaskDetailsState.error(failure.message)),
-      (task) {
-        emit(TaskDetailsState.loaded(task));
-        _subscribeToRealtime(taskId);
-      },
-    );
+    result.fold((failure) => emit(TaskDetailsState.error(failure.message)), (
+      task,
+    ) {
+      emit(TaskDetailsState.loaded(task));
+      _subscribeToRealtime(taskId);
+    });
   }
 
   void _subscribeToRealtime(String taskId) {
-    _taskChannel = _dataSource.subscribeToTask(taskId, (_) => _onRealtimeEvent());
-    _assignmentChannel =
-        _dataSource.subscribeToAssignment(taskId, (_) => _onRealtimeEvent());
+    _taskChannel = _dataSource.subscribeToTask(
+      taskId,
+      (_) => _onRealtimeEvent(),
+    );
+    _assignmentChannel = _dataSource.subscribeToAssignment(
+      taskId,
+      (_) => _onRealtimeEvent(),
+    );
   }
 
   void _onRealtimeEvent() {

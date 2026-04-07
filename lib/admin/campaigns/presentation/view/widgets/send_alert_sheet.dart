@@ -12,10 +12,7 @@ import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.d
 import 'alert_field.dart';
 
 class SendAlertSheet extends StatefulWidget {
-  const SendAlertSheet({
-    super.key,
-    required this.detail,
-  });
+  const SendAlertSheet({super.key, required this.detail});
 
   final CampaignDetailEntity detail;
 
@@ -45,12 +42,12 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
 
     setState(() => _sending = true);
     await context.read<CampaignDetailCubit>().sendAlert(
-          taskId: widget.detail.id,
-          adminId: adminId,
-          title: title,
-          body: body,
-          volunteerIds: volunteerIds,
-        );
+      taskId: widget.detail.id,
+      adminId: adminId,
+      title: title,
+      body: body,
+      volunteerIds: volunteerIds,
+    );
     if (mounted) Navigator.pop(context);
   }
 
@@ -63,89 +60,91 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
       child: Container(
         padding: EdgeInsets.all(AppSize.s20),
         decoration: BoxDecoration(
-           color: ColorManager.white,
+          color: ColorManager.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
         ),
         child: SingleChildScrollView(
           child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                   color: ColorManager.natural200,
-                  borderRadius: BorderRadius.circular(2.r),
-                ),
-              ),
-            ),
-            SizedBox(height: AppHeight.s16),
-            Text(
-              'إرسال تنبيه للفريق',
-              style: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s16,
-                color: ColorManager.natural900,
-              ),
-            ),
-            SizedBox(height: AppHeight.s6),
-            Text(
-              'سيُرسل التنبيه لجميع المتطوعين المعيّنين (${widget.detail.members.length})',
-              style: getRegularStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s12,
-                color: ColorManager.natural400,
-              ),
-            ),
-            SizedBox(height: AppHeight.s20),
-            AlertField(
-              controller: _titleCtrl,
-              hint: 'عنوان التنبيه',
-              maxLines: 1,
-            ),
-            SizedBox(height: AppHeight.s12),
-            AlertField(
-              controller: _bodyCtrl,
-              hint: 'نص التنبيه',
-              maxLines: 4,
-            ),
-            SizedBox(height: AppHeight.s20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _sending ? null : () {
-                HapticFeedback.mediumImpact();
-                _send();
-              },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ColorManager.cyanPrimary,
-                  padding: EdgeInsets.symmetric(vertical: AppHeight.s14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s12),
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: ColorManager.natural200,
+                    borderRadius: BorderRadius.circular(2.r),
                   ),
                 ),
-                child: _sending
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Text(
-                        'إرسال التنبيه',
-                        style: getBoldStyle(
-                          fontFamily: FontConstants.fontFamily,
-                          fontSize: FontSize.s14,
-                          color: Colors.white,
-                        ),
-                      ),
               ),
-            ),
-          ],
+              SizedBox(height: AppHeight.s16),
+              Text(
+                'إرسال تنبيه للفريق',
+                style: getBoldStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s16,
+                  color: ColorManager.natural900,
+                ),
+              ),
+              SizedBox(height: AppHeight.s6),
+              Text(
+                'سيُرسل التنبيه لجميع المتطوعين المعيّنين (${widget.detail.members.length})',
+                style: getRegularStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s12,
+                  color: ColorManager.natural400,
+                ),
+              ),
+              SizedBox(height: AppHeight.s20),
+              AlertField(
+                controller: _titleCtrl,
+                hint: 'عنوان التنبيه',
+                maxLines: 1,
+              ),
+              SizedBox(height: AppHeight.s12),
+              AlertField(
+                controller: _bodyCtrl,
+                hint: 'نص التنبيه',
+                maxLines: 4,
+              ),
+              SizedBox(height: AppHeight.s20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _sending
+                      ? null
+                      : () {
+                          HapticFeedback.mediumImpact();
+                          _send();
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ColorManager.cyanPrimary,
+                    padding: EdgeInsets.symmetric(vertical: AppHeight.s14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.s12),
+                    ),
+                  ),
+                  child: _sending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          'إرسال التنبيه',
+                          style: getBoldStyle(
+                            fontFamily: FontConstants.fontFamily,
+                            fontSize: FontSize.s14,
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

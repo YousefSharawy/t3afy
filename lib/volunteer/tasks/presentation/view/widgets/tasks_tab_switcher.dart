@@ -56,7 +56,9 @@ class TasksTabSwitcher extends StatelessWidget {
             style: getBoldStyle(
               fontSize: FontSize.s12,
               fontFamily: FontConstants.fontFamily,
-              color: isSelected ? ColorManager.primary50 : ColorManager.natural500,
+              color: isSelected
+                  ? ColorManager.primary50
+                  : ColorManager.natural500,
             ),
           ),
         ),

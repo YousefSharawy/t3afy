@@ -69,6 +69,9 @@ class RatingCard extends StatelessWidget {
                   return Padding(
                     padding: EdgeInsets.only(left: 2.sp),
                     child: Image.asset(
+                      color: index < filledCount
+                          ? null
+                          : ColorManager.natural50,
                       index < filledCount ? IconAssets.star : IconAssets.unstar,
                     ),
                   );

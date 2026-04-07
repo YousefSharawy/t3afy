@@ -52,24 +52,23 @@ void main() {
       await LocalAppStorage.setCache('camp', 'data');
       await LocalAppStorage.invalidateCache('camp');
       // Second invalidation on already-absent key should not throw
-      await expectLater(
-        LocalAppStorage.invalidateCache('camp'),
-        completes,
-      );
+      await expectLater(LocalAppStorage.invalidateCache('camp'), completes);
     });
 
-    test('after campaign delete — campaigns_list and campaigns_stats cleared',
-        () async {
-      await LocalAppStorage.setCache('campaigns_list', ['c1']);
-      await LocalAppStorage.setCache('campaigns_stats', {'total': 3});
+    test(
+      'after campaign delete — campaigns_list and campaigns_stats cleared',
+      () async {
+        await LocalAppStorage.setCache('campaigns_list', ['c1']);
+        await LocalAppStorage.setCache('campaigns_stats', {'total': 3});
 
-      // Simulate what CampaignDetailCubit.load(invalidateListCache: true) does
-      await LocalAppStorage.invalidateCache('campaigns_list');
-      await LocalAppStorage.invalidateCache('campaigns_stats');
+        // Simulate what CampaignDetailCubit.load(invalidateListCache: true) does
+        await LocalAppStorage.invalidateCache('campaigns_list');
+        await LocalAppStorage.invalidateCache('campaigns_stats');
 
-      expect(LocalAppStorage.getCache('campaigns_list'), isNull);
-      expect(LocalAppStorage.getCache('campaigns_stats'), isNull);
-    });
+        expect(LocalAppStorage.getCache('campaigns_list'), isNull);
+        expect(LocalAppStorage.getCache('campaigns_stats'), isNull);
+      },
+    );
 
     test('invalidating one key does not affect other keys', () async {
       await LocalAppStorage.setCache('key_a', 'aaa');

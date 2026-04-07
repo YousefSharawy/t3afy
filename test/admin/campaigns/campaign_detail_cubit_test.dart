@@ -17,14 +17,14 @@ void main() {
   late MockGetUnassignedVolunteersUsecase mockGetUnassigned;
 
   CampaignDetailCubit buildCubit() => CampaignDetailCubit(
-        mockGetDetail,
-        mockAssignVolunteer,
-        mockRemoveVolunteer,
-        mockSendAlert,
-        mockDeleteCampaign,
-        mockUpdateCampaign,
-        mockGetUnassigned,
-      );
+    mockGetDetail,
+    mockAssignVolunteer,
+    mockRemoveVolunteer,
+    mockSendAlert,
+    mockDeleteCampaign,
+    mockUpdateCampaign,
+    mockGetUnassigned,
+  );
 
   setUpAll(() {
     registerFallbackValue('');
@@ -45,13 +45,14 @@ void main() {
     group('assignVolunteers', () {
       test('success → refreshes detail and returns true', () async {
         final detail = fakeCampaignDetail();
-        when(() => mockAssignVolunteer(
-              taskId: any(named: 'taskId'),
-              userIds: any(named: 'userIds'),
-              adminId: any(named: 'adminId'),
-            )).thenAnswer((_) async => const Right(null));
-        when(() => mockGetDetail(any()))
-            .thenAnswer((_) async => Right(detail));
+        when(
+          () => mockAssignVolunteer(
+            taskId: any(named: 'taskId'),
+            userIds: any(named: 'userIds'),
+            adminId: any(named: 'adminId'),
+          ),
+        ).thenAnswer((_) async => const Right(null));
+        when(() => mockGetDetail(any())).thenAnswer((_) async => Right(detail));
 
         final cubit = buildCubit();
         final states = <CampaignDetailState>[];
@@ -71,39 +72,44 @@ void main() {
         expect(states.any((s) => s is CampaignDetailLoaded), isTrue);
       });
 
-      test('failure → emits CampaignDetailActionError and returns false',
-          () async {
-        when(() => mockAssignVolunteer(
+      test(
+        'failure → emits CampaignDetailActionError and returns false',
+        () async {
+          when(
+            () => mockAssignVolunteer(
               taskId: any(named: 'taskId'),
               userIds: any(named: 'userIds'),
               adminId: any(named: 'adminId'),
-            )).thenAnswer((_) async => Left(Failture(0, 'فشل التعيين')));
+            ),
+          ).thenAnswer((_) async => Left(Failture(0, 'فشل التعيين')));
 
-        final cubit = buildCubit();
-        final states = <CampaignDetailState>[];
-        final sub = cubit.stream.listen(states.add);
+          final cubit = buildCubit();
+          final states = <CampaignDetailState>[];
+          final sub = cubit.stream.listen(states.add);
 
-        final result = await cubit.assignVolunteers(
-          taskId: 'camp-1',
-          userIds: ['vol-1'],
-          adminId: 'admin-1',
-        );
+          final result = await cubit.assignVolunteers(
+            taskId: 'camp-1',
+            userIds: ['vol-1'],
+            adminId: 'admin-1',
+          );
 
-        await Future<void>.delayed(Duration.zero);
-        await sub.cancel();
-        cubit.close();
+          await Future<void>.delayed(Duration.zero);
+          await sub.cancel();
+          cubit.close();
 
-        expect(result, isFalse);
-        expect(states.any((s) => s is CampaignDetailActionError), isTrue);
-        final err = states.whereType<CampaignDetailActionError>().first;
-        expect(err.message, 'فشل التعيين');
-      });
+          expect(result, isFalse);
+          expect(states.any((s) => s is CampaignDetailActionError), isTrue);
+          final err = states.whereType<CampaignDetailActionError>().first;
+          expect(err.message, 'فشل التعيين');
+        },
+      );
     });
 
     group('deleteCampaign', () {
       test('success → emits CampaignDetailDeleted and returns true', () async {
-        when(() => mockDeleteCampaign(any()))
-            .thenAnswer((_) async => const Right(null));
+        when(
+          () => mockDeleteCampaign(any()),
+        ).thenAnswer((_) async => const Right(null));
 
         final cubit = buildCubit();
         final states = <CampaignDetailState>[];
@@ -119,35 +125,40 @@ void main() {
         expect(states.any((s) => s is CampaignDetailDeleted), isTrue);
       });
 
-      test('failure → emits CampaignDetailActionError and returns false',
-          () async {
-        when(() => mockDeleteCampaign(any()))
-            .thenAnswer((_) async => Left(Failture(0, 'لا يمكن الحذف')));
+      test(
+        'failure → emits CampaignDetailActionError and returns false',
+        () async {
+          when(
+            () => mockDeleteCampaign(any()),
+          ).thenAnswer((_) async => Left(Failture(0, 'لا يمكن الحذف')));
 
-        final cubit = buildCubit();
-        final states = <CampaignDetailState>[];
-        final sub = cubit.stream.listen(states.add);
+          final cubit = buildCubit();
+          final states = <CampaignDetailState>[];
+          final sub = cubit.stream.listen(states.add);
 
-        final result = await cubit.deleteCampaign('camp-1');
+          final result = await cubit.deleteCampaign('camp-1');
 
-        await Future<void>.delayed(Duration.zero);
-        await sub.cancel();
-        cubit.close();
+          await Future<void>.delayed(Duration.zero);
+          await sub.cancel();
+          cubit.close();
 
-        expect(result, isFalse);
-        expect(states.any((s) => s is CampaignDetailActionError), isTrue);
-      });
+          expect(result, isFalse);
+          expect(states.any((s) => s is CampaignDetailActionError), isTrue);
+        },
+      );
     });
 
     group('sendAlert', () {
       test('success → emits [saving, alertSent]', () async {
-        when(() => mockSendAlert(
-              taskId: any(named: 'taskId'),
-              adminId: any(named: 'adminId'),
-              title: any(named: 'title'),
-              body: any(named: 'body'),
-              volunteerIds: any(named: 'volunteerIds'),
-            )).thenAnswer((_) async => const Right(null));
+        when(
+          () => mockSendAlert(
+            taskId: any(named: 'taskId'),
+            adminId: any(named: 'adminId'),
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+            volunteerIds: any(named: 'volunteerIds'),
+          ),
+        ).thenAnswer((_) async => const Right(null));
 
         final cubit = buildCubit();
         final states = <CampaignDetailState>[];
@@ -170,13 +181,15 @@ void main() {
       });
 
       test('failure → emits [saving, actionError]', () async {
-        when(() => mockSendAlert(
-              taskId: any(named: 'taskId'),
-              adminId: any(named: 'adminId'),
-              title: any(named: 'title'),
-              body: any(named: 'body'),
-              volunteerIds: any(named: 'volunteerIds'),
-            )).thenAnswer((_) async => Left(Failture(0, 'فشل الإرسال')));
+        when(
+          () => mockSendAlert(
+            taskId: any(named: 'taskId'),
+            adminId: any(named: 'adminId'),
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+            volunteerIds: any(named: 'volunteerIds'),
+          ),
+        ).thenAnswer((_) async => Left(Failture(0, 'فشل الإرسال')));
 
         final cubit = buildCubit();
         final states = <CampaignDetailState>[];
@@ -204,12 +217,13 @@ void main() {
         final member = fakeCampaignMember(id: 'vol-1');
         final detail = fakeCampaignDetail(members: [member]);
 
-        when(() => mockGetDetail(any()))
-            .thenAnswer((_) async => Right(detail));
-        when(() => mockRemoveVolunteer(
-              taskId: any(named: 'taskId'),
-              userId: any(named: 'userId'),
-            )).thenAnswer((_) async => const Right(null));
+        when(() => mockGetDetail(any())).thenAnswer((_) async => Right(detail));
+        when(
+          () => mockRemoveVolunteer(
+            taskId: any(named: 'taskId'),
+            userId: any(named: 'userId'),
+          ),
+        ).thenAnswer((_) async => const Right(null));
 
         final cubit = buildCubit();
         final states = <CampaignDetailState>[];
@@ -225,10 +239,12 @@ void main() {
       });
 
       test('failure → emits CampaignDetailActionError', () async {
-        when(() => mockRemoveVolunteer(
-              taskId: any(named: 'taskId'),
-              userId: any(named: 'userId'),
-            )).thenAnswer((_) async => Left(Failture(0, 'فشل الحذف')));
+        when(
+          () => mockRemoveVolunteer(
+            taskId: any(named: 'taskId'),
+            userId: any(named: 'userId'),
+          ),
+        ).thenAnswer((_) async => Left(Failture(0, 'فشل الحذف')));
 
         final cubit = buildCubit();
         final states = <CampaignDetailState>[];
@@ -247,8 +263,9 @@ void main() {
     group('getUnassignedVolunteers', () {
       test('success → returns volunteer list', () async {
         final volunteers = [fakeCampaignVolunteer()];
-        when(() => mockGetUnassigned(any()))
-            .thenAnswer((_) async => Right(volunteers));
+        when(
+          () => mockGetUnassigned(any()),
+        ).thenAnswer((_) async => Right(volunteers));
 
         final cubit = buildCubit();
         final result = await cubit.getUnassignedVolunteers('camp-1');
@@ -259,8 +276,9 @@ void main() {
       });
 
       test('failure → returns empty list', () async {
-        when(() => mockGetUnassigned(any()))
-            .thenAnswer((_) async => Left(Failture(0, 'error')));
+        when(
+          () => mockGetUnassigned(any()),
+        ).thenAnswer((_) async => Left(Failture(0, 'error')));
 
         final cubit = buildCubit();
         final result = await cubit.getUnassignedVolunteers('camp-1');

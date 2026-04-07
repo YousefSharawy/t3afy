@@ -4,15 +4,15 @@ import 'package:t3afy/admin/notifications/data/models/admin_notification_model.d
 import 'package:t3afy/admin/notifications/data/sources/admin_notifications_remote_data_source.dart';
 import 'package:t3afy/admin/notifications/domain/repository/admin_notifications_repository.dart';
 
-class AdminNotificationsImplRepository
-    implements AdminNotificationsRepository {
+class AdminNotificationsImplRepository implements AdminNotificationsRepository {
   final AdminNotificationsRemoteDataSource _dataSource;
 
   AdminNotificationsImplRepository(this._dataSource);
 
   @override
   Future<Either<Failture, List<AdminNotification>>> getNotifications(
-      String adminId) async {
+    String adminId,
+  ) async {
     try {
       final result = await _dataSource.getNotifications(adminId);
       return Right(result);

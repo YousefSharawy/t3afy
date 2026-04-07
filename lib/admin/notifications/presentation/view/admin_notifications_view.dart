@@ -70,9 +70,9 @@ class _AdminNotificationsViewState extends State<AdminNotificationsView> {
                   onPressed: () {
                     final adminId = LocalAppStorage.getUserId();
                     if (adminId != null) {
-                      context
-                          .read<AdminNotificationsCubit>()
-                          .markAllAsRead(adminId);
+                      context.read<AdminNotificationsCubit>().markAllAsRead(
+                        adminId,
+                      );
                     }
                   },
                   child: Text(
@@ -104,9 +104,9 @@ class _AdminNotificationsViewState extends State<AdminNotificationsView> {
                 onRetry: () {
                   final adminId = LocalAppStorage.getUserId();
                   if (adminId != null) {
-                    context
-                        .read<AdminNotificationsCubit>()
-                        .loadNotifications(adminId);
+                    context.read<AdminNotificationsCubit>().loadNotifications(
+                      adminId,
+                    );
                   }
                 },
               );
@@ -176,9 +176,9 @@ class _AdminNotificationsViewState extends State<AdminNotificationsView> {
                       timeAgo: _timeAgo(n.createdAt),
                       onTap: () {
                         if (!n.isRead) {
-                          context
-                              .read<AdminNotificationsCubit>()
-                              .markAsRead(n.id);
+                          context.read<AdminNotificationsCubit>().markAsRead(
+                            n.id,
+                          );
                         }
                       },
                     );

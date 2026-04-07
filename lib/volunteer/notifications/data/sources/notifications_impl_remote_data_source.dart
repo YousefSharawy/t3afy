@@ -3,7 +3,8 @@ import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/volunteer/notifications/data/models/admin_note_model.dart';
 import 'package:t3afy/volunteer/notifications/data/sources/notifications_remote_data_source.dart';
 
-class NotificationsImplRemoteDataSource implements NotificationsRemoteDataSource {
+class NotificationsImplRemoteDataSource
+    implements NotificationsRemoteDataSource {
   @override
   Future<List<AdminNote>> getNotifications(String volunteerId) async {
     try {
@@ -25,7 +26,8 @@ class NotificationsImplRemoteDataSource implements NotificationsRemoteDataSource
     try {
       await Supabase.instance.client
           .from('admin_notes')
-          .update({'is_read': true}).eq('id', noteId);
+          .update({'is_read': true})
+          .eq('id', noteId);
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

@@ -21,8 +21,18 @@ class CampaignListCard extends StatelessWidget {
   final VoidCallback onTap;
 
   static const _arabicMonths = [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+    'يناير',
+    'فبراير',
+    'مارس',
+    'أبريل',
+    'مايو',
+    'يونيو',
+    'يوليو',
+    'أغسطس',
+    'سبتمبر',
+    'أكتوبر',
+    'نوفمبر',
+    'ديسمبر',
   ];
 
   static String _formatDate(String raw) {
@@ -36,12 +46,12 @@ class CampaignListCard extends StatelessWidget {
 
   static Color _topBorderColor(String status) {
     return switch (status) {
-      'active' || 'ongoing'    => ColorManager.info,
-      'upcoming'               => ColorManager.warning,
-      'done' || 'completed'    => ColorManager.success,
-      'missed'                 => ColorManager.error,
-      'paused'                 => ColorManager.warning,
-      _                        => ColorManager.natural400,
+      'active' || 'ongoing' => ColorManager.info,
+      'upcoming' => ColorManager.warning,
+      'done' || 'completed' => ColorManager.success,
+      'missed' => ColorManager.error,
+      'paused' => ColorManager.warning,
+      _ => ColorManager.natural400,
     };
   }
 
@@ -55,7 +65,10 @@ class CampaignListCard extends StatelessWidget {
           color: ColorManager.white,
           borderRadius: BorderRadius.circular(AppRadius.s16),
           border: BorderDirectional(
-            top: BorderSide(color: _topBorderColor(campaign.status), width: 3.w),
+            top: BorderSide(
+              color: _topBorderColor(campaign.status),
+              width: 3.w,
+            ),
           ),
         ),
         child: Padding(
@@ -91,7 +104,11 @@ class CampaignListCard extends StatelessWidget {
               SizedBox(height: AppHeight.s8),
               Row(
                 children: [
-                  Image.asset(IconAssets.calendar, width: AppWidth.s16, height: AppHeight.s16),
+                  Image.asset(
+                    IconAssets.calendar,
+                    width: AppWidth.s16,
+                    height: AppHeight.s16,
+                  ),
                   SizedBox(width: AppWidth.s4),
                   Text(
                     _formatDate(campaign.date),
@@ -102,7 +119,11 @@ class CampaignListCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: AppWidth.s4),
-                  Image.asset(IconAssets.location, width: AppWidth.s16, height: AppHeight.s16),
+                  Image.asset(
+                    IconAssets.location,
+                    width: AppWidth.s16,
+                    height: AppHeight.s16,
+                  ),
                   SizedBox(width: AppWidth.s4),
                   Expanded(
                     child: Text(
@@ -120,13 +141,9 @@ class CampaignListCard extends StatelessWidget {
               SizedBox(height: AppHeight.s8),
               Row(
                 children: [
-                  BadgeChip(
-                    label: '${campaign.volunteerCount} متطوع',
-                  ),
+                  BadgeChip(label: '${campaign.volunteerCount} متطوع'),
                   SizedBox(width: AppWidth.s6),
-                  BadgeChip(
-                    label: '${campaign.targetBeneficiaries} هدف',
-                  ),
+                  BadgeChip(label: '${campaign.targetBeneficiaries} هدف'),
                   if (campaign.type.isNotEmpty) ...[
                     SizedBox(width: AppWidth.s6),
                     Container(

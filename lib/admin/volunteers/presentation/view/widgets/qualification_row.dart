@@ -63,7 +63,9 @@ class QualificationRow extends StatelessWidget {
                                     width: 0.5.sp,
                                     color: ColorManager.primary500,
                                   ),
-                                  borderRadius: BorderRadius.circular(AppRadius.s6),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.s6,
+                                  ),
                                 ),
                                 child: Text(
                                   v,

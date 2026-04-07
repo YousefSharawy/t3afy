@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -33,9 +32,7 @@ class CampaignHeroCard extends StatelessWidget {
               color: ColorManager.accentSand,
               borderRadius: BorderRadius.circular(AppRadius.s12),
             ),
-            child: Image.asset(
-              IconAssets.camp,
-            ),
+            child: Image.asset(IconAssets.camp),
           ),
           SizedBox(width: AppWidth.s16),
           Expanded(

@@ -212,7 +212,8 @@ class _AppToastWidgetState extends State<_AppToastWidget>
                                 alignment: AlignmentDirectional.centerStart,
                                 child: Container(
                                   height: 2.sp,
-                                  width: constraints.maxWidth *
+                                  width:
+                                      constraints.maxWidth *
                                       (1 - _countdownCtrl.value),
                                   color: Colors.white.withValues(alpha: 0.7),
                                 ),

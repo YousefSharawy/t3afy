@@ -32,8 +32,11 @@ class AdminProfileRemoteDatasourceImpl implements AdminProfileRemoteDatasource {
           .select('id, name, email, phone, avatar_url, role, joined_at')
           .eq('id', userId)
           .single();
-      await LocalAppStorage.setCache(cacheKey, data,
-          ttl: const Duration(minutes: 10));
+      await LocalAppStorage.setCache(
+        cacheKey,
+        data,
+        ttl: const Duration(minutes: 10),
+      );
       return AdminProfileEntity(
         id: data['id'] as String,
         name: data['name'] as String? ?? '',

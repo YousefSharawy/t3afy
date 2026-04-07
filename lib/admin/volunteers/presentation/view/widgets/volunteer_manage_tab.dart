@@ -104,6 +104,7 @@ class _VolunteerManageTabState extends State<VolunteerManageTab>
           label: 'تعليق الحساب',
           onTap: () => _showSuspend(context),
         ),
+        _ExportPdfRow(details: details),
         SizedBox(height: AppHeight.s8),
         DeleteButton(volunteerId: details.id),
         SizedBox(height: AppHeight.s50),
@@ -186,6 +187,67 @@ class _VolunteerManageTabState extends State<VolunteerManageTab>
   }
 }
 
+class _ExportPdfRow extends StatelessWidget {
+  const _ExportPdfRow({required this.details});
+
+  final VolunteerDetailsEntity details;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<VolunteerDetailsCubit, VolunteerDetailsState>(
+      builder: (context, state) {
+        final isLoading = state is VolunteerDetailsActionLoading;
+        return GestureDetector(
+          onTap: isLoading
+              ? null
+              : () => context.read<VolunteerDetailsCubit>().exportVolunteerPdf(
+                  details,
+                ),
+          child: Container(
+            height: AppHeight.s50,
+            margin: EdgeInsets.only(bottom: AppHeight.s8),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppWidth.s12,
+              vertical: AppHeight.s8,
+            ),
+            decoration: BoxDecoration(
+              color: ColorManager.white,
+              borderRadius: BorderRadius.circular(AppRadius.s16),
+            ),
+            child: Row(
+              children: [
+                isLoading
+                    ? SizedBox(
+                        width: AppWidth.s24,
+                        height: AppHeight.s24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: ColorManager.primary500,
+                        ),
+                      )
+                    : Icon(
+                        Icons.picture_as_pdf_rounded,
+                        color: ColorManager.primary500,
+                        size: AppWidth.s24,
+                      ),
+                SizedBox(width: AppWidth.s8),
+                Text(
+                  'تصدير بيانات المتطوع PDF',
+                  style: getBoldStyle(
+                    fontFamily: FontConstants.fontFamily,
+                    fontSize: FontSize.s12,
+                    color: ColorManager.natural700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _PendingApproveButton extends StatelessWidget {
   const _PendingApproveButton({required this.volunteerId});
 
@@ -211,8 +273,11 @@ class _PendingApproveButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.check_circle_outline,
-                color: ColorManager.successLight, size: 20),
+            const Icon(
+              Icons.check_circle_outline,
+              color: ColorManager.successLight,
+              size: 20,
+            ),
             SizedBox(width: AppWidth.s8),
             Text(
               'قبول',
@@ -257,12 +322,14 @@ class _PendingApproveButton extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: Text('إلغاء',
-                  style: getMediumStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s14,
-                    color: ColorManager.natural900.withValues(alpha: 0.6),
-                  )),
+              child: Text(
+                'إلغاء',
+                style: getMediumStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s14,
+                  color: ColorManager.natural900.withValues(alpha: 0.6),
+                ),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -276,16 +343,19 @@ class _PendingApproveButton extends StatelessWidget {
               onPressed: () {
                 HapticFeedback.mediumImpact();
                 Navigator.of(ctx).pop();
-                context
-                    .read<VolunteerDetailsCubit>()
-                    .approveVolunteer(volunteerId, isPending: true);
+                context.read<VolunteerDetailsCubit>().approveVolunteer(
+                  volunteerId,
+                  isPending: true,
+                );
               },
-              child: Text('قبول',
-                  style: getMediumStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s14,
-                    color: ColorManager.white,
-                  )),
+              child: Text(
+                'قبول',
+                style: getMediumStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s14,
+                  color: ColorManager.white,
+                ),
+              ),
             ),
           ],
         ),
@@ -317,7 +387,11 @@ class _RejectButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.cancel_outlined, color: ColorManager.error, size: 20),
+            const Icon(
+              Icons.cancel_outlined,
+              color: ColorManager.error,
+              size: 20,
+            ),
             SizedBox(width: AppWidth.s8),
             Text(
               'رفض',

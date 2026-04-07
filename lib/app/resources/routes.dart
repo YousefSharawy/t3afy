@@ -20,7 +20,6 @@ import 'package:t3afy/admin/volunteers/presentation/cubit/volunteers_cubit.dart'
 import 'package:t3afy/admin/volunteers/presentation/view/volunteer_details_view.dart';
 import 'package:t3afy/admin/volunteers/presentation/view/volunteers_panel_view.dart';
 import 'package:t3afy/app/di.dart';
-import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/auth/presentation/view/login_view.dart';
 import 'package:t3afy/auth/presentation/view/register_view.dart';
 import 'package:t3afy/onBoarding/presentation/first_onboarding.dart';
@@ -62,7 +61,7 @@ class Routes {
   static const String taskDetails = '/taskDetails';
   static const String notifications = '/notifications';
   static const String bot = '/bot';
-static const String volunteers = '/adminVolunteers';
+  static const String volunteers = '/adminVolunteers';
   static const String campaigns = '/campaigns';
   static const String adminReports = '/adminReports';
   static const String campaignDetails = '/campaignDetails';
@@ -181,19 +180,17 @@ class AppNavigation {
       // Shell route with bottom nav
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
-            debugPrint('🔑 Hive userId: ${LocalAppStorage.getUserId()}');
-
           return MultiBlocProvider(
             providers: [
               BlocProvider(create: (_) => getIt<HomeCubit>()),
               BlocProvider(create: (_) => ChatbotCubit()),
               BlocProvider(create: (_) => getIt<PerformanceCubit>()),
-  //              BlocProvider(
-  //   create: (_) {
-  //     debugPrint('🟡 Creating OnlineStatusCubit...');
-  //     return getIt<OnlineStatusCubit>();
-  //   },
-  // ),
+              //              BlocProvider(
+              //   create: (_) {
+              //     debugPrint('🟡 Creating OnlineStatusCubit...');
+              //     return getIt<OnlineStatusCubit>();
+              //   },
+              // ),
             ],
             child: VolunteerScaffoldWithNavBar(
               navigationShell: navigationShell,

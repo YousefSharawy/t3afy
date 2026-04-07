@@ -342,8 +342,10 @@ class _RegisterViewState extends State<RegisterView> {
                 SizedBox(height: AppHeight.s16),
                 // ── ID upload (volunteers only) ──
                 BlocBuilder<AuthCubit, AuthState>(
-                  buildWhen: (_, cur) =>
-                      cur.maybeWhen(orElse: () => false, roleChanged: (_) => true),
+                  buildWhen: (_, cur) => cur.maybeWhen(
+                    orElse: () => false,
+                    roleChanged: (_) => true,
+                  ),
                   builder: (context, state) {
                     final isVolunteer = context.read<AuthCubit>().isVolunteer;
                     if (!isVolunteer) return const SizedBox.shrink();
@@ -474,7 +476,9 @@ class _RegisterViewState extends State<RegisterView> {
                         if (_idError)
                           Padding(
                             padding: EdgeInsetsDirectional.only(
-                                start: 4, top: AppHeight.s4),
+                              start: 4,
+                              top: AppHeight.s4,
+                            ),
                             child: Text(
                               'يجب رفع صورة الهوية',
                               style: getRegularStyle(

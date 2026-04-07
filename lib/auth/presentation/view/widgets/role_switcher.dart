@@ -82,7 +82,9 @@ class _RoleCard extends StatelessWidget {
                 icon,
                 key: ValueKey(isSelected),
                 size: 18.sp,
-                color: isSelected ? ColorManager.white : ColorManager.natural400,
+                color: isSelected
+                    ? ColorManager.white
+                    : ColorManager.natural400,
               ),
             ),
             SizedBox(width: 6.w),
@@ -91,7 +93,9 @@ class _RoleCard extends StatelessWidget {
               style: getSemiBoldStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s13,
-                color: isSelected ? ColorManager.white : ColorManager.natural500,
+                color: isSelected
+                    ? ColorManager.white
+                    : ColorManager.natural500,
               ),
               child: Text(label),
             ),

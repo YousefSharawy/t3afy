@@ -26,9 +26,7 @@ class VolunteerSelectionCard extends StatelessWidget {
         margin: EdgeInsets.only(bottom: AppHeight.s8),
         padding: EdgeInsets.all(AppSize.s12),
         decoration: BoxDecoration(
-          color: isSelected
-              ? ColorManager.natural200
-              : ColorManager.natural200,
+          color: isSelected ? ColorManager.natural200 : ColorManager.natural200,
           borderRadius: BorderRadius.circular(AppRadius.s10),
           border: Border.all(
             color: isSelected
@@ -40,7 +38,9 @@ class VolunteerSelectionCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 18.r,
-              backgroundColor: isSelected ? ColorManager.white : ColorManager.natural200,
+              backgroundColor: isSelected
+                  ? ColorManager.white
+                  : ColorManager.natural200,
               backgroundImage: volunteer.avatarUrl != null
                   ? NetworkImage(volunteer.avatarUrl!)
                   : null,

@@ -12,10 +12,6 @@ class SendAnnouncementUsecase {
     required String body,
     required String adminId,
   }) {
-    return _repo.sendAnnouncement(
-      title: title,
-      body: body,
-      adminId: adminId,
-    );
+    return _repo.sendAnnouncement(title: title, body: body, adminId: adminId);
   }
 }

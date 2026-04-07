@@ -5,6 +5,7 @@ import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/volunteer/bot/presentation/cubit/chatbot_cubit.dart';
 import 'package:t3afy/volunteer/bot/presentation/view/widgets/chat_bubble.dart';
 import 'package:t3afy/volunteer/bot/presentation/view/widgets/chat_message.dart';
+
 class ChatMessageList extends StatelessWidget {
   const ChatMessageList({
     super.key,
@@ -38,8 +39,8 @@ class ChatMessageList extends StatelessWidget {
           final message = messages[index];
           final chips =
               (index == lastBotIndex && message.sender == MessageSender.bot)
-                  ? quickActions
-                  : <String>[];
+              ? quickActions
+              : <String>[];
           final enriched = ChatMessage(
             text: message.text,
             sender: message.sender,

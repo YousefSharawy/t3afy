@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -5,7 +6,6 @@ import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/theme_manager.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 
 class PrimaryElevatedButton extends StatelessWidget {
@@ -55,7 +55,9 @@ class PrimaryElevatedButton extends StatelessWidget {
             backgroundColor: backGroundColor ?? ColorManager.primary500,
             shape: RoundedRectangleBorder(
               side: BorderSide(color: borderColor ?? ColorManager.transparent),
-              borderRadius: BorderRadius.circular(buttonRadius ?? AppRadius.s24),
+              borderRadius: BorderRadius.circular(
+                buttonRadius ?? AppRadius.s24,
+              ),
             ),
             fixedSize: Size(width ?? 1.sw, height ?? AppHeight.s50),
           ),
@@ -70,22 +72,33 @@ class PrimaryElevatedButton extends StatelessWidget {
                   ),
                 )
               : titleWidget ??
-              FittedBox(
-                child: Row(
-                  children: [
-                    if (iconPath != null) ...[
-                      Image.asset(
-                        iconPath!,
-                        width: AppWidth.s16,
-                        height: AppHeight.s16,
+                    FittedBox(
+                      child: Row(
+                        children: [
+                          if (iconPath != null) ...[
+                            Image.asset(
+                              iconPath!,
+                              width: AppWidth.s16,
+                              height: AppHeight.s16,
+                            ),
+                          ],
+                          // We only want spacing if there's an icon
+                          if (iconPath != null) SizedBox(width: AppWidth.s8),
+                          Center(
+                            child: Text(
+                              title,
+                              style:
+                                  textStyle ??
+                                  getBoldStyle(
+                                    fontFamily: FontConstants.fontFamily,
+                                    fontSize: FontSize.s14,
+                                    color: ColorManager.white,
+                                  ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                    // We only want spacing if there's an icon
-                    if (iconPath != null) SizedBox(width: AppWidth.s8),
-                    Center(child: Text(title, style: textStyle ?? getBoldStyle(fontFamily: FontConstants.fontFamily, fontSize: FontSize.s14, color: ColorManager.white))),
-                  ],
-                ),
-              ),
+                    ),
         ),
       ),
     );
@@ -188,68 +201,71 @@ class _PrimaryTextFFState extends State<PrimaryTextFF> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadius.s12),
         child: TextFormField(
-        maxLines: widget.maxLines,
-        expands: false,
-        keyboardType: widget.keyboardType,
-        obscureText: isObscure,
-        readOnly: widget.readOnly,
-        controller: widget.controller,
-        autovalidateMode: AutovalidateMode.onUnfocus,
-        onTap: widget.onTap,
-        onChanged: widget.onChanged,
-        validator: widget.validator,
-        textDirection: TextDirection.ltr,
-        textAlign: widget.textAlign ?? TextAlign.right,
-        textAlignVertical: TextAlignVertical.center,
-        style: getSemiBoldStyle(
-          fontSize: FontSize.s14,
-          color: ColorManager.natural900,
-          fontFamily: FontConstants.fontFamily,
-        ),
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: AppWidth.s12,
-            vertical: AppHeight.s10,
-          ),
-          filled: true,
-          fillColor: ColorManager.natural100,
-          hintText: widget.hint,
-          hintTextDirection: TextDirection.ltr,
-          hintStyle: getSemiBoldStyle(
+          maxLines: widget.maxLines,
+          expands: false,
+          keyboardType: widget.keyboardType,
+          obscureText: isObscure,
+          readOnly: widget.readOnly,
+          controller: widget.controller,
+          autovalidateMode: AutovalidateMode.onUnfocus,
+          onTap: widget.onTap,
+          onChanged: widget.onChanged,
+          validator: widget.validator,
+          textDirection: TextDirection.ltr,
+          textAlign: widget.textAlign ?? TextAlign.right,
+          textAlignVertical: TextAlignVertical.center,
+          style: getSemiBoldStyle(
             fontSize: FontSize.s14,
-            color: ColorManager.natural400,
+            color: ColorManager.natural900,
             fontFamily: FontConstants.fontFamily,
           ),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          errorBorder: InputBorder.none,
-          focusedErrorBorder: InputBorder.none,
-          errorStyle: TextStyle(
-            color: ColorManager.error,
-            fontSize: FontSize.s10,
-            height: -2,
-          ),
-          errorMaxLines: 1,
-          floatingLabelBehavior: FloatingLabelBehavior.never,
-          prefixIcon: widget.isPassword
-              ? IconButton(
-                  onPressed: () {
-                    setState(() {
-                      isObscure = !isObscure;
-                    });
-                  },
-                  icon: PrimaryIcon(
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: AppWidth.s12,
+              vertical: AppHeight.s10,
+            ),
+            filled: true,
+            fillColor: ColorManager.natural100,
+            hintText: widget.hint,
+            hintTextDirection: TextDirection.ltr,
+            hintStyle: getSemiBoldStyle(
+              fontSize: FontSize.s14,
+              color: ColorManager.natural400,
+              fontFamily: FontConstants.fontFamily,
+            ),
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            errorBorder: InputBorder.none,
+            focusedErrorBorder: InputBorder.none,
+            errorStyle: TextStyle(
+              color: ColorManager.error,
+              fontSize: FontSize.s10,
+              height: -2,
+            ),
+            errorMaxLines: 1,
+            floatingLabelBehavior: FloatingLabelBehavior.never,
+            prefixIcon: widget.isPassword
+                ? IconButton(
+                    onPressed: () {
+                      setState(() {
+                        isObscure = !isObscure;
+                      });
+                    },
+                    icon: PrimaryIcon(
+                      color: ColorManager.blueOne700,
+                      icon: isObscure
+                          ? IconAssets.visibilityoff
+                          : IconAssets.visibilityon,
+                    ),
+                  )
+                : widget.icon != null
+                ? PrimaryIcon(
+                    icon: widget.icon!,
                     color: ColorManager.blueOne700,
-                    icon: isObscure
-                        ? IconAssets.visibilityoff
-                        : IconAssets.visibilityon,
-                  ),
-                )
-              : widget.icon != null
-              ? PrimaryIcon(icon: widget.icon!, color: ColorManager.blueOne700)
-              : null,
-        ),
+                  )
+                : null,
+          ),
         ),
       ),
     );
@@ -320,10 +336,11 @@ bool hasRouteStack(BuildContext context) {
   final router = GoRouter.of(context);
   final routeMatchList = router.routerDelegate.currentConfiguration.matches;
 
-  // Debugging: Print the current route stack
-  debugPrint('Route stack:');
-  for (final route in routeMatchList) {
-    debugPrint(route.matchedLocation);
+  if (kDebugMode) {
+    debugPrint('Route stack:');
+    for (final route in routeMatchList) {
+      debugPrint(route.matchedLocation);
+    }
   }
 
   // Return true if there's more than one route (meaning we can pop)

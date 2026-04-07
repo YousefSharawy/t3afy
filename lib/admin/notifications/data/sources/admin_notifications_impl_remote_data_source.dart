@@ -27,7 +27,8 @@ class AdminNotificationsImplRemoteDataSource
     try {
       await Supabase.instance.client
           .from('admin_notes')
-          .update({'is_read': true}).eq('id', noteId);
+          .update({'is_read': true})
+          .eq('id', noteId);
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

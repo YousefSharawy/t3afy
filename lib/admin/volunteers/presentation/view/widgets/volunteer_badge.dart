@@ -6,7 +6,7 @@ import 'package:t3afy/app/resources/values_manager.dart';
 class VolunteerBadge extends StatelessWidget {
   const VolunteerBadge({
     super.key,
-     this.icon,
+    this.icon,
     required this.label,
     required this.color,
     required this.bg,

@@ -60,6 +60,52 @@ class _VolunteerDetailsViewState extends State<VolunteerDetailsView>
             ),
             onPressed: () => context.pop(),
           ),
+          actions: [
+            BlocBuilder<VolunteerDetailsCubit, VolunteerDetailsState>(
+              builder: (context, state) {
+                VolunteerDetailsEntity? details;
+                if (state is VolunteerDetailsLoaded) {
+                  details = state.details;
+                } else if (state is VolunteerDetailsActionError) {
+                  details = state.details;
+                } else if (state is VolunteerDetailsActionSuccess) {
+                  details = state.details;
+                } else if (state is VolunteerDetailsAvailableTasks) {
+                  details = state.details;
+                }
+
+                final isExporting = state is VolunteerDetailsActionLoading;
+
+                if (details == null) return const SizedBox.shrink();
+
+                return Tooltip(
+                  message: 'تصدير بيانات المتطوع',
+                  child: isExporting
+                      ? Padding(
+                          padding: EdgeInsets.all(12.sp),
+                          child: SizedBox(
+                            width: 20.sp,
+                            height: 20.sp,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: ColorManager.primary500,
+                            ),
+                          ),
+                        )
+                      : IconButton(
+                          icon: Icon(
+                            Icons.picture_as_pdf_rounded,
+                            color: ColorManager.primary500,
+                            size: 24.sp,
+                          ),
+                          onPressed: () => context
+                              .read<VolunteerDetailsCubit>()
+                              .exportVolunteerPdf(details!),
+                        ),
+                );
+              },
+            ),
+          ],
         ),
         body: BlocConsumer<VolunteerDetailsCubit, VolunteerDetailsState>(
           listener: (context, state) {

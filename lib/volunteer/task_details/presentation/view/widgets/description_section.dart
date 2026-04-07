@@ -18,10 +18,7 @@ class DescriptionSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(
-           icon: IconAssets.details,
-            title: 'وصف المهمة',
-          ),
+          const SectionHeader(icon: IconAssets.details, title: 'وصف المهمة'),
           SizedBox(height: AppHeight.s10),
           Text(
             description,

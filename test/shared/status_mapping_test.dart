@@ -180,14 +180,16 @@ void main() {
       expect(s.textColor, ColorManager.error);
     });
 
-    test('unknown status → falls back to status string, gray colors, no crash',
-        () {
-      const unknown = 'some_unknown_status';
-      final s = _getStatusStyle(unknown);
-      expect(s.label, unknown);
-      expect(s.textColor, ColorManager.natural500);
-      expect(s.fillColor, ColorManager.natural200);
-    });
+    test(
+      'unknown status → falls back to status string, gray colors, no crash',
+      () {
+        const unknown = 'some_unknown_status';
+        final s = _getStatusStyle(unknown);
+        expect(s.label, unknown);
+        expect(s.textColor, ColorManager.natural500);
+        expect(s.fillColor, ColorManager.natural200);
+      },
+    );
 
     test('empty string → falls back gracefully', () {
       final s = _getStatusStyle('');

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -46,19 +45,19 @@ class OverviewInfoRowWithCheck extends StatelessWidget {
                   color: ColorManager.natural400,
                 ),
               ),
-               Text(
-            value,
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color:ColorManager.natural700,
-            ),
-          ),
+              Text(
+                value,
+                style: getMediumStyle(
+                  fontFamily: FontConstants.fontFamily,
+                  fontSize: FontSize.s12,
+                  color: ColorManager.natural700,
+                ),
+              ),
             ],
           ),
           if (achieved) ...[
             SizedBox(width: AppWidth.s4),
-           Image.asset(IconAssets.done2)
+            Image.asset(IconAssets.done2),
           ],
         ],
       ),

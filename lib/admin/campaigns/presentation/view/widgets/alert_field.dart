@@ -32,10 +32,10 @@ class AlertField extends StatelessWidget {
         hintStyle: getRegularStyle(
           fontFamily: FontConstants.fontFamily,
           fontSize: FontSize.s13,
-           color: ColorManager.natural400,
+          color: ColorManager.natural400,
         ),
         filled: true,
-         fillColor: ColorManager.natural50,
+        fillColor: ColorManager.natural50,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.s12),
           borderSide: BorderSide(color: ColorManager.natural200),

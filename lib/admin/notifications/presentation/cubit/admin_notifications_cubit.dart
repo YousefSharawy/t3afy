@@ -71,33 +71,31 @@ class AdminNotificationsCubit extends Cubit<AdminNotificationsState> {
 
   Future<void> markAsRead(String noteId) async {
     final result = await _markReadUseCase(noteId);
-    result.fold(
-      (failure) => emit(AdminNotificationsError(failure.message)),
-      (_) {
-        final current = state;
-        if (current is AdminNotificationsLoaded) {
-          final updated = current.notifications
-              .map((n) => n.id == noteId ? n.copyWith(isRead: true) : n)
-              .toList();
-          emit(AdminNotificationsLoaded(updated));
-        }
-      },
-    );
+    result.fold((failure) => emit(AdminNotificationsError(failure.message)), (
+      _,
+    ) {
+      final current = state;
+      if (current is AdminNotificationsLoaded) {
+        final updated = current.notifications
+            .map((n) => n.id == noteId ? n.copyWith(isRead: true) : n)
+            .toList();
+        emit(AdminNotificationsLoaded(updated));
+      }
+    });
   }
 
   Future<void> markAllAsRead(String adminId) async {
     final result = await _markAllReadUseCase(adminId);
-    result.fold(
-      (failure) => emit(AdminNotificationsError(failure.message)),
-      (_) {
-        final current = state;
-        if (current is AdminNotificationsLoaded) {
-          final updated = current.notifications
-              .map((n) => n.copyWith(isRead: true))
-              .toList();
-          emit(AdminNotificationsLoaded(updated));
-        }
-      },
-    );
+    result.fold((failure) => emit(AdminNotificationsError(failure.message)), (
+      _,
+    ) {
+      final current = state;
+      if (current is AdminNotificationsLoaded) {
+        final updated = current.notifications
+            .map((n) => n.copyWith(isRead: true))
+            .toList();
+        emit(AdminNotificationsLoaded(updated));
+      }
+    });
   }
 }

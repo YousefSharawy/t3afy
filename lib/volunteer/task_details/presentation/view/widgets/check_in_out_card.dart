@@ -15,7 +15,10 @@ import 'package:t3afy/base/primary_widgets.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/location_cubit.dart';
 
 class CheckInOutCard extends StatelessWidget {
-  const CheckInOutCard({super.key});
+  const CheckInOutCard({super.key, required this.timeEnd, required this.date});
+
+  final String timeEnd;
+  final String date;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,7 @@ class CheckInOutCard extends StatelessWidget {
           return _CheckedOutCard(state: state);
         }
         if (state is LocationCheckedIn) {
-          return _CheckedInCard(state: state);
+          return _CheckedInCard(state: state, timeEnd: timeEnd, date: date);
         }
         if (state is LocationNearTask) {
           return _NearTaskCard(state: state);
@@ -241,8 +244,14 @@ class _NearTaskCardState extends State<_NearTaskCard>
 // State 3: Checked in — in progress
 // ─────────────────────────────────────────────────────────────────
 class _CheckedInCard extends StatefulWidget {
-  const _CheckedInCard({required this.state});
+  const _CheckedInCard({
+    required this.state,
+    required this.timeEnd,
+    required this.date,
+  });
   final LocationCheckedIn state;
+  final String timeEnd;
+  final String date;
 
   @override
   State<_CheckedInCard> createState() => _CheckedInCardState();
@@ -251,17 +260,38 @@ class _CheckedInCard extends StatefulWidget {
 class _CheckedInCardState extends State<_CheckedInCard> {
   Timer? _timer;
   Duration _elapsed = Duration.zero;
+  Duration _remaining = Duration.zero;
+  bool _canCheckOut = false;
+
+  DateTime _buildDeadline() {
+    try {
+      final d = DateTime.parse(widget.date);
+      final parts = widget.timeEnd.split(':');
+      final endHour = int.tryParse(parts[0]) ?? 23;
+      final endMin = int.tryParse(parts[1]) ?? 59;
+      return DateTime(d.year, d.month, d.day, endHour, endMin);
+    } catch (_) {
+      return DateTime.now();
+    }
+  }
+
+  void _tick() {
+    final now = DateTime.now();
+    final deadline = _buildDeadline();
+    final remaining = deadline.difference(now);
+    setState(() {
+      _elapsed = now.difference(widget.state.checkedInAt);
+      _remaining = remaining.isNegative ? Duration.zero : remaining;
+      _canCheckOut = remaining.isNegative;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    _elapsed = DateTime.now().difference(widget.state.checkedInAt);
-    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (mounted) {
-        setState(() {
-          _elapsed = DateTime.now().difference(widget.state.checkedInAt);
-        });
-      }
+    _tick();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) _tick();
     });
   }
 
@@ -271,7 +301,7 @@ class _CheckedInCardState extends State<_CheckedInCard> {
     super.dispose();
   }
 
-  String _formatElapsed(Duration d) {
+  String _formatDuration(Duration d) {
     final h = d.inHours.toString().padLeft(2, '0');
     final m = (d.inMinutes % 60).toString().padLeft(2, '0');
     final s = (d.inSeconds % 60).toString().padLeft(2, '0');
@@ -321,7 +351,7 @@ class _CheckedInCardState extends State<_CheckedInCard> {
           ),
           SizedBox(height: AppHeight.s4),
           Text(
-            _formatElapsed(_elapsed),
+            _formatDuration(_elapsed),
             style: getSemiBoldStyle(
               fontFamily: FontConstants.fontFamily,
               fontSize: FontSize.s24,
@@ -329,82 +359,115 @@ class _CheckedInCardState extends State<_CheckedInCard> {
             ),
           ),
           SizedBox(height: AppHeight.s16),
-          PrimaryElevatedButton(
-            title: 'تسجيل الانصراف 🏁',
-            height: 50.h,
-            backGroundColor: const Color(0xFFE05A3A),
-            onPress: () async {
-              HapticFeedback.mediumImpact();
-              final confirmed = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: AlertDialog(
-                    backgroundColor: ColorManager.natural50,
-                    surfaceTintColor: Colors.transparent,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.s20),
-                    ),
-                    title: Text(
-                      'تسجيل الانصراف',
-                      style: getSemiBoldStyle(
-                        color: ColorManager.natural900,
-                        fontSize: FontSize.s18,
-                      ),
-                    ),
-                    content: Text(
-                      'هل تريد تسجيل انصرافك من المهمة؟',
-                      style: getRegularStyle(
-                        color: ColorManager.natural700,
-                        fontSize: FontSize.s14,
-                      ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, false),
-                        child: Text(
-                          'إلغاء',
-                          style: getMediumStyle(
-                            fontFamily: FontConstants.fontFamily,
-                            fontSize: FontSize.s14,
-                            color: ColorManager.natural500,
-                          ),
-                        ),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE05A3A),
-                          foregroundColor: ColorManager.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.s30),
-                          ),
-                        ),
-                        onPressed: () => Navigator.pop(ctx, true),
-                        child: Text(
-                          'تسجيل الانصراف',
-                          style: getMediumStyle(
-                            fontFamily: FontConstants.fontFamily,
-                            fontSize: FontSize.s14,
-                            color: ColorManager.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-              if (confirmed == true && context.mounted) {
-                cubit.checkOut();
-              }
-            },
-            textStyle: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s14,
-              color: ColorManager.white,
+          if (_canCheckOut) ...[
+            Text(
+              'انتهت مدة المهمة — يمكنك تسجيل الانصراف الآن',
+              textAlign: TextAlign.center,
+              style: getRegularStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s12,
+                color: ColorManager.natural500,
+              ),
             ),
-          ),
+            SizedBox(height: AppHeight.s12),
+            PrimaryElevatedButton(
+              title: 'تسجيل الانصراف 🏁',
+              height: 50.h,
+              backGroundColor: const Color(0xFFE05A3A),
+              onPress: () async {
+                HapticFeedback.mediumImpact();
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: AlertDialog(
+                      backgroundColor: ColorManager.natural50,
+                      surfaceTintColor: Colors.transparent,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.s20),
+                      ),
+                      title: Text(
+                        'تسجيل الانصراف',
+                        style: getSemiBoldStyle(
+                          color: ColorManager.natural900,
+                          fontSize: FontSize.s18,
+                        ),
+                      ),
+                      content: Text(
+                        'هل تريد تسجيل انصرافك من المهمة؟',
+                        style: getRegularStyle(
+                          color: ColorManager.natural700,
+                          fontSize: FontSize.s14,
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: Text(
+                            'إلغاء',
+                            style: getMediumStyle(
+                              fontFamily: FontConstants.fontFamily,
+                              fontSize: FontSize.s14,
+                              color: ColorManager.natural500,
+                            ),
+                          ),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFE05A3A),
+                            foregroundColor: ColorManager.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.s30,
+                              ),
+                            ),
+                          ),
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: Text(
+                            'تسجيل الانصراف',
+                            style: getMediumStyle(
+                              fontFamily: FontConstants.fontFamily,
+                              fontSize: FontSize.s14,
+                              color: ColorManager.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+                if (confirmed == true && context.mounted) {
+                  cubit.checkOut();
+                }
+              },
+              textStyle: getBoldStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s14,
+                color: ColorManager.white,
+              ),
+            ),
+          ] else ...[
+            Text(
+              'متبقي على انتهاء المهمة: ${_formatDuration(_remaining)}',
+              style: getMediumStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s13,
+                color: ColorManager.natural600,
+              ),
+            ),
+            SizedBox(height: AppHeight.s8),
+            Text(
+              'سيتاح تسجيل الانصراف عند انتهاء وقت المهمة',
+              textAlign: TextAlign.center,
+              style: getRegularStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s11,
+                color: ColorManager.natural400,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -444,11 +507,13 @@ class _CheckedOutCard extends StatelessWidget {
           ),
           SizedBox(height: AppHeight.s12),
           _SummaryRow(
-              label: 'وقت الحضور',
-              value: _formatTime(state.checkedInAt)),
+            label: 'وقت الحضور',
+            value: _formatTime(state.checkedInAt),
+          ),
           _SummaryRow(
-              label: 'وقت الانصراف',
-              value: _formatTime(state.checkedOutAt)),
+            label: 'وقت الانصراف',
+            value: _formatTime(state.checkedOutAt),
+          ),
           _SummaryRow(
             label: 'المدة الفعلية',
             value: '${state.verifiedHours} ساعة',
@@ -481,7 +546,11 @@ class _ErrorCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.gps_off_outlined, color: ColorManager.error, size: 20.r),
+              Icon(
+                Icons.gps_off_outlined,
+                color: ColorManager.error,
+                size: 20.r,
+              ),
               SizedBox(width: AppWidth.s8),
               Expanded(
                 child: Text(
@@ -549,8 +618,11 @@ class _PermissionDeniedCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.location_off_outlined,
-                  color: ColorManager.warning, size: 20.r),
+              Icon(
+                Icons.location_off_outlined,
+                color: ColorManager.warning,
+                size: 20.r,
+              ),
               SizedBox(width: AppWidth.s8),
               Expanded(
                 child: Text(
@@ -672,13 +744,13 @@ class _MiniMap extends StatelessWidget {
           options: MapOptions(
             initialCenter: LatLng(centerLat, centerLng),
             initialZoom: 14,
-            interactionOptions:
-                const InteractionOptions(flags: InteractiveFlag.none),
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.none,
+            ),
           ),
           children: [
             TileLayer(
-              urlTemplate:
-                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.t3afy.app',
             ),
             // 200m radius circle
@@ -718,8 +790,7 @@ class _MiniMap extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: ColorManager.info,
                       shape: BoxShape.circle,
-                      border: Border.all(
-                          color: ColorManager.white, width: 2),
+                      border: Border.all(color: ColorManager.white, width: 2),
                     ),
                   ),
                 ),
@@ -768,8 +839,7 @@ class _VerifiedBadge extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.verified_outlined,
-            color: ColorManager.success, size: 14.r),
+        Icon(Icons.verified_outlined, color: ColorManager.success, size: 14.r),
         SizedBox(width: AppWidth.s4),
         Text(
           'تم التحقق',
@@ -785,8 +855,11 @@ class _VerifiedBadge extends StatelessWidget {
 }
 
 class _SummaryRow extends StatelessWidget {
-  const _SummaryRow(
-      {required this.label, required this.value, this.bold = false});
+  const _SummaryRow({
+    required this.label,
+    required this.value,
+    this.bold = false,
+  });
   final String label;
   final String value;
   final bool bold;

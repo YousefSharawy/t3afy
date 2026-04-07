@@ -69,8 +69,11 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
       final cached = LocalAppStorage.getCache(cacheKey);
       if (cached != null) {
         return (cached as List)
-            .map<AdminVolunteerEntity>((e) =>
-                AdminVolunteerEntity.fromJson(Map<String, dynamic>.from(e as Map)))
+            .map<AdminVolunteerEntity>(
+              (e) => AdminVolunteerEntity.fromJson(
+                Map<String, dynamic>.from(e as Map),
+              ),
+            )
             .toList();
       }
 
@@ -86,7 +89,10 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
           .toList();
 
       await LocalAppStorage.setCache(
-          cacheKey, data, ttl: const Duration(minutes: 5));
+        cacheKey,
+        data,
+        ttl: const Duration(minutes: 5),
+      );
       return volunteers;
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
@@ -103,13 +109,15 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
           .single();
       final tasksRaw = await _client
           .from('task_assignments')
-          .select('*, is_verified, verified_hours, tasks(title, duration_hours)')
+          .select(
+            '*, is_verified, verified_hours, checked_in_at, checked_out_at, tasks(title, duration_hours)',
+          )
           .eq('user_id', volunteerId)
           .order('assigned_at', ascending: false);
       final tasks = tasksRaw
           .map(
             (e) => VolunteerTaskAssignmentEntity.fromJson(
-              e as Map<String, dynamic>,
+              e,
             ),
           )
           .toList();
@@ -132,9 +140,18 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
   Future<void> deleteVolunteer(String volunteerId) async {
     try {
       // Delete related records first to satisfy foreign key constraints
-      await _client.from('admin_notes').delete().eq('volunteer_id', volunteerId);
-      await _client.from('assessments').delete().eq('volunteer_id', volunteerId);
-      await _client.from('task_assignments').delete().eq('user_id', volunteerId);
+      await _client
+          .from('admin_notes')
+          .delete()
+          .eq('volunteer_id', volunteerId);
+      await _client
+          .from('assessments')
+          .delete()
+          .eq('volunteer_id', volunteerId);
+      await _client
+          .from('task_assignments')
+          .delete()
+          .eq('user_id', volunteerId);
       await _client.from('users').delete().eq('id', volunteerId);
       await LocalAppStorage.invalidateCache('admin_volunteers');
     } catch (e) {
@@ -147,7 +164,8 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
     try {
       await _client
           .from('users')
-          .update({'role': 'volunteer'}).eq('id', volunteerId);
+          .update({'role': 'volunteer'})
+          .eq('id', volunteerId);
       await LocalAppStorage.invalidateCache('admin_volunteers');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
@@ -158,14 +176,16 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
 
   @override
   Future<List<Map<String, dynamic>>> getAvailableTasks(
-      String volunteerId) async {
+    String volunteerId,
+  ) async {
     try {
       final assignedRaw = await _client
           .from('task_assignments')
           .select('task_id')
           .eq('user_id', volunteerId);
-      final assignedIds =
-          (assignedRaw as List).map((e) => e['task_id'] as String).toList();
+      final assignedIds = (assignedRaw as List)
+          .map((e) => e['task_id'] as String)
+          .toList();
 
       var query = _client
           .from('tasks')
@@ -197,12 +217,15 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
     final currentHours = (userRow['total_hours'] as num?)?.toInt() ?? 0;
     final currentTasks = (userRow['total_tasks'] as num?)?.toInt() ?? 0;
     final currentPlaces = (userRow['places_visited'] as num?)?.toInt() ?? 0;
-    await _client.from('users').update({
-      'total_points': currentPoints + points,
-      'total_hours': currentHours + durationHours.round(),
-      'total_tasks': currentTasks + 1,
-      'places_visited': currentPlaces + 1,
-    }).eq('id', volunteerId);
+    await _client
+        .from('users')
+        .update({
+          'total_points': currentPoints + points,
+          'total_hours': currentHours + durationHours.round(),
+          'total_tasks': currentTasks + 1,
+          'places_visited': currentPlaces + 1,
+        })
+        .eq('id', volunteerId);
   }
 
   @override
@@ -296,7 +319,8 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
 
       await _client
           .from('users')
-          .update({'rating': rating.toDouble()}).eq('id', volunteerId);
+          .update({'rating': rating.toDouble()})
+          .eq('id', volunteerId);
       await LocalAppStorage.invalidateCache('admin_volunteers');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
@@ -310,9 +334,10 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
     required String levelTitle,
   }) async {
     try {
-      await _client.from('users').update({
-        'level': level,
-      }).eq('id', volunteerId);
+      await _client
+          .from('users')
+          .update({'level': level})
+          .eq('id', volunteerId);
       await LocalAppStorage.invalidateCache('admin_volunteers');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
@@ -433,7 +458,8 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
     try {
       await _client
           .from('users')
-          .update({'role': 'suspended'}).eq('id', volunteerId);
+          .update({'role': 'suspended'})
+          .eq('id', volunteerId);
       await LocalAppStorage.invalidateCache('admin_volunteers');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;

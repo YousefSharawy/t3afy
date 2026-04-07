@@ -12,8 +12,10 @@ class TaskDetailsImplRepository implements TaskDetailsRepository {
   final TaskDetailsRemoteDataSource _dataSource;
   final CheckInDataSource? _checkInDataSource;
 
-  TaskDetailsImplRepository(this._dataSource, {CheckInDataSource? checkInDataSource})
-      : _checkInDataSource = checkInDataSource;
+  TaskDetailsImplRepository(
+    this._dataSource, {
+    CheckInDataSource? checkInDataSource,
+  }) : _checkInDataSource = checkInDataSource;
 
   @override
   Future<Either<Failture, TaskDetailsEntity>> getTaskDetails(
@@ -36,29 +38,33 @@ class TaskDetailsImplRepository implements TaskDetailsRepository {
       if (_checkInDataSource != null) {
         try {
           final userId = LocalAppStorage.getUserId() ?? '';
-          final status =
-              await _checkInDataSource.getCheckInStatus(taskId, userId);
+          final status = await _checkInDataSource.getCheckInStatus(
+            taskId,
+            userId,
+          );
           if (status != null) {
             final inStr = status['checked_in_at'] as String?;
             final outStr = status['checked_out_at'] as String?;
             if (inStr != null) checkedInAt = DateTime.tryParse(inStr);
             if (outStr != null) checkedOutAt = DateTime.tryParse(outStr);
-            verifiedHours =
-                ((status['verified_hours'] as num?) ?? 0).toDouble();
+            verifiedHours = ((status['verified_hours'] as num?) ?? 0)
+                .toDouble();
             isVerified = (status['is_verified'] as bool?) ?? false;
           }
         } catch (_) {}
       }
 
-      return Right(taskModel.toEntity(
-        objectives,
-        supplies,
-        papers: papers,
-        checkedInAt: checkedInAt,
-        checkedOutAt: checkedOutAt,
-        verifiedHours: verifiedHours,
-        isVerified: isVerified,
-      ));
+      return Right(
+        taskModel.toEntity(
+          objectives,
+          supplies,
+          papers: papers,
+          checkedInAt: checkedInAt,
+          checkedOutAt: checkedOutAt,
+          verifiedHours: verifiedHours,
+          isVerified: isVerified,
+        ),
+      );
     } on Failture catch (failture) {
       return Left(failture);
     }

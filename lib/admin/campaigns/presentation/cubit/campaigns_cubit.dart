@@ -8,9 +8,9 @@ part 'campaigns_state.dart';
 
 class CampaignsCubit extends Cubit<CampaignsState> {
   CampaignsCubit(this._getCampaigns, this._getStats, this._repo)
-      : super(const CampaignsInitial()) {
+    : super(const CampaignsInitial()) {
     load();
-    _repo.subscribeRealtime(load);
+    _repo.subscribeRealtime(() => load(skipCache: true));
   }
 
   final GetCampaignsUsecase _getCampaigns;
@@ -35,21 +35,18 @@ class CampaignsCubit extends Cubit<CampaignsState> {
     return _allCampaigns.where((c) => c.status == _filter).toList();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool skipCache = false}) async {
     emit(const CampaignsLoading());
-    final campaignsResult = await _getCampaigns();
-    final statsResult = await _getStats();
+    final campaignsResult = await _getCampaigns(skipCache: skipCache);
+    final statsResult = await _getStats(skipCache: skipCache);
 
-    campaignsResult.fold(
-      (f) => emit(CampaignsError(f.message)),
-      (campaigns) {
-        _allCampaigns = campaigns;
-        statsResult.fold(
-          (_) => emit(CampaignsLoaded(filteredCampaigns, _filter, const {})),
-          (stats) => emit(CampaignsLoaded(filteredCampaigns, _filter, stats)),
-        );
-      },
-    );
+    campaignsResult.fold((f) => emit(CampaignsError(f.message)), (campaigns) {
+      _allCampaigns = campaigns;
+      statsResult.fold(
+        (_) => emit(CampaignsLoaded(filteredCampaigns, _filter, const {})),
+        (stats) => emit(CampaignsLoaded(filteredCampaigns, _filter, stats)),
+      );
+    });
   }
 
   void setFilter(String filter) {

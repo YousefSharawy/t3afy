@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:t3afy/admin/home/presentation/cubit/admin_home_cubit.dart';
 import 'package:t3afy/admin/profile/domain/entities/admin_profile_entity.dart';
+import 'package:t3afy/app/di.dart';
 import 'package:t3afy/admin/profile/presentation/cubit/admin_profile_cubit.dart';
 import 'package:t3afy/admin/profile/presentation/view/widgets/admin_edit_sheet.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
+import 'package:t3afy/base/widgets/confirm_dialog.dart';
 import 'package:t3afy/base/widgets/profile_info_section.dart';
 import 'package:t3afy/base/widgets/profile_header_card.dart';
-import 'package:t3afy/base/widgets/profile_badge.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -121,8 +124,9 @@ class _AdminProfileViewState extends State<AdminProfileView> {
 
   Future<void> _refresh() {
     final userId = LocalAppStorage.getUserId();
-    if (userId != null)
+    if (userId != null) {
       return context.read<AdminProfileCubit>().loadProfile(userId);
+    }
     return Future.value();
   }
 
@@ -196,7 +200,7 @@ class _AdminProfileViewState extends State<AdminProfileView> {
                 fontSize: FontSize.s14,
               ),
             ),
-             SizedBox(height: AppHeight.s8),
+            SizedBox(height: AppHeight.s8),
             ProfileInfoSection(
               items: [
                 ProfileInfoItem(label: 'الاسم', value: profile.name),
@@ -233,12 +237,68 @@ class _AdminProfileViewState extends State<AdminProfileView> {
               ),
             ),
             SizedBox(height: AppHeight.s8),
+            PrimaryElevatedButton(
+              height: AppHeight.s46,
+              title: 'إعادة الجولة التعريفية',
+              onPress: () async {
+                HapticFeedback.lightImpact();
+                await LocalAppStorage.setAdminTutorialCompleted(false);
+                if (context.mounted) {
+                  context.go(Routes.splash);
+                }
+              },
+              backGroundColor: ColorManager.cyanPrimary,
+              textStyle: getBoldStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s16,
+                color: ColorManager.white,
+              ),
+            ),
+            SizedBox(height: AppHeight.s8),
+            // Export analytics PDF button
+            PrimaryElevatedButton(
+              height: AppHeight.s46,
+              title: 'تصدير تقرير تحليلي شامل PDF',
+              onPress: () async {
+                HapticFeedback.mediumImpact();
+                final confirmed = await showConfirmDialog(
+                  context,
+                  title: 'تصدير تقرير شامل',
+                  body:
+                      'سيتم إنشاء تقرير شامل بجميع بيانات المنصة. قد يستغرق بضع ثوانٍ.',
+                  confirmLabel: 'تصدير',
+                );
+                if (confirmed && mounted) {
+                  try {
+                    final adminHomeCubit = getIt<AdminHomeCubit>();
+                    await adminHomeCubit.exportFullAnalyticsPdf();
+                    if (mounted) {
+                      Toast.success.show(
+                        context,
+                        title: 'تم تصدير التقرير بنجاح',
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      Toast.error.show(context, title: 'فشل تصدير التقرير');
+                    }
+                  }
+                }
+              },
+              backGroundColor: ColorManager.primary500,
+              textStyle: getBoldStyle(
+                fontFamily: FontConstants.fontFamily,
+                fontSize: FontSize.s14,
+                color: ColorManager.white,
+              ),
+            ),
+            SizedBox(height: AppHeight.s8),
             // Logout button
             PrimaryElevatedButton(
               title: 'تسجيل خروج',
               onPress: _logout,
               backGroundColor: ColorManager.error,
-               textStyle: getBoldStyle(
+              textStyle: getBoldStyle(
                 fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s16,
                 color: ColorManager.white,

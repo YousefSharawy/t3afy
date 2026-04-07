@@ -7,7 +7,7 @@ import 'failture.dart';
 
 class ErrorHandler implements Exception {
   late Failture failture;
-  
+
   ErrorHandler.handle(dynamic error) {
     if (error is AuthException) {
       failture = _handleSupabaseAuthError(error);
@@ -18,7 +18,7 @@ class ErrorHandler implements Exception {
     } else {
       failture = DataSource.unknown.toFailture();
     }
-    
+
     if (!kReleaseMode) {
       log("<-------> \n ${error.toString()} \n <------->");
       log("<====> ${failture.code} : ${failture.message} <====>");
@@ -46,7 +46,7 @@ class ErrorHandler implements Exception {
     if (error.message.contains('JWT')) {
       return DataSource.unautorised.toFailture();
     }
-    
+
     switch (error.code) {
       case '42501': // insufficient_privilege
         return DataSource.forbidden.toFailture();

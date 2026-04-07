@@ -31,100 +31,101 @@ class VolunteerCard extends StatelessWidget {
           padding: EdgeInsets.all(12.sp),
           child: IntrinsicHeight(
             child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Align(
-                alignment: Alignment.center,
-                child: Container(
-                  width: AppWidth.s34,
-                  height: AppHeight.s34,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(AppRadius.s8)),
-                    color: ColorManager.primary50,
-                    border: Border.all(color: ColorManager.primary500)
-                  ),
-                  child: Image.asset(IconAssets.vol2),
-                ),
-              ),
-              SizedBox(width: AppWidth.s8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      volunteer.name,
-                      style: getBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s14,
-                        color: ColorManager.natural600,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: AppWidth.s34,
+                    height: AppHeight.s34,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(AppRadius.s8),
                       ),
+                      color: ColorManager.primary50,
+                      border: Border.all(color: ColorManager.primary500),
                     ),
-                    SizedBox(height: AppHeight.s2),
-                    Row(
-                      children: [
-                        Image.asset(
-                          width: AppWidth.s16,
-                          height: AppHeight.s16,
-                          IconAssets.location,
+                    child: Image.asset(IconAssets.vol2),
+                  ),
+                ),
+                SizedBox(width: AppWidth.s8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        volunteer.name,
+                        style: getBoldStyle(
+                          fontFamily: FontConstants.fontFamily,
+                          fontSize: FontSize.s14,
+                          color: ColorManager.natural600,
                         ),
-                        SizedBox(width: AppWidth.s4),
-                        Flexible(
-                          child: Text(
-                            volunteer.region ?? 'غير محدد',
+                      ),
+                      SizedBox(height: AppHeight.s2),
+                      Row(
+                        children: [
+                          Image.asset(
+                            width: AppWidth.s16,
+                            height: AppHeight.s16,
+                            IconAssets.location,
+                          ),
+                          SizedBox(width: AppWidth.s4),
+                          Flexible(
+                            child: Text(
+                              volunteer.region ?? 'غير محدد',
+                              style: getRegularStyle(
+                                fontFamily: FontConstants.fontFamily,
+                                fontSize: FontSize.s10,
+                                color: ColorManager.natural400,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(width: AppWidth.s16),
+                          Image.asset(
+                            width: AppWidth.s16,
+                            height: AppHeight.s16,
+                            IconAssets.star,
+                          ),
+                          SizedBox(width: AppWidth.s4),
+                          Text(
+                            volunteer.rating.toStringAsFixed(1),
                             style: getRegularStyle(
                               fontFamily: FontConstants.fontFamily,
                               fontSize: FontSize.s10,
                               color: ColorManager.natural400,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        SizedBox(width: AppWidth.s16),
-                        Image.asset(
-                          width: AppWidth.s16,
-                          height: AppHeight.s16,
-                          IconAssets.star,
-                        ),
-                        SizedBox(width: AppWidth.s4),
-                        Text(
-                          volunteer.rating.toStringAsFixed(1),
-                          style: getRegularStyle(
-                            fontFamily: FontConstants.fontFamily,
-                            fontSize: FontSize.s10,
-                            color: ColorManager.natural400,
+                        ],
+                      ),
+                      SizedBox(height: AppHeight.s4),
+                      Row(
+                        children: [
+                          VolunteerBadge(
+                            label: '${volunteer.totalTasks} مهمة',
+                            color: ColorManager.primary500,
+                            bg: ColorManager.primary50,
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: AppHeight.s4),
-                    Row(
-                      children: [
-                        VolunteerBadge(
-                          label: '${volunteer.totalTasks} مهمة',
-                          color:  ColorManager.primary500,
-                          bg: ColorManager.primary50,
-                        ),
-                        SizedBox(width: AppWidth.s8),
-                        VolunteerBadge(
-                          label: '${volunteer.totalHours} ساعة',
-                           color:  ColorManager.primary500,
-                          bg: ColorManager.primary50,
-                        ),
-                      ],
-                    ),
-                  ],
+                          SizedBox(width: AppWidth.s8),
+                          VolunteerBadge(
+                            label: '${volunteer.totalHours} ساعة',
+                            color: ColorManager.primary500,
+                            bg: ColorManager.primary50,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Align(
-                alignment: Alignment.topCenter,
-                child: StatusBadge(status: status),
-              ),
-            ],
-          ),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: StatusBadge(status: status),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-
 }

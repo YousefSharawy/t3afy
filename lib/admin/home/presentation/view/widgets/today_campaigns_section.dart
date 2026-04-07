@@ -26,7 +26,7 @@ class TodayCampaignsSection extends StatelessWidget {
       children: [
         Row(
           children: [
-           Image.asset(IconAssets.reports),
+            Image.asset(IconAssets.reports),
             SizedBox(width: AppWidth.s8),
             Text(
               'حملات اليوم',
