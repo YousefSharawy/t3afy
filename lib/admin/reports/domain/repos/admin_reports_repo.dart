@@ -10,6 +10,12 @@ abstract class AdminReportsRepo {
     String? feedback,
     required String adminId,
   });
-  void subscribeRealtime(void Function() onChanged);
+
+  /// [ignore] receives the changed report id; return true to drop the event
+  /// (used for echoes of the manager's own review).
+  void subscribeRealtime(
+    void Function() onChanged, {
+    bool Function(String? reportId)? ignore,
+  });
   void disposeRealtime();
 }

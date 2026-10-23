@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FontConstants {
-  static const String fontFamily = 'Cairo';
-  static const String almaraiFontFamily = 'Almarai';
-  static const String interFamily = 'Inter';
+  /// UI / body face. Tabular digits for times, counters and hours.
+  static const String fontFamily = 'IBMPlexSansArabic';
+
+  /// Display face — titles and KPI numbers only, use with restraint.
+  static const String displayFamily = 'Alexandria';
+
+  // Legacy families now resolve to the body face.
+  static const String almaraiFontFamily = fontFamily;
+  static const String interFamily = fontFamily;
   static const String arialFamily = 'Arial';
 }
 

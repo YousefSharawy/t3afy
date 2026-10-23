@@ -2,26 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:t3afy/admin/home/presentation/cubit/admin_home_cubit.dart';
+import 'package:t3afy/admin/home/data/services/analytics_pdf_service.dart';
 import 'package:t3afy/admin/profile/domain/entities/admin_profile_entity.dart';
-import 'package:t3afy/app/di.dart';
 import 'package:t3afy/admin/profile/presentation/cubit/admin_profile_cubit.dart';
 import 'package:t3afy/admin/profile/presentation/view/widgets/admin_edit_sheet.dart';
-import 'package:t3afy/app/resources/extenstions.dart';
-import 'package:t3afy/base/widgets/confirm_dialog.dart';
-import 'package:t3afy/base/widgets/profile_info_section.dart';
-import 'package:t3afy/base/widgets/profile_header_card.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
 import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
-import 'package:t3afy/base/widgets/error_state.dart';
-import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/base/primary_widgets.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/base/shimmers.dart';
+import 'package:t3afy/base/widgets/app_page_header.dart';
+import 'package:t3afy/base/widgets/confirm_dialog.dart';
+import 'package:t3afy/base/widgets/error_state.dart';
+import 'package:t3afy/base/widgets/profile_header_card.dart';
+import 'package:t3afy/base/widgets/profile_info_section.dart';
+import 'package:t3afy/core/utils/date_ar.dart';
 
 class AdminProfileView extends StatefulWidget {
   const AdminProfileView({super.key});
@@ -31,176 +31,155 @@ class AdminProfileView extends StatefulWidget {
 }
 
 class _AdminProfileViewState extends State<AdminProfileView> {
+  bool _exporting = false;
+
   @override
   void initState() {
     super.initState();
+    _load();
+  }
+
+  void _load() {
     final userId = LocalAppStorage.getUserId();
     if (userId != null) {
       context.read<AdminProfileCubit>().loadProfile(userId);
     }
   }
 
-  void _logout() async {
+  Future<void> _refresh() async {
+    final userId = LocalAppStorage.getUserId();
+    if (userId == null) return;
+    final error = await context.read<AdminProfileCubit>().refresh(userId);
+    if (error != null && mounted) Toast.error.show(context, title: error);
+  }
+
+  Future<void> _logout() async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'تسجيل الخروج',
+      body: 'هل تريد تسجيل الخروج من حسابك؟',
+      confirmLabel: 'تسجيل الخروج',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
     HapticFeedback.mediumImpact();
     await context.read<AuthCubit>().logout();
-    if (mounted) {
-      context.go(Routes.login);
+    if (mounted) context.go(Routes.login);
+  }
+
+  Future<void> _replayTour() async {
+    HapticFeedback.lightImpact();
+    await LocalAppStorage.setAdminTutorialCompleted(false);
+    if (mounted) context.go(Routes.splash);
+  }
+
+  Future<void> _export() async {
+    if (_exporting) return;
+    HapticFeedback.mediumImpact();
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'تصدير تقرير شامل',
+      body: 'سيتم إنشاء تقرير شامل بجميع بيانات المنصة. قد يستغرق بضع ثوانٍ.',
+      confirmLabel: 'تصدير',
+    );
+    if (!confirmed || !mounted) return;
+    setState(() => _exporting = true);
+    String? error;
+    try {
+      await AnalyticsPdfService.exportAndShare();
+    } on AnalyticsExportException catch (e) {
+      error = e.message;
+    } catch (_) {
+      error = 'فشل تصدير التقرير';
+    }
+    if (!mounted) return;
+    setState(() => _exporting = false);
+    if (error == null) {
+      Toast.success.show(context, title: 'تم تصدير التقرير بنجاح');
+    } else {
+      Toast.error.show(context, title: error);
     }
   }
 
   void _showEditSheet(AdminProfileEntity profile) {
-    final nameCtrl = TextEditingController(text: profile.name);
-    final emailCtrl = TextEditingController(text: profile.email);
-    final phoneCtrl = TextEditingController(text: profile.phone ?? '');
-
+    HapticFeedback.mediumImpact();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: ColorManager.white,
+      backgroundColor: ColorManager.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppRadius.s16),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.sheet)),
       ),
-      builder: (sheetCtx) {
-        return BlocProvider.value(
-          value: context.read<AdminProfileCubit>(),
-          child: AdminEditSheet(
-            nameCtrl: nameCtrl,
-            emailCtrl: emailCtrl,
-            phoneCtrl: phoneCtrl,
-            userId: profile.id,
-          ),
-        );
-      },
-    ).then((_) {
-      final userId = LocalAppStorage.getUserId();
-      if (userId != null && mounted) {
-        context.read<AdminProfileCubit>().loadProfile(userId);
-      }
-    });
+      builder: (_) => BlocProvider.value(
+        value: context.read<AdminProfileCubit>(),
+        child: AdminEditSheet(profile: profile),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorManager.background,
+      backgroundColor: ColorManager.canvas,
       body: SafeArea(
-        child: BlocBuilder<AdminProfileCubit, AdminProfileState>(
-          builder: (context, state) {
-            if (state is AdminProfileLoading) {
-              return const LoadingIndicator();
-            } else if (state is AdminProfileLoaded) {
-              return _buildContent(state.profile);
-            } else if (state is AdminProfileUpdateSuccess) {
-              return const LoadingIndicator();
-            } else if (state is AdminProfileError) {
-              return ErrorState(
-                message: state.message,
-                onRetry: () {
-                  final userId = LocalAppStorage.getUserId();
-                  if (userId != null) {
-                    context.read<AdminProfileCubit>().loadProfile(userId);
+        child: Column(
+          children: [
+            const AppPageHeader(title: 'الملف الشخصي', showBack: true),
+            Expanded(
+              child: BlocBuilder<AdminProfileCubit, AdminProfileState>(
+                builder: (context, state) {
+                  final Widget child;
+                  if (state is AdminProfileLoaded) {
+                    child = _buildContent(state.profile);
+                  } else if (state is AdminProfileError) {
+                    child = ErrorState(message: state.message, onRetry: _load);
+                  } else {
+                    child = const _ProfileSkeleton();
                   }
+                  return AnimatedSwitcher(
+                    duration: AppMotion.of(context),
+                    child: KeyedSubtree(
+                      key: ValueKey(state.runtimeType),
+                      child: child,
+                    ),
+                  );
                 },
-              );
-            } else if (state is AdminProfileUpdateError) {
-              return ErrorState(
-                message: state.message,
-                onRetry: () {
-                  final userId = LocalAppStorage.getUserId();
-                  if (userId != null) {
-                    context.read<AdminProfileCubit>().loadProfile(userId);
-                  }
-                },
-              );
-            }
-            return const SizedBox.shrink();
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Future<void> _refresh() {
-    final userId = LocalAppStorage.getUserId();
-    if (userId != null) {
-      return context.read<AdminProfileCubit>().loadProfile(userId);
-    }
-    return Future.value();
-  }
-
   Widget _buildContent(AdminProfileEntity profile) {
-    String joinedDate = '';
-    if (profile.joinedAt != null) {
-      final date = profile.joinedAt!;
-      const months = [
-        '',
-        'يناير',
-        'فبراير',
-        'مارس',
-        'أبريل',
-        'مايو',
-        'يونيو',
-        'يوليو',
-        'أغسطس',
-        'سبتمبر',
-        'أكتوبر',
-        'نوفمبر',
-        'ديسمبر',
-      ];
-      joinedDate = '${months[date.month]} ${date.year}';
-    }
+    final joined = profile.joinedAt;
+    final joinedDate = joined == null
+        ? '—'
+        : '${DateAr.month(joined.month)} ${joined.year}';
 
     return RefreshIndicator(
       onRefresh: _refresh,
-      color: ColorManager.primary500,
+      color: ColorManager.brand,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
+        padding: EdgeInsets.fromLTRB(
+          Space.gutter,
+          0,
+          Space.gutter,
+          Space.vxl + MediaQuery.paddingOf(context).bottom,
+        ),
         child: Column(
-          crossAxisAlignment: .start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(height: AppHeight.s10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () => context.pop(),
-                  child: Icon(
-                    Icons.arrow_back_ios_new,
-                    color: ColorManager.natural900,
-                    size: 24.sp,
-                  ),
-                ),
-                Text(
-                  'الملف الشخصي',
-                  style: getExtraBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.natural900,
-                    fontSize: FontSize.s16,
-                  ),
-                ),
-                SizedBox(width: 36.w),
-              ],
-            ),
-            SizedBox(height: AppHeight.s16),
-
             ProfileHeaderCard(
               name: profile.name,
               subtitle: profile.email,
               avatarUrl: profile.avatarUrl,
             ),
-            SizedBox(height: AppHeight.s16),
-            Text(
-              "معلومات الحساب",
-              style: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                color: ColorManager.natural700,
-                fontSize: FontSize.s14,
-              ),
-            ),
-            SizedBox(height: AppHeight.s8),
+            SizedBox(height: Space.vxl),
+            Text('معلومات الحساب', style: AppText.title()),
+            SizedBox(height: Space.vs),
             ProfileInfoSection(
               items: [
                 ProfileInfoItem(label: 'الاسم', value: profile.name),
@@ -217,97 +196,84 @@ class _AdminProfileViewState extends State<AdminProfileView> {
                 ProfileInfoItem(
                   hasDivider: false,
                   label: 'تاريخ الانضمام',
-                  value: joinedDate.isNotEmpty ? joinedDate : '—',
+                  value: joinedDate,
                 ),
               ],
             ),
-            SizedBox(height: AppHeight.s24),
-            // Edit button
+            SizedBox(height: Space.vxl),
             PrimaryElevatedButton(
-              height: AppHeight.s46,
               title: 'تعديل الملف الشخصي',
-              onPress: () {
-                HapticFeedback.mediumImpact();
-                _showEditSheet(profile);
-              },
-              textStyle: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s16,
-                color: ColorManager.white,
+              icon: AppIcons.edit,
+              onPress: () => _showEditSheet(profile),
+            ),
+            SizedBox(height: Space.vm),
+            OutlinedButton.icon(
+              onPressed: _exporting ? null : _export,
+              style: OutlinedButton.styleFrom(
+                minimumSize: Size.fromHeight(AppSizes.touch),
+              ),
+              icon: _exporting
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: ColorManager.brand,
+                      ),
+                    )
+                  : const Icon(AppIcons.pdf, size: 20),
+              label: Text(
+                _exporting ? 'جارٍ إنشاء التقرير…' : 'تصدير تقرير تحليلي شامل',
               ),
             ),
-            SizedBox(height: AppHeight.s8),
-            PrimaryElevatedButton(
-              height: AppHeight.s46,
-              title: 'إعادة الجولة التعريفية',
-              onPress: () async {
-                HapticFeedback.lightImpact();
-                await LocalAppStorage.setAdminTutorialCompleted(false);
-                if (context.mounted) {
-                  context.go(Routes.splash);
-                }
-              },
-              backGroundColor: ColorManager.cyanPrimary,
-              textStyle: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s16,
-                color: ColorManager.white,
+            SizedBox(height: Space.vs),
+            TextButton.icon(
+              onPressed: _replayTour,
+              style: TextButton.styleFrom(
+                foregroundColor: ColorManager.brand,
+                minimumSize: Size.fromHeight(AppSizes.touch),
               ),
+              icon: const Icon(AppIcons.refresh, size: 20),
+              label: const Text('إعادة الجولة التعريفية'),
             ),
-            SizedBox(height: AppHeight.s8),
-            // Export analytics PDF button
-            PrimaryElevatedButton(
-              height: AppHeight.s46,
-              title: 'تصدير تقرير تحليلي شامل PDF',
-              onPress: () async {
-                HapticFeedback.mediumImpact();
-                final confirmed = await showConfirmDialog(
-                  context,
-                  title: 'تصدير تقرير شامل',
-                  body:
-                      'سيتم إنشاء تقرير شامل بجميع بيانات المنصة. قد يستغرق بضع ثوانٍ.',
-                  confirmLabel: 'تصدير',
-                );
-                if (confirmed && mounted) {
-                  try {
-                    final adminHomeCubit = getIt<AdminHomeCubit>();
-                    await adminHomeCubit.exportFullAnalyticsPdf();
-                    if (mounted) {
-                      Toast.success.show(
-                        context,
-                        title: 'تم تصدير التقرير بنجاح',
-                      );
-                    }
-                  } catch (e) {
-                    if (mounted) {
-                      Toast.error.show(context, title: 'فشل تصدير التقرير');
-                    }
-                  }
-                }
-              },
-              backGroundColor: ColorManager.primary500,
-              textStyle: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s14,
-                color: ColorManager.white,
+            SizedBox(height: Space.vxl),
+            const Divider(color: ColorManager.line, height: 1),
+            SizedBox(height: Space.vl),
+            TextButton.icon(
+              onPressed: _logout,
+              style: TextButton.styleFrom(
+                foregroundColor: ColorManager.error,
+                minimumSize: Size.fromHeight(AppSizes.touch),
               ),
+              icon: const Icon(AppIcons.logout, size: 20),
+              label: const Text('تسجيل الخروج'),
             ),
-            SizedBox(height: AppHeight.s8),
-            // Logout button
-            PrimaryElevatedButton(
-              title: 'تسجيل خروج',
-              onPress: _logout,
-              backGroundColor: ColorManager.error,
-              textStyle: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s16,
-                color: ColorManager.white,
-              ),
-            ),
-
-            SizedBox(height: AppHeight.s32),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProfileSkeleton extends StatelessWidget {
+  const _ProfileSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Skeleton(
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: Space.gutter),
+        children: [
+          SkeletonBox(height: 150, radius: Radii.card),
+          SizedBox(height: Space.vxl),
+          SkeletonBox(width: 120, height: 16),
+          SizedBox(height: Space.vs),
+          SkeletonBox(height: 170, radius: Radii.card),
+          SizedBox(height: Space.vxl),
+          SkeletonBox(height: AppSizes.touch, radius: Radii.input),
+          SizedBox(height: Space.vm),
+          SkeletonBox(height: AppSizes.touch, radius: Radii.input),
+        ],
       ),
     );
   }

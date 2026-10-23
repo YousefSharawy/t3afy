@@ -12,10 +12,14 @@ class TasksImplRepository implements TasksRepository {
 
   @override
   Future<Either<Failture, List<TaskEntity>>> getTodayTasks(
-    String userId, {bool skipCache = false}
-  ) async {
+    String userId, {
+    bool skipCache = false,
+  }) async {
     try {
-      final models = await _dataSource.getTodayTasks(userId, skipCache: skipCache);
+      final models = await _dataSource.getTodayTasks(
+        userId,
+        skipCache: skipCache,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on Failture catch (f) {
       return Left(f);
@@ -24,10 +28,14 @@ class TasksImplRepository implements TasksRepository {
 
   @override
   Future<Either<Failture, List<TaskEntity>>> getCompletedTasks(
-    String userId, {bool skipCache = false}
-  ) async {
+    String userId, {
+    bool skipCache = false,
+  }) async {
     try {
-      final models = await _dataSource.getCompletedTasks(userId, skipCache: skipCache);
+      final models = await _dataSource.getCompletedTasks(
+        userId,
+        skipCache: skipCache,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on Failture catch (f) {
       return Left(f);
@@ -36,10 +44,14 @@ class TasksImplRepository implements TasksRepository {
 
   @override
   Future<Either<Failture, TasksStatsEntity>> getTasksStats(
-    String userId, {bool skipCache = false}
-  ) async {
+    String userId, {
+    bool skipCache = false,
+  }) async {
     try {
-      final model = await _dataSource.getTasksStats(userId, skipCache: skipCache);
+      final model = await _dataSource.getTasksStats(
+        userId,
+        skipCache: skipCache,
+      );
       return Right(model.toEntity());
     } on Failture catch (f) {
       return Left(f);

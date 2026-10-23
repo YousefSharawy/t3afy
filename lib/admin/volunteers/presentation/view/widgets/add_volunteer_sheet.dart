@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteers_cubit.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
-import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_sheet_frame.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/extenstions.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/base/primary_widgets.dart';
 
 class AddVolunteerSheet extends StatefulWidget {
@@ -38,232 +34,101 @@ class _AddVolunteerSheetState extends State<AddVolunteerSheet> {
     super.dispose();
   }
 
-  void _submit() {
-    HapticFeedback.mediumImpact();
+  String? _orNull(TextEditingController c) {
+    final v = c.text.trim();
+    return v.isEmpty ? null : v;
+  }
+
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSubmitting = true);
-    context.read<VolunteersCubit>().addVolunteer(
+    final error = await context.read<VolunteersCubit>().addVolunteer(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
-      phone: _phoneController.text.trim().isEmpty
-          ? null
-          : _phoneController.text.trim(),
-      region: _regionController.text.trim().isEmpty
-          ? null
-          : _regionController.text.trim(),
-      qualification: _qualificationController.text.trim().isEmpty
-          ? null
-          : _qualificationController.text.trim(),
+      phone: _orNull(_phoneController),
+      region: _orNull(_regionController),
+      qualification: _orNull(_qualificationController),
     );
+    if (!mounted) return;
+    if (error != null) {
+      setState(() => _isSubmitting = false);
+      Toast.error.show(context, title: error);
+      return;
+    }
+    Toast.success.show(context, title: 'تمت إضافة المتطوع');
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<VolunteersCubit, VolunteersState>(
-      listener: (context, state) {
-        state.maybeWhen(
-          loaded: (_, filter, searchQuery, pendingUsers, pendingLoading) {
-            if (_isSubmitting) {
-              Navigator.of(context).pop();
-              Toast.success.show(context, title: 'تم إضافة المتطوع بنجاح');
-            }
-          },
-          error: (message) {
-            if (_isSubmitting) {
-              setState(() => _isSubmitting = false);
-              Toast.error.show(context, title: message);
-            }
-          },
-          orElse: () {},
-        );
-      },
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Container(
-          decoration: BoxDecoration(
-            color: ColorManager.white,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(AppRadius.s12),
+    final gap = SizedBox(height: Space.vm);
+    return VolunteerSheetFrame(
+      title: 'إضافة متطوع جديد',
+      subtitle: 'البيانات الأساسية',
+      icon: AppIcons.add3,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            PrimaryTextFF(
+              label: 'الاسم الكامل',
+              hint: 'مثال: ماريو عماد عزت',
+              controller: _nameController,
+              iconData: AppIcons.person,
+              textInputAction: TextInputAction.next,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'الاسم مطلوب' : null,
             ),
-          ),
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 100,
-          ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(
-                18.sp,
-                18.sp,
-                18.sp,
-                26.sp,
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: AppWidth.s39,
-                        height: AppHeight.s3,
-                        decoration: BoxDecoration(
-                          color: ColorManager.natural400,
-                          borderRadius: BorderRadius.circular(AppRadius.s49),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: AppHeight.s16),
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: .center,
-                        children: [
-                          Image.asset(IconAssets.add3),
-                          SizedBox(width: AppWidth.s4),
-                          Text(
-                            'إضافة متطوع جديد',
-                            style: getBoldStyle(
-                              fontFamily: FontConstants.fontFamily,
-                              fontSize: FontSize.s14,
-                              color: ColorManager.natural700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: AppHeight.s4),
-                    Center(
-                      child: Text(
-                        'البيانات الأساسية',
-                        style: getRegularStyle(
-                          fontFamily: FontConstants.fontFamily,
-                          fontSize: FontSize.s10,
-                          color: ColorManager.natural600,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: AppHeight.s16),
-                    Text(
-                      'الاسم الكامل',
-                      style: getBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s14,
-                        color: ColorManager.natural600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    PrimaryTextFF(
-                      textAlign: TextAlign.right,
-                      hint: 'مثال: ماريو عماد عزت',
-                      controller: _nameController,
-                      validator: (v) => (v == null || v.trim().isEmpty)
-                          ? 'الاسم مطلوب'
-                          : null,
-                    ),
-                    SizedBox(height: AppHeight.s8),
-                    Text(
-                      'رقم الهاتف',
-                      style: getBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s14,
-                        color: ColorManager.natural600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    PrimaryTextFF(
-                      textAlign: TextAlign.right,
-                      hint: 'مثال: 012-345-678',
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    SizedBox(height: AppHeight.s8),
-                    Text(
-                      'البريد الإلكتروني',
-                      style: getBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s14,
-                        color: ColorManager.natural600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    PrimaryTextFF(
-                      textAlign: TextAlign.right,
-                      hint: 'example@gmail.com:مثال',
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return 'البريد الإلكتروني مطلوب';
-                        }
-                        if (!v.contains('@')) return 'بريد إلكتروني غير صالح';
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: AppHeight.s8),
-                    Text(
-                      'المنطقة',
-                      style: getBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s14,
-                        color: ColorManager.natural600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    PrimaryTextFF(
-                      textAlign: TextAlign.right,
-                      hint: 'مثال: مدينة نصر',
-                      controller: _regionController,
-                    ),
-                    SizedBox(height: AppHeight.s8),
-                    Text(
-                      'مجالات التطوع',
-                      style: getBoldStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s14,
-                        color: ColorManager.natural600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    PrimaryTextFF(
-                      textAlign: TextAlign.right,
-                      hint: 'مثال: توعية, إعلام, دعم نفسي',
-                      controller: _qualificationController,
-                    ),
-                    SizedBox(height: AppHeight.s16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: PrimaryElevatedButton(
-                            backGroundColor: ColorManager.natural200,
-                            title: 'إلغاء',
-                            onPress: () => Navigator.of(context).pop(),
-                            textStyle: getBoldStyle(
-                              fontFamily: FontConstants.fontFamily,
-                              fontSize: FontSize.s16,
-                              color: ColorManager.natural600,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: AppWidth.s8),
-                        Expanded(
-                          child: PrimaryElevatedButton(
-                            title: 'إضافة',
-                            onPress: _submit,
-                            isLoading: _isSubmitting,
-                            textStyle: getBoldStyle(
-                              fontFamily: FontConstants.fontFamily,
-                              fontSize: FontSize.s16,
-                              color: ColorManager.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+            gap,
+            PrimaryTextFF(
+              label: 'رقم الهاتف (اختياري)',
+              hint: '01xxxxxxxxx',
+              controller: _phoneController,
+              iconData: AppIcons.phone,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.next,
             ),
-          ),
+            gap,
+            PrimaryTextFF(
+              label: 'البريد الإلكتروني',
+              hint: 'example@gmail.com',
+              controller: _emailController,
+              iconData: AppIcons.email2,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) {
+                  return 'البريد الإلكتروني مطلوب';
+                }
+                if (!v.contains('@')) return 'بريد إلكتروني غير صالح';
+                return null;
+              },
+            ),
+            gap,
+            PrimaryTextFF(
+              label: 'المنطقة (اختياري)',
+              hint: 'مثال: مدينة نصر',
+              controller: _regionController,
+              iconData: AppIcons.location,
+              textInputAction: TextInputAction.next,
+            ),
+            gap,
+            PrimaryTextFF(
+              label: 'مجالات التطوع (اختياري)',
+              hint: 'مثال: توعية، إعلام، دعم نفسي',
+              controller: _qualificationController,
+              iconData: AppIcons.vol,
+              textInputAction: TextInputAction.done,
+            ),
+            SizedBox(height: Space.vxl),
+            PrimaryElevatedButton(
+              title: 'إضافة المتطوع',
+              icon: AppIcons.add,
+              isLoading: _isSubmitting,
+              onPress: _submit,
+            ),
+          ],
         ),
       ),
     );

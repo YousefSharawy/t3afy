@@ -11,7 +11,10 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
   TasksImplRemoteDataSource(this._client);
 
   @override
-  Future<List<TaskModel>> getTodayTasks(String userId, {bool skipCache = false}) async {
+  Future<List<TaskModel>> getTodayTasks(
+    String userId, {
+    bool skipCache = false,
+  }) async {
     try {
       final today = DateTime.now().toIso8601String().split('T')[0];
       final cacheKey = 'today_tasks_${userId}_$today';
@@ -63,7 +66,9 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
           'time_end': (task['time_end'] as String?) ?? '23:59',
           'location_name': (task['location_name'] as String?) ?? '',
           'location_address': (task['location_address'] as String?) ?? '',
-          'supervisor_name': adminName.isNotEmpty ? adminName : ((task['supervisor_name'] as String?) ?? ''),
+          'supervisor_name': adminName.isNotEmpty
+              ? adminName
+              : ((task['supervisor_name'] as String?) ?? ''),
           'supervisor_phone': (task['supervisor_phone'] as String?) ?? '',
           'status': resolvedTaskStatus,
           'assignment_status': assignmentStatus,
@@ -82,7 +87,10 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
   }
 
   @override
-  Future<List<TaskModel>> getCompletedTasks(String userId, {bool skipCache = false}) async {
+  Future<List<TaskModel>> getCompletedTasks(
+    String userId, {
+    bool skipCache = false,
+  }) async {
     try {
       final cacheKey = 'completed_tasks_$userId';
       if (!skipCache) {
@@ -98,14 +106,15 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
 
       final response = await _client
           .from('task_assignments')
+          // History only renders cards (details are fetched by id), so the
+          // long text / coordinate columns are skipped.
           .select('''
             status,
             tasks!inner(
-              id, title, type, description, status, date,
+              id, title, type, status, date,
               time_start, time_end, duration_hours, points,
-              location_name, location_address, location_lat, location_lng,
-              supervisor_name, supervisor_phone, notes, created_by,
-              users!tasks_created_by_fkey(id, name)
+              location_name, supervisor_name,
+              users!tasks_created_by_fkey(name)
             )
           ''')
           .eq('user_id', userId)
@@ -128,7 +137,9 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
           'time_end': (task['time_end'] as String?) ?? '23:59',
           'location_name': (task['location_name'] as String?) ?? '',
           'location_address': (task['location_address'] as String?) ?? '',
-          'supervisor_name': adminName.isNotEmpty ? adminName : ((task['supervisor_name'] as String?) ?? ''),
+          'supervisor_name': adminName.isNotEmpty
+              ? adminName
+              : ((task['supervisor_name'] as String?) ?? ''),
           'supervisor_phone': (task['supervisor_phone'] as String?) ?? '',
           'status': resolvedTaskStatus,
           'assignment_status': row['status'] as String? ?? 'completed',
@@ -146,8 +157,13 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
     }
   }
 
+  /// Completed count + earned points. `todayCount` is left at 0: the caller
+  /// already has today's list and uses its length (it was a duplicate query).
   @override
-  Future<TasksStatsModel> getTasksStats(String userId, {bool skipCache = false}) async {
+  Future<TasksStatsModel> getTasksStats(
+    String userId, {
+    bool skipCache = false,
+  }) async {
     try {
       final cacheKey = 'tasks_stats_$userId';
       if (!skipCache) {
@@ -155,45 +171,31 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
         if (cached != null) {
           final m = Map<String, dynamic>.from(cached as Map);
           return TasksStatsModel(
-            todayCount: m['today_count'] as int,
             completedCount: m['completed_count'] as int,
             earnedPoints: m['earned_points'] as int,
           );
         }
       }
 
-      final today = DateTime.now().toIso8601String().split('T')[0];
-
-      final todayResponse = await _client
-          .from('task_assignments')
-          .select('id, tasks!inner(date)')
-          .eq('user_id', userId)
-          .eq('tasks.date', today)
-          .not('status', 'in', '("completed","missed")');
-      final todayCount = todayResponse.length;
-
-      final completedResponse = await _client
-          .from('task_assignments')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('status', 'completed');
-      final completedCount = completedResponse.length;
-
-      final userRow = await _client
-          .from('users')
-          .select('total_points')
-          .eq('id', userId)
-          .single();
+      final results = await Future.wait<Object>([
+        _client
+            .from('task_assignments')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('status', 'completed')
+            .count(CountOption.exact),
+        _client.from('users').select('total_points').eq('id', userId).single(),
+      ]);
+      final completedCount = (results[0] as PostgrestResponse).count;
+      final userRow = results[1] as Map<String, dynamic>;
       final earnedPoints = (userRow['total_points'] as num?)?.toInt() ?? 0;
 
       await LocalAppStorage.setCache(cacheKey, {
-        'today_count': todayCount,
         'completed_count': completedCount,
         'earned_points': earnedPoints,
       }, ttl: const Duration(minutes: 1));
 
       return TasksStatsModel(
-        todayCount: todayCount,
         completedCount: completedCount,
         earnedPoints: earnedPoints,
       );

@@ -20,8 +20,10 @@ import 'package:t3afy/admin/volunteers/domain/usecases/send_direct_message_useca
 import 'package:t3afy/admin/volunteers/domain/usecases/suspend_account_usecase.dart';
 import 'package:t3afy/admin/volunteers/domain/usecases/upgrade_level_usecase.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_state.dart';
+import 'package:t3afy/core/data/safe_emit.dart';
 
-class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
+class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState>
+    with SafeEmit<VolunteerDetailsState> {
   final GetVolunteerDetailsUsecase _getDetails;
   final DeleteVolunteerUsecase _deleteVolunteer;
   final ApproveVolunteerUsecase _approveVolunteer;
@@ -49,11 +51,12 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
   ) : super(VolunteerDetailsInitial());
 
   Future<void> load(String volunteerId) async {
+    if (_currentDetails != null) return _refresh(volunteerId);
     emit(VolunteerDetailsLoading());
     final result = await _getDetails(volunteerId);
     result.fold(
-      (f) => emit(VolunteerDetailsError(f.message)),
-      (details) => emit(VolunteerDetailsLoaded(details)),
+      (f) => safeEmit(VolunteerDetailsError(f.message)),
+      (details) => safeEmit(VolunteerDetailsLoaded(details)),
     );
   }
 
@@ -62,7 +65,7 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
     final result = await _getDetails(volunteerId);
     result.fold(
       (_) {}, // swallow errors on background refresh
-      (details) => emit(VolunteerDetailsLoaded(details)),
+      (details) => safeEmit(VolunteerDetailsLoaded(details)),
     );
   }
 
@@ -72,17 +75,18 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
   }) async {
     final details = _currentDetails;
     if (details == null) return;
-    emit(VolunteerDetailsLoading());
+    emit(VolunteerDetailsApproving(details));
     final result = await _approveVolunteer(volunteerId);
-    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
-      _,
-    ) {
-      if (isPending) {
-        emit(VolunteerDetailsActionSuccess(details, 'تم قبول المتطوع'));
-      } else {
-        load(volunteerId);
-      }
-    });
+    result.fold(
+      (f) => safeEmit(VolunteerDetailsActionError(details, f.message)),
+      (_) {
+        if (isPending) {
+          safeEmit(VolunteerDetailsDecided(details, 'تم قبول المتطوع'));
+        } else {
+          _refresh(volunteerId);
+        }
+      },
+    );
   }
 
   Future<void> deleteVolunteer(String volunteerId) async {
@@ -91,19 +95,19 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
     emit(VolunteerDetailsDeleting(details));
     final result = await _deleteVolunteer(volunteerId);
     result.fold(
-      (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (_) => emit(VolunteerDetailsDeleted()),
+      (f) => safeEmit(VolunteerDetailsActionError(details, f.message)),
+      (_) => safeEmit(VolunteerDetailsDeleted()),
     );
   }
 
   Future<void> rejectVolunteer(String volunteerId) async {
     final details = _currentDetails;
     if (details == null) return;
-    emit(VolunteerDetailsActionLoading(details));
+    emit(VolunteerDetailsRejecting(details));
     final result = await _deleteVolunteer(volunteerId);
     result.fold(
-      (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (_) => emit(VolunteerDetailsActionSuccess(details, 'تم رفض الطلب')),
+      (f) => safeEmit(VolunteerDetailsActionError(details, f.message)),
+      (_) => safeEmit(VolunteerDetailsDecided(details, 'تم رفض الطلب')),
     );
   }
 
@@ -113,8 +117,8 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
     emit(VolunteerDetailsActionLoading(details));
     final result = await _getAvailableTasks(details.id);
     result.fold(
-      (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (tasks) => emit(VolunteerDetailsAvailableTasks(details, tasks)),
+      (f) => safeEmit(VolunteerDetailsActionError(details, f.message)),
+      (tasks) => safeEmit(VolunteerDetailsAvailableTasks(details, tasks)),
     );
   }
 
@@ -130,10 +134,10 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       taskId: taskId,
       adminId: adminId,
     );
-    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
+    result.fold((f) => safeEmit(VolunteerDetailsActionError(details, f.message)), (
       _,
     ) {
-      emit(VolunteerDetailsActionSuccess(details, 'تم تعيين المهمة بنجاح'));
+      safeEmit(VolunteerDetailsActionSuccess(details, 'تم تعيين المهمة بنجاح'));
       _refresh(details.id);
     });
   }
@@ -174,10 +178,10 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       supervisorPhone: supervisorPhone,
       notes: notes,
     );
-    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
+    result.fold((f) => safeEmit(VolunteerDetailsActionError(details, f.message)), (
       _,
     ) {
-      emit(VolunteerDetailsActionSuccess(details, 'تم تعيين المهمة بنجاح'));
+      safeEmit(VolunteerDetailsActionSuccess(details, 'تم تعيين المهمة بنجاح'));
       _refresh(details.id);
     });
   }
@@ -197,8 +201,8 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       body: body,
     );
     result.fold(
-      (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (_) => emit(
+      (f) => safeEmit(VolunteerDetailsActionError(details, f.message)),
+      (_) => safeEmit(
         VolunteerDetailsActionSuccess(details, 'تم إرسال الرسالة بنجاح'),
       ),
     );
@@ -218,11 +222,11 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       rating: rating,
       comment: comment,
     );
-    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
+    result.fold((f) => safeEmit(VolunteerDetailsActionError(details, f.message)), (
       _,
     ) {
       final updated = details.copyWith(rating: rating.toDouble());
-      emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث التقييم'));
+      safeEmit(VolunteerDetailsActionSuccess(updated, 'تم تحديث التقييم'));
       _refresh(details.id);
     });
   }
@@ -239,11 +243,11 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       level: level,
       levelTitle: levelTitle,
     );
-    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
+    result.fold((f) => safeEmit(VolunteerDetailsActionError(details, f.message)), (
       _,
     ) {
       final updated = details.copyWith(level: level, levelTitle: levelTitle);
-      emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث المستوى'));
+      safeEmit(VolunteerDetailsActionSuccess(updated, 'تم تحديث المستوى'));
       _refresh(details.id);
     });
   }
@@ -256,7 +260,7 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
       volunteerId: details.id,
       fields: fields,
     );
-    result.fold((f) => emit(VolunteerDetailsActionError(details, f.message)), (
+    result.fold((f) => safeEmit(VolunteerDetailsActionError(details, f.message)), (
       _,
     ) {
       final updated = details.copyWith(
@@ -266,7 +270,7 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
         qualification:
             fields['qualification'] as String? ?? details.qualification,
       );
-      emit(VolunteerDetailsActionSuccess(updated, 'تم تحديث البيانات'));
+      safeEmit(VolunteerDetailsActionSuccess(updated, 'تم تحديث البيانات'));
       _refresh(details.id);
     });
   }
@@ -277,58 +281,51 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
     emit(VolunteerDetailsActionLoading(details));
     final result = await _suspendAccount(details.id);
     result.fold(
-      (f) => emit(VolunteerDetailsActionError(details, f.message)),
-      (_) => emit(VolunteerDetailsSuspended()),
+      (f) => safeEmit(VolunteerDetailsActionError(details, f.message)),
+      (_) => safeEmit(VolunteerDetailsSuspended()),
     );
   }
 
   Future<void> exportVolunteerPdf(VolunteerDetailsEntity details) async {
-    emit(VolunteerDetailsActionLoading(details));
+    if (state is VolunteerDetailsExporting) return;
+    emit(VolunteerDetailsExporting(details));
     try {
       final client = Supabase.instance.client;
-
-      List<dynamic> assessmentsRaw = [];
-      try {
-        assessmentsRaw = await client
-            .from('assessments')
-            .select(
-              'rating, comment, created_at, admin_id, users!assessments_admin_id_fkey(name)',
-            )
-            .eq('volunteer_id', details.id)
-            .order('created_at', ascending: false);
-      } catch (e, st) {
-        if (kDebugMode) {
-          debugPrint('Failed to fetch assessments: $e\n$st');
-        }
-      }
-
-      List<dynamic> tasksRaw = [];
-      try {
-        tasksRaw = await client
-            .from('task_assignments')
-            .select(
-              'status, checked_in_at, checked_out_at, verified_hours, is_verified, assigned_at, tasks!inner(title, type, date, duration_hours, time_start, time_end)',
-            )
-            .eq('user_id', details.id)
-            .order('assigned_at', ascending: false);
-      } catch (e, st) {
-        if (kDebugMode) {
-          debugPrint('Failed to fetch tasks: $e\n$st');
-        }
-      }
+      final results = await Future.wait([
+        _safeRows(
+          'assessments',
+          client
+              .from('assessments')
+              .select(
+                'rating, comment, created_at, admin_id, users!assessments_admin_id_fkey(name)',
+              )
+              .eq('volunteer_id', details.id)
+              .order('created_at', ascending: false),
+        ),
+        _safeRows(
+          'tasks',
+          client
+              .from('task_assignments')
+              .select(
+                'status, checked_in_at, checked_out_at, verified_hours, is_verified, assigned_at, tasks!inner(title, type, date, duration_hours, time_start, time_end)',
+              )
+              .eq('user_id', details.id)
+              .order('assigned_at', ascending: false),
+        ),
+      ]);
 
       late final Uint8List pdfBytes;
       try {
         pdfBytes = await VolunteerPdfService.generate(
           details: details,
-          assessments: List<Map<String, dynamic>>.from(assessmentsRaw),
-          tasks: List<Map<String, dynamic>>.from(tasksRaw),
+          assessments: results[0],
+          tasks: results[1],
         );
       } catch (e, st) {
         if (kDebugMode) {
           debugPrint('PDF creation error: $e\n$st');
         }
-        emit(VolunteerDetailsActionError(details, 'فشل إنشاء ملف PDF'));
+        safeEmit(VolunteerDetailsActionError(details, 'فشل إنشاء ملف PDF'));
         return;
       }
 
@@ -348,36 +345,31 @@ class VolunteerDetailsCubit extends Cubit<VolunteerDetailsState> {
         if (kDebugMode) {
           debugPrint('File save / share error: $e\n$st');
         }
-        emit(VolunteerDetailsActionError(details, 'فشل حفظ الملف'));
+        safeEmit(VolunteerDetailsActionError(details, 'فشل حفظ الملف'));
         return;
       }
 
-      // Don't emit success immediately - delay briefly to ensure proper state transition
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (!isClosed) {
-          emit(VolunteerDetailsActionSuccess(details, 'تم تصدير البيانات بنجاح'));
-        }
-      });
+      safeEmit(VolunteerDetailsActionSuccess(details, 'تم تصدير البيانات بنجاح'));
     } catch (e, st) {
-      final details = _currentDetails;
       if (kDebugMode) {
         debugPrint('General export error: $e\n$st');
       }
-      if (details != null) {
-        emit(VolunteerDetailsActionError(details, 'فشل تصدير البيانات'));
-      }
+      safeEmit(VolunteerDetailsActionError(details, 'فشل تصدير البيانات'));
     }
   }
 
-  /// Helper to extract details from any state that carries them.
-  VolunteerDetailsEntity? get _currentDetails {
-    final s = state;
-    if (s is VolunteerDetailsLoaded) return s.details;
-    if (s is VolunteerDetailsDeleting) return s.details;
-    if (s is VolunteerDetailsActionError) return s.details;
-    if (s is VolunteerDetailsActionLoading) return s.details;
-    if (s is VolunteerDetailsActionSuccess) return s.details;
-    if (s is VolunteerDetailsAvailableTasks) return s.details;
-    return null;
+  /// A failed side query must not block the export; it just renders empty.
+  Future<List<Map<String, dynamic>>> _safeRows(
+    String label,
+    Future<List<Map<String, dynamic>>> query,
+  ) async {
+    try {
+      return await query;
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('Failed to fetch $label: $e\n$st');
+      return const [];
+    }
   }
+
+  VolunteerDetailsEntity? get _currentDetails => state.detailsOrNull;
 }

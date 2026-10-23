@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/empty_state_text.dart';
 import 'package:t3afy/volunteer/performance/domain/entities/performance_entities.dart';
 import 'leader_row.dart';
 
@@ -19,44 +19,50 @@ class HonorBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final medals = ['🥇', '🥈', '🥉'];
-
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(
-              'لوحة الشرف',
-              style: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                color: ColorManager.natural900,
-                fontSize: FontSize.s14,
-              ),
+            Icon(
+              AppIcons.trophy,
+              size: AppSizes.iconL,
+              color: ColorManager.starText,
             ),
-            SizedBox(width: AppWidth.s6),
-            Image.asset(
-              IconAssets.trophy,
-              width: AppWidth.s24,
-              height: AppHeight.s24,
-            ),
+            SizedBox(width: Space.s),
+            Text('لوحة الشرف', style: AppText.title()),
           ],
         ),
-        SizedBox(height: AppHeight.s16),
-        ...leaderboard.asMap().entries.map((entry) {
-          final index = entry.key;
-          final l = entry.value;
-          return Padding(
-            padding: EdgeInsets.only(bottom: AppHeight.s8),
-            child: LeaderRow(
-              name: l.id == currentUserId ? '${l.name} (أنا)' : l.name,
-              hours: l.totalHours,
-              pts: l.pts,
-              isMe: l.id == currentUserId,
-              medal: index < 3 ? medals[index] : '${index + 1}',
+        SizedBox(height: Space.vm),
+        if (leaderboard.isEmpty)
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: ColorManager.surface,
+              borderRadius: BorderRadius.circular(Radii.card),
             ),
-          );
-        }),
+            child: const AppEmptyState(
+              title: 'لا يوجد ترتيب بعد',
+              message: 'أكمل المهام لتجمع النقاط وتظهر هنا',
+              icon: AppIcons.trophy,
+              compact: true,
+            ),
+          )
+        else
+          for (var i = 0; i < leaderboard.length; i++)
+            Padding(
+              key: ValueKey(leaderboard[i].id),
+              padding: EdgeInsets.only(bottom: Space.vs),
+              child: LeaderRow(
+                rank: i + 1,
+                name: leaderboard[i].id == currentUserId
+                    ? '${leaderboard[i].name} (أنا)'
+                    : leaderboard[i].name,
+                hours: leaderboard[i].totalHours,
+                pts: leaderboard[i].pts,
+                isMe: leaderboard[i].id == currentUserId,
+              ),
+            ),
       ],
     );
   }

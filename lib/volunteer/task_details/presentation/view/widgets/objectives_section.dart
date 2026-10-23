@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/app_card.dart';
 import 'package:t3afy/volunteer/task_details/domain/entities/task_objective_entity.dart';
-import 'gradient_card.dart';
-import 'section_header.dart';
 
 class ObjectivesSection extends StatelessWidget {
   const ObjectivesSection({super.key, required this.objectives});
@@ -15,52 +12,43 @@ class ObjectivesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GradientCard(
+    return AppCard(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionHeader(icon: IconAssets.target, title: 'الأهداف المطلوبة'),
-          SizedBox(height: AppHeight.s16),
-          ...objectives.asMap().entries.map(
-            (e) => Padding(
-              padding: EdgeInsets.only(bottom: AppHeight.s8),
+          const SectionHeader(title: 'الأهداف المطلوبة'),
+          for (var i = 0; i < objectives.length; i++)
+            Padding(
+              padding: EdgeInsets.only(
+                bottom: i == objectives.length - 1 ? 0 : Space.vm,
+              ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: AppWidth.s15,
-                    height: AppHeight.s15,
+                    width: 24,
+                    height: 24,
+                    alignment: Alignment.center,
                     decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: .topLeft,
-                        end: .bottomRight,
-                        colors: [Color(0xff36DFF1), Color(0xff2764E7)],
-                      ),
+                      color: ColorManager.brandSoft,
                       shape: BoxShape.circle,
                     ),
-                    child: Center(
-                      child: Text(
-                        '${e.key + 1}',
-                        style: getExtraBoldStyle(
-                          fontFamily: FontConstants.fontFamily,
-                          fontSize: FontSize.s8,
-                          color: Colors.white,
-                        ),
+                    child: Text(
+                      '${i + 1}',
+                      style: getNumericStyle(
+                        fontSize: 12,
+                        color: ColorManager.brandStrong,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  SizedBox(width: AppWidth.s5),
-                  Text(
-                    e.value.title,
-                    style: getSemiBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s12,
-                      color: ColorManager.natural400,
-                    ),
+                  SizedBox(width: Space.m),
+                  Expanded(
+                    child: Text(objectives[i].title, style: AppText.body()),
                   ),
                 ],
               ),
             ),
-          ),
         ],
       ),
     );

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
-import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
-import 'package:t3afy/admin/home/presentation/view/widgets/stat_card.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/stat_tile.dart';
 
+/// The four KPI tiles on the Manager command band.
 class StatsGrid extends StatelessWidget {
   const StatsGrid({
     super.key,
@@ -26,75 +26,59 @@ class StatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final volunteersTrend = volunteersThisMonth > 0
-        ? '↑$volunteersThisMonth هذا الشهر'
-        : null;
-
-    final String? activeTrend;
-    if (activeDiffFromYesterday > 0) {
-      activeTrend = '↑$activeDiffFromYesterday عن أمس';
-    } else if (activeDiffFromYesterday < 0) {
-      activeTrend = '↓${activeDiffFromYesterday.abs()} عن أمس';
-    } else {
-      activeTrend = null;
-    }
-
-    final String? hoursTrend;
-    if (hoursPercentChange > 0) {
-      hoursTrend = '↑$hoursPercentChange% هذا الشهر';
-    } else if (hoursPercentChange < 0) {
-      hoursTrend = '↓${hoursPercentChange.abs()}% هذا الشهر';
-    } else {
-      hoursTrend = null;
-    }
+    Widget row(Widget a, Widget b) => IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: a),
+          SizedBox(width: Space.m),
+          Expanded(child: b),
+        ],
+      ),
+    );
 
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: StatCard(
-                iconBgColor: ColorManager.primary50,
-                icon: IconAssets.vol,
-                value: '$totalVolunteers',
-                label: 'اجمالي المتطوعين',
-                trend: volunteersTrend,
-              ),
-            ),
-            SizedBox(width: AppWidth.s8),
-            Expanded(
-              child: StatCard(
-                iconBgColor: ColorManager.accentSand,
-                icon: IconAssets.boy,
-                value: '$activeTodayCount',
-                label: 'نشيط اليوم',
-                trend: activeTrend,
-              ),
-            ),
-          ],
+        row(
+          StatTile(
+            onDark: true,
+            icon: AppIcons.vol,
+            value: '$totalVolunteers',
+            label: 'إجمالي المتطوعين',
+            trend: volunteersThisMonth > 0
+                ? '+$volunteersThisMonth هذا الشهر'
+                : null,
+            trendUp: true,
+          ),
+          StatTile(
+            onDark: true,
+            icon: AppIcons.boy,
+            value: '$activeTodayCount',
+            label: 'نشيط اليوم',
+            trend: activeDiffFromYesterday == 0
+                ? null
+                : '${activeDiffFromYesterday.abs()} عن أمس',
+            trendUp: activeDiffFromYesterday > 0,
+          ),
         ),
-        SizedBox(height: AppHeight.s8),
-        Row(
-          children: [
-            Expanded(
-              child: StatCard(
-                iconBgColor: ColorManager.infoLight,
-                icon: IconAssets.alarm,
-                value: '$completedCampaigns',
-                label: 'حملة مكتملة',
-              ),
-            ),
-            SizedBox(width: AppWidth.s8),
-            Expanded(
-              child: StatCard(
-                iconBgColor: ColorManager.successLight,
-                icon: IconAssets.done2,
-                value: totalHours.toStringAsFixed(0),
-                label: 'ساعات التطوع',
-                trend: hoursTrend,
-              ),
-            ),
-          ],
+        SizedBox(height: Space.vm),
+        row(
+          StatTile(
+            onDark: true,
+            icon: AppIcons.done2,
+            value: '$completedCampaigns',
+            label: 'حملة مكتملة',
+          ),
+          StatTile(
+            onDark: true,
+            icon: AppIcons.hours,
+            value: totalHours.toStringAsFixed(0),
+            label: 'ساعات التطوع',
+            trend: hoursPercentChange == 0
+                ? null
+                : '${hoursPercentChange.abs()}% هذا الشهر',
+            trendUp: hoursPercentChange > 0,
+          ),
         ),
       ],
     );

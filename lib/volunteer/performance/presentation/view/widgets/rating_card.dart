@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/star_bloom_progress.dart';
 import 'package:t3afy/volunteer/performance/domain/entities/performance_entities.dart';
 
+/// Hero of the performance tab — overall rating in star gold and the
+/// commitment ratio as the star-bloom ring ("rising toward the star").
 class RatingCard extends StatelessWidget {
   const RatingCard({super.key, required this.stats});
 
@@ -14,98 +16,106 @@ class RatingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final filled = stats.rating.round().clamp(0, 5);
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.sp),
+      padding: EdgeInsets.all(Space.l),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: .topLeft,
-          end: .bottomRight,
-          colors: [Color(0xFF54A3BB), Color(0xFF007599)],
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.s16),
+        color: ColorManager.surface,
+        borderRadius: BorderRadius.circular(Radii.card),
+        boxShadow: AppShadows.card,
       ),
       child: Row(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'تقييمى الكلى',
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.natural50,
-                  fontSize: FontSize.s12,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('تقييمي الكلي', style: AppText.label()),
+                SizedBox(height: Space.vxs),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      stats.rating.toStringAsFixed(1),
+                      style: AppText.display(),
+                    ),
+                    SizedBox(width: Space.xs),
+                    Text(
+                      '/ 5.0',
+                      style: getNumericStyle(
+                        fontSize: FontSize.s13,
+                        color: ColorManager.inkFaint,
+                        fontWeight: FontWeightManager.medium,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              SizedBox(height: AppHeight.s2),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    stats.rating.toStringAsFixed(1),
-                    style: getBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.natural50,
-                      fontSize: FontSize.s24,
+                SizedBox(height: Space.vxs),
+                Semantics(
+                  label: 'التقييم ${stats.rating.toStringAsFixed(1)} من 5',
+                  child: ExcludeSemantics(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(
+                        5,
+                        (i) => Icon(
+                          i < filled ? AppIcons.star : AppIcons.unstar,
+                          size: AppSizes.iconL,
+                          color: i < filled
+                              ? ColorManager.star
+                              : ColorManager.line,
+                        ),
+                      ),
                     ),
                   ),
-                  Text(
-                    ' /5.0',
-                    style: getMediumStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.natural50,
-                      fontSize: FontSize.s13,
-                    ),
+                ),
+                SizedBox(height: Space.vm),
+                Container(
+                  padding: EdgeInsetsDirectional.symmetric(
+                    horizontal: Space.m,
+                    vertical: Space.vxs,
                   ),
-                ],
-              ),
-              SizedBox(height: AppHeight.s2),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(5, (index) {
-                  final filledCount = stats.rating.round().clamp(0, 5);
-                  return Padding(
-                    padding: EdgeInsets.only(left: 2.sp),
-                    child: Image.asset(
-                      color: index < filledCount
-                          ? null
-                          : ColorManager.natural50,
-                      index < filledCount ? IconAssets.star : IconAssets.unstar,
-                    ),
-                  );
-                }),
-              ),
-            ],
+                  decoration: BoxDecoration(
+                    color: ColorManager.brandSoft,
+                    borderRadius: BorderRadius.circular(Radii.chip),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        AppIcons.promotion,
+                        size: AppSizes.iconS,
+                        color: ColorManager.brandStrong,
+                      ),
+                      SizedBox(width: Space.xs),
+                      Flexible(
+                        child: Text(
+                          stats.levelTitle,
+                          style: AppText.label(color: ColorManager.brandStrong),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-
-          const Spacer(),
-
+          SizedBox(width: Space.m),
           Column(
             children: [
-              Container(
-                width: AppWidth.s70,
-                height: AppHeight.s68,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: ColorManager.primary300,
-                ),
-                child: Center(child: Image.asset(IconAssets.trophy)),
+              StarBloomProgress(
+                value: stats.commitmentPct / 100,
+                size: 84,
+                stroke: 7,
               ),
-              SizedBox(height: AppHeight.s8),
-              Text(
-                stats.levelTitle,
-                style: getSemiBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.natural50,
-                  fontSize: FontSize.s10,
-                ),
-              ),
+              SizedBox(height: Space.vs),
+              Text('الالتزام', style: AppText.label()),
             ],
           ),
-
-          // Rating info
         ],
       ),
     );

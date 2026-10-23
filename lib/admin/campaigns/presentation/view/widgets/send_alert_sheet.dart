@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:t3afy/app/local_storage.dart';
-import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/campaign_detail_entity.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
-import 'alert_field.dart';
+import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/style_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/primary_widgets.dart';
 
 class SendAlertSheet extends StatefulWidget {
   const SendAlertSheet({super.key, required this.detail});
@@ -21,6 +18,7 @@ class SendAlertSheet extends StatefulWidget {
 }
 
 class _SendAlertSheetState extends State<SendAlertSheet> {
+  final _formKey = GlobalKey<FormState>();
   final _titleCtrl = TextEditingController();
   final _bodyCtrl = TextEditingController();
   bool _sending = false;
@@ -32,119 +30,89 @@ class _SendAlertSheetState extends State<SendAlertSheet> {
     super.dispose();
   }
 
+  String? _required(String? v) =>
+      (v == null || v.trim().isEmpty) ? 'هذا الحقل مطلوب' : null;
+
   Future<void> _send() async {
-    final title = _titleCtrl.text.trim();
-    final body = _bodyCtrl.text.trim();
-    if (title.isEmpty || body.isEmpty) return;
-
-    final adminId = LocalAppStorage.getUserId() ?? '';
-    final volunteerIds = widget.detail.members.map((m) => m.id).toList();
-
+    if (!_formKey.currentState!.validate()) return;
     setState(() => _sending = true);
-    await context.read<CampaignDetailCubit>().sendAlert(
+    final sent = await context.read<CampaignDetailCubit>().sendAlert(
       taskId: widget.detail.id,
-      adminId: adminId,
-      title: title,
-      body: body,
-      volunteerIds: volunteerIds,
+      adminId: LocalAppStorage.getUserId() ?? '',
+      title: _titleCtrl.text.trim(),
+      body: _bodyCtrl.text.trim(),
+      volunteerIds: widget.detail.members.map((m) => m.id).toList(),
     );
-    if (mounted) Navigator.pop(context);
+    if (!mounted) return;
+    // On failure the error is toasted by the detail screen; keep the text.
+    if (sent) {
+      Navigator.pop(context);
+    } else {
+      setState(() => _sending = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: Container(
-        padding: EdgeInsets.all(AppSize.s20),
+        padding: EdgeInsets.fromLTRB(
+          Space.gutter,
+          Space.vm,
+          Space.gutter,
+          Space.vl + MediaQuery.paddingOf(context).bottom,
+        ),
         decoration: BoxDecoration(
-          color: ColorManager.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+          color: ColorManager.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.sheet)),
         ),
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40.w,
-                  height: 4.h,
-                  decoration: BoxDecoration(
-                    color: ColorManager.natural200,
-                    borderRadius: BorderRadius.circular(2.r),
-                  ),
-                ),
-              ),
-              SizedBox(height: AppHeight.s16),
-              Text(
-                'إرسال تنبيه للفريق',
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s16,
-                  color: ColorManager.natural900,
-                ),
-              ),
-              SizedBox(height: AppHeight.s6),
-              Text(
-                'سيُرسل التنبيه لجميع المتطوعين المعيّنين (${widget.detail.members.length})',
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s12,
-                  color: ColorManager.natural400,
-                ),
-              ),
-              SizedBox(height: AppHeight.s20),
-              AlertField(
-                controller: _titleCtrl,
-                hint: 'عنوان التنبيه',
-                maxLines: 1,
-              ),
-              SizedBox(height: AppHeight.s12),
-              AlertField(
-                controller: _bodyCtrl,
-                hint: 'نص التنبيه',
-                maxLines: 4,
-              ),
-              SizedBox(height: AppHeight.s20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _sending
-                      ? null
-                      : () {
-                          HapticFeedback.mediumImpact();
-                          _send();
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ColorManager.cyanPrimary,
-                    padding: EdgeInsets.symmetric(vertical: AppHeight.s14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.s12),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: ColorManager.line,
+                      borderRadius: BorderRadius.circular(Radii.chip),
                     ),
                   ),
-                  child: _sending
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Text(
-                          'إرسال التنبيه',
-                          style: getBoldStyle(
-                            fontFamily: FontConstants.fontFamily,
-                            fontSize: FontSize.s14,
-                            color: Colors.white,
-                          ),
-                        ),
                 ),
-              ),
-            ],
+                SizedBox(height: Space.vl),
+                Text('إرسال تنبيه للفريق', style: AppText.title()),
+                SizedBox(height: Space.vxs),
+                Text(
+                  'سيصل التنبيه لجميع المتطوعين المعيّنين (${widget.detail.members.length})',
+                  style: AppText.label(),
+                ),
+                SizedBox(height: Space.vl),
+                PrimaryTextFF(
+                  controller: _titleCtrl,
+                  hint: 'عنوان التنبيه',
+                  validator: _required,
+                  textInputAction: TextInputAction.next,
+                ),
+                SizedBox(height: Space.vm),
+                PrimaryTextFF(
+                  controller: _bodyCtrl,
+                  hint: 'نص التنبيه',
+                  maxLines: 4,
+                  validator: _required,
+                ),
+                SizedBox(height: Space.vxl),
+                PrimaryElevatedButton(
+                  title: 'إرسال التنبيه',
+                  isLoading: _sending,
+                  onPress: _send,
+                ),
+              ],
+            ),
           ),
         ),
       ),

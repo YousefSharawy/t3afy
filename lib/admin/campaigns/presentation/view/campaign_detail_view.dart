@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
-import 'package:t3afy/base/widgets/primary_tab_bar.dart';
-import 'package:t3afy/app/resources/extenstions.dart';
-import 'package:t3afy/base/widgets/loading_indicator.dart';
-import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/shimmers.dart';
+import 'package:t3afy/base/widgets/app_async_body.dart';
+import 'package:t3afy/base/widgets/app_page_header.dart';
+import 'package:t3afy/base/widgets/primary_tab_bar.dart';
+import 'widgets/actions_tab.dart';
 import 'widgets/campaign_hero_card.dart';
+import 'widgets/live_map_tab.dart';
 import 'widgets/overview_tab.dart';
 import 'widgets/team_tab.dart';
-import 'widgets/actions_tab.dart';
-import 'widgets/live_map_tab.dart';
 
 class CampaignDetailView extends StatefulWidget {
   const CampaignDetailView({super.key, required this.taskId});
@@ -28,6 +26,7 @@ class CampaignDetailView extends StatefulWidget {
 
 class _CampaignDetailViewState extends State<CampaignDetailView>
     with SingleTickerProviderStateMixin {
+  static const _mapTab = 3;
   late final TabController _tabController;
 
   @override
@@ -45,96 +44,123 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: ColorManager.background,
-        appBar: AppBar(
-          backgroundColor: ColorManager.background,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: ColorManager.natural900,
-              size: 24.sp,
+    final cubit = context.read<CampaignDetailCubit>();
+    return Scaffold(
+      backgroundColor: ColorManager.canvas,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            AppPageHeader(
+              title: 'تفاصيل الحملة',
+              showBack: true,
+              // Only ask the list to reload when something actually changed.
+              onBack: () => context.pop(cubit.hasChanges),
             ),
-            onPressed: () => context.pop(true),
-          ),
-          title: Text(
-            'تفاصيل الحملة',
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s16,
-              color: ColorManager.natural900,
+            Expanded(
+              child: BlocConsumer<CampaignDetailCubit, CampaignDetailState>(
+                listener: (context, state) {
+                  if (state is CampaignDetailDeleted) {
+                    Toast.success.show(context, title: 'تم حذف الحملة بنجاح');
+                    context.pop(true);
+                  } else if (state is CampaignDetailActionError) {
+                    Toast.error.show(context, title: state.message);
+                  } else if (state is CampaignDetailAlertSent) {
+                    Toast.success.show(context, title: 'تم إرسال التنبيه بنجاح');
+                  }
+                },
+                buildWhen: (previous, current) =>
+                    current is CampaignDetailLoaded ||
+                    current is CampaignDetailLoading ||
+                    current is CampaignDetailError,
+                builder: (context, state) {
+                  final detail = cubit.detail;
+                  return AppAsyncBody(
+                    hasData: detail != null,
+                    errorMessage: state is CampaignDetailError
+                        ? state.message
+                        : null,
+                    onRetry: () => cubit.load(widget.taskId),
+                    skeleton: const _DetailSkeleton(),
+                    builder: (context) => Column(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Space.gutter,
+                          ),
+                          child: CampaignHeroCard(detail: detail!),
+                        ),
+                        SizedBox(height: Space.vl),
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Space.gutter,
+                          ),
+                          child: PrimaryTabBar(
+                            controller: _tabController,
+                            labels: const [
+                              'نظرة عامة',
+                              'الفريق',
+                              'الإجراءات',
+                              'الخريطة',
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          // The map handles its own pan gestures, so swiping
+                          // between tabs is turned off while it is shown.
+                          child: ListenableBuilder(
+                            listenable: _tabController,
+                            builder: (context, _) => TabBarView(
+                              controller: _tabController,
+                              physics: _tabController.index == _mapTab
+                                  ? const NeverScrollableScrollPhysics()
+                                  : null,
+                              children: [
+                                OverviewTab(detail: detail),
+                                TeamTab(detail: detail),
+                                ActionsTab(detail: detail),
+                                LiveMapTab(detail: detail),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-          centerTitle: true,
-        ),
-        body: BlocConsumer<CampaignDetailCubit, CampaignDetailState>(
-          listener: (context, state) {
-            if (state is CampaignDetailDeleted) {
-              Toast.success.show(context, title: 'تم حذف الحملة بنجاح');
-              if (context.mounted) context.pop(true);
-            } else if (state is CampaignDetailActionError) {
-              Toast.error.show(context, title: state.message);
-            } else if (state is CampaignDetailAlertSent) {
-              Toast.success.show(context, title: 'تم إرسال التنبيه بنجاح');
-            }
-          },
-          buildWhen: (previous, current) =>
-              current is! CampaignDetailSaving &&
-              current is! CampaignDetailDeleted &&
-              current is! CampaignDetailAlertSent &&
-              current is! CampaignDetailActionError,
-          builder: (context, state) {
-            if (state is CampaignDetailLoading ||
-                state is CampaignDetailInitial) {
-              return const LoadingIndicator();
-            }
-            if (state is CampaignDetailError) {
-              return ErrorState(
-                message: state.message,
-                onRetry: () =>
-                    context.read<CampaignDetailCubit>().load(widget.taskId),
-              );
-            }
-
-            final detail = state is CampaignDetailLoaded ? state.detail : null;
-            if (detail == null) return const LoadingIndicator();
-
-            return Column(
-              children: [
-                SizedBox(height: AppHeight.s16),
-                CampaignHeroCard(detail: detail),
-                SizedBox(height: AppHeight.s16),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppWidth.s16),
-                  child: PrimaryTabBar(
-                    controller: _tabController,
-                    labels: const [
-                      'نظرة عامة',
-                      'الفريق',
-                      'الاجراءات',
-                      'الخريطة',
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      OverviewTab(detail: detail),
-                      TeamTab(detail: detail),
-                      ActionsTab(detail: detail),
-                      LiveMapTab(detail: detail),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _DetailSkeleton extends StatelessWidget {
+  const _DetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: Space.gutter),
+      children: [
+        Skeleton(
+          child: Column(
+            children: [
+              SkeletonBox(height: 132, radius: Radii.card),
+              SizedBox(height: Space.vl),
+              SkeletonBox(height: 44, radius: Radii.input),
+            ],
+          ),
+        ),
+        SkeletonList(
+          count: 3,
+          shrinkWrap: true,
+          padding: EdgeInsets.only(top: Space.vl),
+        ),
+      ],
     );
   }
 }

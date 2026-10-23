@@ -12,10 +12,14 @@ class HomeImplRepository implements VolunteerHomeRepository {
 
   @override
   Future<Either<Failture, VolunteerStatsEntity>> getVolunteerStats(
-    String userId,
-  ) async {
+    String userId, {
+    bool skipCache = false,
+  }) async {
     try {
-      final result = await _dataSource.getVolunteerStats(userId);
+      final result = await _dataSource.getVolunteerStats(
+        userId,
+        skipCache: skipCache,
+      );
       return Right(result.toEntity());
     } on Failture catch (failture) {
       return Left(failture);
@@ -24,10 +28,14 @@ class HomeImplRepository implements VolunteerHomeRepository {
 
   @override
   Future<Either<Failture, List<TaskEntity>>> getTodayTasks(
-    String userId,
-  ) async {
+    String userId, {
+    bool skipCache = false,
+  }) async {
     try {
-      final result = await _dataSource.getTodayTasks(userId);
+      final result = await _dataSource.getTodayTasks(
+        userId,
+        skipCache: skipCache,
+      );
       return Right(result.map((t) => t.toEntity()).toList());
     } on Failture catch (failture) {
       return Left(failture);

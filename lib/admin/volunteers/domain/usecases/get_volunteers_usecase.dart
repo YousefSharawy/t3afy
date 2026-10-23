@@ -8,7 +8,9 @@ class GetVolunteersUsecase {
 
   GetVolunteersUsecase(this._repo);
 
-  Future<Either<Failture, List<AdminVolunteerEntity>>> call() {
-    return _repo.getVolunteers();
+  Future<Either<Failture, List<AdminVolunteerEntity>>> call({
+    bool forceRefresh = false,
+  }) {
+    return _repo.getVolunteers(forceRefresh: forceRefresh);
   }
 }

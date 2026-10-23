@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
-import 'home_stat_card.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/stat_tile.dart';
 
+/// Five KPIs as a balanced 3 + 2 layout (the old 2 + 2 + 1 left an orphan).
 class StatsGrid extends StatelessWidget {
   const StatsGrid({
     super.key,
@@ -22,53 +25,55 @@ class StatsGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: HomeStatCard(
-                value: totalHours.toString(),
-                label: 'ساعات التطوع',
-              ),
-            ),
-            SizedBox(width: AppWidth.s8),
-            Expanded(
-              child: HomeStatCard(
-                value: placesVisited.toString(),
-                label: 'أماكن مزارة',
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: AppHeight.s8),
-        Row(
-          children: [
-            Expanded(
-              child: HomeStatCard(
-                value: totalTasks.toString(),
-                label: 'مهام منجزة',
-              ),
-            ),
-            SizedBox(width: AppWidth.s8),
-            Expanded(
-              child: HomeStatCard(
-                value: rating.toStringAsFixed(1),
-                label: 'التقييم',
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: AppHeight.s8),
-        Row(
-          children: [
-            Expanded(
-              child: HomeStatCard(
-                value: totalPoints.toString(),
-                label: 'النقاط المكتسبة',
-              ),
-            ),
-          ],
-        ),
+        _row([
+          StatTile(
+            value: '$totalHours',
+            label: 'ساعات التطوع',
+            icon: AppIcons.hours,
+          ),
+          StatTile(
+            value: '$totalTasks',
+            label: 'مهام منجزة',
+            icon: AppIcons.done,
+            tint: ColorManager.sprout,
+          ),
+          StatTile(
+            value: '$placesVisited',
+            label: 'أماكن مزارة',
+            icon: AppIcons.location,
+            tint: ColorManager.info,
+          ),
+        ]),
+        SizedBox(height: Space.vm),
+        _row([
+          StatTile(
+            value: '$totalPoints',
+            label: 'النقاط المكتسبة',
+            icon: AppIcons.medal,
+            tint: ColorManager.brandStrong,
+          ),
+          StatTile(
+            value: rating.toStringAsFixed(1),
+            label: 'التقييم',
+            icon: AppIcons.star,
+            tint: ColorManager.star,
+          ),
+        ]),
       ],
+    );
+  }
+
+  Widget _row(List<Widget> tiles) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < tiles.length; i++) ...[
+            if (i > 0) SizedBox(width: Space.m),
+            Expanded(child: tiles[i]),
+          ],
+        ],
+      ),
     );
   }
 }

@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
-import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
-import 'gradient_card.dart';
-import 'section_header.dart';
+import 'package:t3afy/base/widgets/app_card.dart';
 
 class DescriptionSection extends StatelessWidget {
   const DescriptionSection({super.key, required this.description});
@@ -14,21 +9,12 @@ class DescriptionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GradientCard(
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(icon: IconAssets.details, title: 'وصف المهمة'),
-          SizedBox(height: AppHeight.s10),
-          Text(
-            description,
-            textAlign: TextAlign.right,
-            style: getSemiBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color: ColorManager.natural400,
-            ),
-          ),
+          const SectionHeader(title: 'وصف المهمة'),
+          Text(description, style: AppText.body()),
         ],
       ),
     );

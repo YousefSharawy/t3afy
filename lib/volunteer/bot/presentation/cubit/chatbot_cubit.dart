@@ -1,13 +1,14 @@
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:t3afy/core/data/safe_emit.dart';
 import 'package:t3afy/volunteer/bot/presentation/view/widgets/chat_message.dart';
 
 part 'chatbot_state.dart';
 part 'chatbot_cubit.freezed.dart';
 
-class ChatbotCubit extends Cubit<ChatbotState> {
+class ChatbotCubit extends Cubit<ChatbotState> with SafeEmit<ChatbotState> {
   ChatbotCubit() : super(ChatbotState.loaded(messages: [])) {
-    _sendBotMessage('مرحبا! انا مساعدك الذكى. كيف يمكنى مساعدتك اليوم؟');
+    _sendBotMessage('مرحباً! أنا مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟');
   }
 
   static const Map<List<String>, String> _faqResponses = {
@@ -60,12 +61,12 @@ class ChatbotCubit extends Cubit<ChatbotState> {
     );
 
     currentMessages.add(userMessage);
-    emit(ChatbotState.loaded(messages: currentMessages));
+    safeEmit(ChatbotState.loaded(messages: currentMessages));
 
     // Simulate typing delay
     Future.delayed(const Duration(milliseconds: 800), () {
-      final response = _getResponse(text);
-      _sendBotMessage(response);
+      if (isClosed) return;
+      _sendBotMessage(_getResponse(text));
     });
   }
 
@@ -77,7 +78,7 @@ class ChatbotCubit extends Cubit<ChatbotState> {
     );
 
     currentMessages.add(botMessage);
-    emit(ChatbotState.loaded(messages: currentMessages));
+    safeEmit(ChatbotState.loaded(messages: currentMessages));
   }
 
   String _getResponse(String input) {

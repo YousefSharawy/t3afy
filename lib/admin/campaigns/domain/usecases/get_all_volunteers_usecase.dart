@@ -7,6 +7,7 @@ class GetAllVolunteersUsecase {
   final CampaignsRepo _repo;
   GetAllVolunteersUsecase(this._repo);
 
-  Future<Either<Failture, List<VolunteerEntity>>> call() =>
-      _repo.getAllVolunteers();
+  Future<Either<Failture, List<VolunteerEntity>>> call({
+    bool skipCache = false,
+  }) => _repo.getAllVolunteers(skipCache: skipCache);
 }

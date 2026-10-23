@@ -1,71 +1,105 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/style_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/app_map_preview.dart';
+import 'package:t3afy/base/widgets/after_transition.dart';
+import 'hotspot.dart';
 
 class MapSection extends StatelessWidget {
-  const MapSection({super.key, required this.center});
+  const MapSection({super.key, required this.center, required this.hotspots});
 
   final LatLng center;
+  final List<Hotspot> hotspots;
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.s16),
-      child: SizedBox(
-        height: AppHeight.s238,
-        child: FlutterMap(
-          options: MapOptions(
-            initialCenter: center,
-            initialZoom: 10,
-            interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(Radii.card),
+          child: SizedBox(
+            height: 240.h,
+            child: RepaintBoundary(
+              child: AfterTransition(
+                child: FlutterMap(
+                  options: MapOptions(
+                    initialCenter: center,
+                    initialZoom: 10,
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+                    ),
+                  ),
+                  children: [
+                    AppMapTiles.layer(),
+                    CircleLayer(
+                      circles: [
+                        for (final h in hotspots)
+                          CircleMarker(
+                            point: h.point,
+                            radius: h.radiusMeters,
+                            useRadiusInMeter: true,
+                            color: h.severity.color.withValues(alpha: 0.3),
+                            borderColor: h.severity.color.withValues(
+                              alpha: 0.75,
+                            ),
+                            borderStrokeWidth: 2,
+                          ),
+                      ],
+                    ),
+                    AppMapTiles.attribution(),
+                  ],
+                ),
+              ),
             ),
           ),
-          children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.t3afy.app',
-            ),
-            CircleLayer(
-              circles: [
-                CircleMarker(
-                  point: LatLng(30.0626, 31.3361),
-                  radius: 2800,
-                  useRadiusInMeter: true,
-                  color: Colors.red.withValues(alpha: 0.35),
-                  borderColor: Colors.red.withValues(alpha: 0.7),
-                  borderStrokeWidth: 2,
-                ),
-                CircleMarker(
-                  point: LatLng(30.0702, 31.2089),
-                  radius: 2000,
-                  useRadiusInMeter: true,
-                  color: Colors.amber.withValues(alpha: 0.35),
-                  borderColor: Colors.amber.withValues(alpha: 0.7),
-                  borderStrokeWidth: 2,
-                ),
-                CircleMarker(
-                  point: LatLng(30.1128, 31.2428),
-                  radius: 1500,
-                  useRadiusInMeter: true,
-                  color: Colors.amber.withValues(alpha: 0.35),
-                  borderColor: Colors.amber.withValues(alpha: 0.7),
-                  borderStrokeWidth: 2,
-                ),
-                CircleMarker(
-                  point: LatLng(30.0131, 31.4731),
-                  radius: 1200,
-                  useRadiusInMeter: true,
-                  color: const Color(0xFF2DD4BF).withValues(alpha: 0.3),
-                  borderColor: const Color(0xFF2DD4BF).withValues(alpha: 0.7),
-                  borderStrokeWidth: 2,
-                ),
-              ],
-            ),
-          ],
         ),
-      ),
+        SizedBox(height: Space.vs),
+        const _SeverityLegend(),
+      ],
+    );
+  }
+}
+
+class _SeverityLegend extends StatelessWidget {
+  const _SeverityLegend();
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: Space.l,
+      runSpacing: Space.vxs,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(
+          'مستوى التركيز:',
+          style: AppText.caption(color: ColorManager.inkMuted),
+        ),
+        for (final s in HotspotSeverity.values)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: s.color.withValues(alpha: 0.5),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: s.color, width: 1.5),
+                ),
+              ),
+              SizedBox(width: Space.xs),
+              Text(
+                s.label,
+                style: AppText.caption(color: ColorManager.inkMuted),
+              ),
+            ],
+          ),
+      ],
     );
   }
 }

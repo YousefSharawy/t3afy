@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,18 +11,8 @@ import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
 import 'resources/constants_manager.dart';
 import 'resources/theme_manager.dart';
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +39,14 @@ class _MyAppState extends State<MyApp> {
             supportedLocales: context.supportedLocales,
             locale: context.locale,
             routerConfig: AppNavigation.router,
+            // App-wide default: dark status-bar icons on light screens. Dark
+            // screens (splash, Manager home band) override it locally.
+            builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+              value: SystemUiOverlayStyle.dark.copyWith(
+                statusBarColor: Colors.transparent,
+              ),
+              child: child ?? const SizedBox.shrink(),
+            ),
           );
         },
         designSize: const Size(375, 812),

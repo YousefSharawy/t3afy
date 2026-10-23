@@ -1,16 +1,17 @@
-import 'dart:async';
-
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/core/data/realtime_hub.dart';
+import 'package:t3afy/core/data/safe_emit.dart';
 import 'package:t3afy/volunteer/performance/domain/entities/performance_entities.dart';
 import 'package:t3afy/volunteer/performance/domain/use_cases/performance_use_cases.dart';
 
 part 'performance_state.dart';
 part 'performance_cubit.freezed.dart';
 
-class PerformanceCubit extends Cubit<PerformanceState> {
+class PerformanceCubit extends Cubit<PerformanceState>
+    with SafeEmit<PerformanceState> {
   PerformanceCubit(
     this._getPerformanceStats,
     this._getMonthlyHours,
@@ -21,107 +22,108 @@ class PerformanceCubit extends Cubit<PerformanceState> {
   final GetMonthlyHours _getMonthlyHours;
   final GetLeaderboard _getLeaderboard;
 
-  RealtimeChannel? _usersChannel;
-  RealtimeChannel? _assignmentsChannel;
-  Timer? _debounce;
+  RealtimeHub? _hub;
   String? _currentUserId;
 
+  bool get _hasData =>
+      state.maybeWhen(loaded: (_, _, _, _) => true, orElse: () => false);
+
   void _subscribeToRealtime(String userId) {
-    _usersChannel?.unsubscribe();
-    _usersChannel = Supabase.instance.client
-        .channel('volunteer_performance_user_$userId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'users',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'id',
-            value: userId,
-          ),
-          callback: (_) => _onRealtimeChange(),
-        )
-        .subscribe();
-
-    _assignmentsChannel?.unsubscribe();
-    _assignmentsChannel = Supabase.instance.client
-        .channel('volunteer_performance_assignments_$userId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'task_assignments',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'user_id',
-            value: userId,
-          ),
-          callback: (_) => _onRealtimeChange(),
-        )
-        .subscribe();
+    _hub?.dispose();
+    final hub = _hub = RealtimeHub();
+    hub.watch(
+      name: 'volunteer_performance_user_$userId',
+      table: 'users',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'id',
+        value: userId,
+      ),
+      onChange: _onRealtimeChange,
+    );
+    hub.watch(
+      name: 'volunteer_performance_assignments_$userId',
+      table: 'task_assignments',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'user_id',
+        value: userId,
+      ),
+      onChange: _onRealtimeChange,
+    );
   }
 
-  void _onRealtimeChange() {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () async {
-      if (_currentUserId == null) return;
-      await LocalAppStorage.invalidateCache('perf_stats_$_currentUserId');
-      await LocalAppStorage.invalidateCache('monthly_hours_$_currentUserId');
-      await LocalAppStorage.invalidateCache('leaderboard_v2');
-      await loadPerformance(_currentUserId!);
-    });
+  Future<void> _onRealtimeChange() async {
+    if (_currentUserId == null || isClosed) return;
+    await _invalidate(_currentUserId!);
+    await loadPerformance(_currentUserId!);
   }
+
+  Future<void> _invalidate(String userId) => Future.wait([
+    LocalAppStorage.invalidateCache('perf_stats_$userId'),
+    LocalAppStorage.invalidateCache('monthly_hours_$userId'),
+    LocalAppStorage.invalidateCache('leaderboard_v2'),
+  ]);
 
   @override
   Future<void> close() async {
-    _debounce?.cancel();
-    final client = Supabase.instance.client;
-    if (_usersChannel != null) client.removeChannel(_usersChannel!);
-    if (_assignmentsChannel != null) client.removeChannel(_assignmentsChannel!);
+    await _hub?.dispose();
     return super.close();
   }
 
-  /// Invalidates all performance cache keys then reloads fresh data.
-  /// Wire this to RefreshIndicator.onRefresh instead of loadPerformance().
-  Future<void> refreshPerformance() async {
+  /// Pull-to-refresh: bypasses the cache and keeps the current data on screen.
+  /// Returns an error message when the refresh failed (data is kept).
+  Future<String?> refreshPerformance() async {
     final userId = _currentUserId;
-    if (userId == null) return;
-    await LocalAppStorage.invalidateCache('perf_stats_$userId');
-    await LocalAppStorage.invalidateCache('monthly_hours_$userId');
-    await LocalAppStorage.invalidateCache('leaderboard_v2');
-    await loadPerformance(userId);
+    if (userId == null) return null;
+    await _invalidate(userId);
+    return loadPerformance(userId);
   }
 
-  Future<void> loadPerformance(String userId) async {
+  /// First load shows the loading state; later loads swap data in place and
+  /// never replace good data with an error. Returns the error message, if any.
+  Future<String?> loadPerformance(String userId) async {
     if (_currentUserId != userId) {
       _currentUserId = userId;
       _subscribeToRealtime(userId);
     }
-    emit(const PerformanceState.loading());
+    final hadData = _hasData;
+    if (!hadData) safeEmit(const PerformanceState.loading());
 
-    final statsResult = await _getPerformanceStats(userId);
-    final monthlyResult = await _getMonthlyHours(userId);
-    final leaderboardResult = await _getLeaderboard();
+    final (statsResult, monthlyResult, leaderboardResult) = await (
+      _getPerformanceStats(userId),
+      _getMonthlyHours(userId),
+      _getLeaderboard(),
+    ).wait;
 
-    statsResult.fold(
-      (failure) => emit(PerformanceState.error(failure.message)),
-      (stats) {
-        monthlyResult.fold(
-          (failure) => emit(PerformanceState.error(failure.message)),
-          (monthly) {
-            leaderboardResult.fold(
-              (failure) => emit(PerformanceState.error(failure.message)),
-              (leaderboard) => emit(
-                PerformanceState.loaded(
-                  stats: stats,
-                  monthlyHours: monthly,
-                  leaderboard: leaderboard,
-                  currentUserId: userId,
-                ),
-              ),
-            );
-          },
-        );
-      },
+    String? error;
+    final stats = statsResult.fold((f) {
+      error ??= f.message;
+      return null;
+    }, (v) => v);
+    final monthly = monthlyResult.fold((f) {
+      error ??= f.message;
+      return null;
+    }, (v) => v);
+    final leaderboard = leaderboardResult.fold((f) {
+      error ??= f.message;
+      return null;
+    }, (v) => v);
+
+    if (stats == null || monthly == null || leaderboard == null) {
+      final message = error ?? '';
+      if (!hadData) safeEmit(PerformanceState.error(message));
+      return message;
+    }
+
+    safeEmit(
+      PerformanceState.loaded(
+        stats: stats,
+        monthlyHours: monthly,
+        leaderboard: leaderboard,
+        currentUserId: userId,
+      ),
     );
+    return null;
   }
 }

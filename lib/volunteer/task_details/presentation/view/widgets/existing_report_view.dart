@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/app_card.dart';
+import 'package:t3afy/base/widgets/status_badge.dart';
 
+/// The volunteer's submitted report: review status and supervisor feedback.
 class ExistingReportView extends StatelessWidget {
   const ExistingReportView({super.key, required this.report});
 
@@ -13,86 +15,52 @@ class ExistingReportView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = report['status'] as String? ?? 'pending';
-    final (statusLabel, statusColor, statusIcon) = switch (status) {
-      'approved' => (
-        'تمت الموافقة',
-        const Color(0xFF4CAF50),
-        Icons.check_circle_rounded,
-      ),
-      'rejected' => ('مرفوض', Colors.red, Icons.cancel_rounded),
-      _ => ('قيد المراجعة', ColorManager.amber400, Icons.hourglass_top_rounded),
+    final style = StatusBadge.styleOf(status);
+    final icon = switch (status) {
+      'approved' => AppIcons.done,
+      'rejected' => Icons.cancel_rounded,
+      _ => Icons.hourglass_top_rounded,
     };
+    final feedback = report['admin_feedback'] as String?;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(AppSize.s20),
+    return AppCard(
+      accent: style.accent,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: AppHeight.s16),
-          Icon(statusIcon, color: statusColor, size: 64.r),
-          SizedBox(height: AppHeight.s16),
-          Text(
-            'لقد قمت برفع تقرير لهذه المهمة',
-            style: getSemiBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s14,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(height: AppHeight.s12),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppWidth.s16,
-              vertical: AppHeight.s8,
-            ),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(AppRadius.s20),
-              border: Border.all(color: statusColor.withValues(alpha: 0.4)),
-            ),
-            child: Text(
-              statusLabel,
-              style: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s13,
-                color: statusColor,
+          Row(
+            children: [
+              AppIconBadge(icon: icon, color: style.accent, size: 40),
+              SizedBox(width: Space.m),
+              Expanded(
+                child: Text(
+                  'لقد قمت برفع تقرير لهذه المهمة',
+                  style: AppText.bodyStrong(),
+                ),
               ),
-            ),
+              StatusBadge(status: status),
+            ],
           ),
-          if (report['admin_feedback'] != null) ...[
-            SizedBox(height: AppHeight.s20),
+          if (feedback != null && feedback.trim().isNotEmpty) ...[
+            SizedBox(height: Space.vm),
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(AppSize.s16),
+              padding: EdgeInsets.all(Space.m),
               decoration: BoxDecoration(
-                color: ColorManager.blueOne700,
-                borderRadius: BorderRadius.circular(AppRadius.s12),
+                color: ColorManager.surfaceSunken,
+                borderRadius: BorderRadius.circular(Radii.input),
+                border: Border.all(color: ColorManager.line),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'ملاحظات المشرف',
-                    style: getBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s13,
-                      color: ColorManager.cyanPrimary,
-                    ),
-                  ),
-                  SizedBox(height: AppHeight.s8),
-                  Text(
-                    report['admin_feedback'] as String,
-                    textAlign: TextAlign.right,
-                    style: getRegularStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s13,
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
-                  ),
+                  Text('ملاحظات المشرف', style: AppText.label()),
+                  SizedBox(height: Space.vxs),
+                  Text(feedback, style: AppText.body()),
                 ],
               ),
             ),
           ],
-          SizedBox(height: AppHeight.s32),
         ],
       ),
     );

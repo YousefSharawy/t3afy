@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_cubit.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_state.dart';
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_data_tab.dart';
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_details_header.dart';
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_manage_tab.dart';
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_tasks_tab.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/extenstions.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/base/shimmers.dart';
+import 'package:t3afy/base/widgets/app_page_header.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
-import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/base/widgets/primary_tab_bar.dart';
 
 class VolunteerDetailsView extends StatefulWidget {
@@ -42,141 +43,157 @@ class _VolunteerDetailsViewState extends State<VolunteerDetailsView>
     super.dispose();
   }
 
+  /// The single place that closes this screen after delete / suspend /
+  /// approve / reject (the manage tab used to pop too → double pop).
+  void _listener(BuildContext context, VolunteerDetailsState state) {
+    if (state is VolunteerDetailsDeleted) {
+      Toast.success.show(context, title: 'تم حذف المتطوع');
+      context.pop(true);
+    } else if (state is VolunteerDetailsSuspended) {
+      Toast.success.show(context, title: 'تم تعليق الحساب');
+      context.pop(true);
+    } else if (state is VolunteerDetailsDecided) {
+      Toast.success.show(context, title: state.message);
+      context.pop(true);
+    } else if (state is VolunteerDetailsActionError) {
+      Toast.error.show(context, title: state.message);
+    }
+  }
+
+  /// Rebuild only when the details object changes or the screen switches
+  /// between skeleton / error / data — action progress never blanks the view.
+  bool _buildWhen(VolunteerDetailsState prev, VolunteerDetailsState curr) {
+    final next = curr.detailsOrNull;
+    if (next == null) {
+      return curr is VolunteerDetailsLoading ||
+          curr is VolunteerDetailsError ||
+          curr is VolunteerDetailsInitial;
+    }
+    return !identical(prev.detailsOrNull, next);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: ColorManager.background,
-        appBar: AppBar(
-          backgroundColor: ColorManager.background,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: ColorManager.natural900,
-              size: 24.sp,
+    return Scaffold(
+      backgroundColor: ColorManager.canvas,
+      body: SafeArea(
+        child: Column(
+          children: [
+            AppPageHeader(
+              title: 'بيانات المتطوع',
+              showBack: true,
+              actions: const [_ExportAction()],
             ),
-            onPressed: () => context.pop(),
-          ),
-          actions: [
-            BlocBuilder<VolunteerDetailsCubit, VolunteerDetailsState>(
-              builder: (context, state) {
-                VolunteerDetailsEntity? details;
-                if (state is VolunteerDetailsLoaded) {
-                  details = state.details;
-                } else if (state is VolunteerDetailsActionError) {
-                  details = state.details;
-                } else if (state is VolunteerDetailsActionSuccess) {
-                  details = state.details;
-                } else if (state is VolunteerDetailsAvailableTasks) {
-                  details = state.details;
-                }
+            Expanded(
+              child: BlocConsumer<VolunteerDetailsCubit, VolunteerDetailsState>(
+                listener: _listener,
+                buildWhen: _buildWhen,
+                builder: (context, state) {
+                  if (state is VolunteerDetailsError) {
+                    return ErrorState(
+                      message: state.message,
+                      onRetry: () => context
+                          .read<VolunteerDetailsCubit>()
+                          .load(widget.volunteerId),
+                    );
+                  }
+                  final details = state.detailsOrNull;
+                  if (details == null) return const _DetailsSkeleton();
 
-                final isExporting = state is VolunteerDetailsActionLoading;
-
-                if (details == null) return const SizedBox.shrink();
-
-                return Tooltip(
-                  message: 'تصدير بيانات المتطوع',
-                  child: isExporting
-                      ? Padding(
-                          padding: EdgeInsets.all(12.sp),
-                          child: SizedBox(
-                            width: 20.sp,
-                            height: 20.sp,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: ColorManager.primary500,
-                            ),
-                          ),
-                        )
-                      : IconButton(
-                          icon: Icon(
-                            Icons.picture_as_pdf_rounded,
-                            color: ColorManager.primary500,
-                            size: 24.sp,
-                          ),
-                          onPressed: () => context
-                              .read<VolunteerDetailsCubit>()
-                              .exportVolunteerPdf(details!),
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: Space.gutter),
+                    child: Column(
+                      children: [
+                        VolunteerDetailsHeader(details: details),
+                        SizedBox(height: Space.vl),
+                        PrimaryTabBar(
+                          controller: _tabController,
+                          labels: const ['البيانات', 'المهام', 'الإجراءات'],
                         ),
-                );
-              },
+                        SizedBox(height: Space.vm),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              VolunteerDataTab(details: details),
+                              VolunteerTasksTab(details: details),
+                              VolunteerManageTab(details: details),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
-        body: BlocConsumer<VolunteerDetailsCubit, VolunteerDetailsState>(
-          listener: (context, state) {
-            if (state is VolunteerDetailsDeleted) {
-              context.pop(true);
-            } else if (state is VolunteerDetailsSuspended) {
-              context.pop(true);
-            } else if (state is VolunteerDetailsActionError) {
-              Toast.error.show(context, title: state.message);
-            }
-          },
-          builder: (context, state) {
-            if (state is VolunteerDetailsLoading ||
-                state is VolunteerDetailsInitial) {
-              return const LoadingIndicator();
-            }
-            if (state is VolunteerDetailsError) {
-              return ErrorState(
-                message: state.message,
-                onRetry: () => context.read<VolunteerDetailsCubit>().load(
-                  widget.volunteerId,
+      ),
+    );
+  }
+}
+
+/// PDF export in the header; spins only while exporting (not for other actions).
+class _ExportAction extends StatelessWidget {
+  const _ExportAction();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<VolunteerDetailsCubit, VolunteerDetailsState>(
+      buildWhen: (p, c) =>
+          (p is VolunteerDetailsExporting) != (c is VolunteerDetailsExporting) ||
+          (p.detailsOrNull == null) != (c.detailsOrNull == null),
+      builder: (context, state) {
+        final details = state.detailsOrNull;
+        if (details == null) return const SizedBox.shrink();
+        if (state is VolunteerDetailsExporting) {
+          return SizedBox(
+            width: AppSizes.touch,
+            height: AppSizes.touch,
+            child: Center(
+              child: SizedBox(
+                width: AppSizes.iconM,
+                height: AppSizes.iconM,
+                child: const CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: ColorManager.brand,
                 ),
-              );
-            }
-
-            VolunteerDetailsEntity? details;
-            if (state is VolunteerDetailsLoaded) {
-              details = state.details;
-            } else if (state is VolunteerDetailsDeleting) {
-              details = state.details;
-            } else if (state is VolunteerDetailsActionError) {
-              details = state.details;
-            } else if (state is VolunteerDetailsActionLoading) {
-              details = state.details;
-            } else if (state is VolunteerDetailsActionSuccess) {
-              details = state.details;
-            } else if (state is VolunteerDetailsAvailableTasks) {
-              details = state.details;
-            }
-
-            if (details == null) return const LoadingIndicator();
-
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-              child: Column(
-                children: [
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeInOut,
-                    child: VolunteerDetailsHeader(details: details),
-                  ),
-                  SizedBox(height: AppHeight.s8),
-                  PrimaryTabBar(
-                    controller: _tabController,
-                    labels: const ['البيانات', 'المهام', 'الإجراءات'],
-                  ),
-                  SizedBox(height: AppHeight.s16),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        VolunteerDataTab(details: details),
-                        VolunteerTasksTab(details: details),
-                        VolunteerManageTab(details: details),
-                      ],
-                    ),
-                  ),
-                ],
               ),
-            );
-          },
+            ),
+          );
+        }
+        return IconButton(
+          tooltip: 'تصدير بيانات المتطوع PDF',
+          icon: const Icon(AppIcons.pdf, color: ColorManager.brand),
+          onPressed: () => context
+              .read<VolunteerDetailsCubit>()
+              .exportVolunteerPdf(details),
+        );
+      },
+    );
+  }
+}
+
+class _DetailsSkeleton extends StatelessWidget {
+  const _DetailsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: Space.gutter),
+      child: Skeleton(
+        child: Column(
+          children: [
+            SkeletonBox(height: AppHeight.s200, radius: Radii.card),
+            SizedBox(height: Space.vl),
+            SkeletonBox(height: AppHeight.s44, radius: Radii.input),
+            SizedBox(height: Space.vm),
+            for (var i = 0; i < 4; i++) ...[
+              SkeletonBox(height: AppHeight.s56, radius: Radii.card),
+              SizedBox(height: Space.vs),
+            ],
+          ],
         ),
       ),
     );

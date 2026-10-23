@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:flutter/services.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 
 class ReportStarRating extends StatelessWidget {
   final int rating;
@@ -20,32 +20,30 @@ class ReportStarRating extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'تقييمك للمهمة',
-          style: getBoldStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s14,
-            color: ColorManager.natural600,
-          ),
-        ),
-        SizedBox(height: AppHeight.s4),
+        Text('تقييمك للمهمة', style: AppText.label(color: ColorManager.ink)),
+        SizedBox(height: Space.vs),
         Container(
-          padding: EdgeInsets.symmetric(vertical: AppHeight.s8),
+          padding: EdgeInsets.symmetric(vertical: Space.vxs),
           decoration: BoxDecoration(
-            color: ColorManager.natural100,
-            borderRadius: BorderRadius.circular(AppRadius.s8),
+            color: ColorManager.surfaceSunken,
+            borderRadius: BorderRadius.circular(Radii.input),
+            border: Border.all(color: ColorManager.line),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(5, (i) {
               final star = i + 1;
-              return GestureDetector(
-                onTap: () => onRatingChanged(star),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppWidth.s4),
-                  child: star <= rating
-                      ? Image.asset(IconAssets.star)
-                      : Image.asset(IconAssets.unstar),
+              final filled = star <= rating;
+              return IconButton(
+                tooltip: '$star من 5',
+                onPressed: () {
+                  HapticFeedback.selectionClick();
+                  onRatingChanged(star);
+                },
+                icon: Icon(
+                  filled ? AppIcons.star : AppIcons.unstar,
+                  size: 32,
+                  color: filled ? ColorManager.star : ColorManager.natural300,
                 ),
               );
             }),

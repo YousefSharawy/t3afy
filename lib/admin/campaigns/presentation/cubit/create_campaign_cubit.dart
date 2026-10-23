@@ -1,3 +1,4 @@
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:t3afy/admin/campaigns/domain/usecases/get_campaign_detail_usecas
 import 'package:t3afy/admin/campaigns/domain/usecases/create_campaign_usecase.dart';
 import 'package:t3afy/admin/campaigns/domain/usecases/update_campaign_usecase.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/core/data/safe_emit.dart';
 part 'create_campaign_state.dart';
 
 // ── Static campaign config ─────────────────────────────────────────────────
@@ -23,26 +25,7 @@ const campaignTypes = [
 ];
 
 /// Returns the Material icon that best represents a campaign/task type.
-IconData taskTypeIcon(String type) {
-  switch (type) {
-    case 'توعية مدرسية':
-      return Icons.school_outlined;
-    case 'توعية جامعية':
-      return Icons.account_balance_outlined;
-    case 'زيارة ميدانية':
-      return Icons.map_outlined;
-    case 'حملة توعوية':
-      return Icons.campaign_outlined;
-    case 'ورشة عمل':
-      return Icons.handyman_outlined;
-    case 'فعالية مجتمعية':
-      return Icons.people_outline;
-    case 'تدريب':
-      return Icons.school_outlined;
-    default:
-      return Icons.volunteer_activism_outlined;
-  }
-}
+IconData taskTypeIcon(String type) => AppIcons.taskType(type);
 
 const campaignStatusLabels = {
   'ongoing': 'جارية',
@@ -52,7 +35,8 @@ const campaignStatusLabels = {
   'suspended': 'موقوفة',
 };
 
-class CreateCampaignCubit extends Cubit<CreateCampaignState> {
+class CreateCampaignCubit extends Cubit<CreateCampaignState>
+    with SafeEmit<CreateCampaignState> {
   CreateCampaignCubit(
     this._getAllVolunteers,
     this._getCampaignDetail,
@@ -69,6 +53,21 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
   Set<String> _selectedIds = {};
 
   CreateCampaignReady get _ready => state as CreateCampaignReady;
+
+  CreateCampaignReady? _lastReady;
+
+  /// The form values, also while a save is running or an error is being
+  /// shown (those states carry no data). Sections select from this so the
+  /// form never blanks and only the changed section rebuilds.
+  CreateCampaignReady? get form =>
+      state is CreateCampaignReady ? _ready : _lastReady;
+
+  @override
+  void onChange(Change<CreateCampaignState> change) {
+    super.onChange(change);
+    final next = change.nextState;
+    if (next is CreateCampaignReady) _lastReady = next;
+  }
 
   // ── Field setters ─────────────────────────────────────────────────────────
 
@@ -97,10 +96,10 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
   Future<void> loadVolunteers() async {
     emit(const CreateCampaignLoading());
     final result = await _getAllVolunteers();
-    result.fold((f) => emit(CreateCampaignError(f.message)), (volunteers) {
+    result.fold((f) => safeEmit(CreateCampaignError(f.message)), (volunteers) {
       _volunteers = volunteers;
       _selectedIds = {};
-      emit(
+      safeEmit(
         CreateCampaignReady(
           volunteers: List.from(_volunteers),
           selectedIds: Set.from(_selectedIds),
@@ -109,24 +108,41 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
     });
   }
 
+  /// Pull-to-refresh in the volunteer picker: bypasses the 5-minute cache and
+  /// keeps the form (and the current selection) as it is.
+  Future<void> refreshVolunteers() async {
+    final result = await _getAllVolunteers(skipCache: true);
+    result.fold((_) {}, (volunteers) {
+      _volunteers = volunteers;
+      if (state is CreateCampaignReady) {
+        safeEmit(
+          _ready.copyWith(
+            volunteers: List.from(_volunteers),
+            clearTaskData: true,
+          ),
+        );
+      }
+    });
+  }
+
   Future<void> loadForEdit(String taskId) async {
     emit(const CreateCampaignLoading());
 
-    bool hasError = false;
-    String errorMsg = '';
-
-    final volunteersResult = await _getAllVolunteers();
-    volunteersResult.fold((f) {
-      hasError = true;
-      errorMsg = f.message;
-    }, (v) => _volunteers = v);
-    if (hasError) {
-      emit(CreateCampaignError(errorMsg));
+    final (volunteersResult, detailResult) = await (
+      _getAllVolunteers(),
+      _getCampaignDetail(taskId),
+    ).wait;
+    String? volunteersError;
+    volunteersResult.fold(
+      (f) => volunteersError = f.message,
+      (v) => _volunteers = v,
+    );
+    if (volunteersError != null) {
+      safeEmit(CreateCampaignError(volunteersError!));
       return;
     }
 
-    final detailResult = await _getCampaignDetail(taskId);
-    detailResult.fold((f) => emit(CreateCampaignError(f.message)), (detail) {
+    detailResult.fold((f) => safeEmit(CreateCampaignError(f.message)), (detail) {
       _selectedIds = detail.members.map((m) => m.id).toSet();
 
       // Parse time strings into TimeOfDay
@@ -177,7 +193,7 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
       final existingStatus = detail.status == 'done'
           ? 'completed'
           : detail.status;
-      emit(
+      safeEmit(
         CreateCampaignReady(
           volunteers: List.from(_volunteers),
           selectedIds: Set.from(_selectedIds),
@@ -214,8 +230,9 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
     }
   }
 
-  void addVolunteers(Set<String> ids) {
-    _selectedIds.addAll(ids);
+  /// Replaces the team with the picker's selection (unticking removes).
+  void setVolunteers(Set<String> ids) {
+    _selectedIds = Set.of(ids);
     if (state is CreateCampaignReady) {
       emit(
         _ready.copyWith(
@@ -352,15 +369,15 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState> {
     if (taskId != null) {
       final result = await _updateCampaign(taskId, formData);
       result.fold((f) {
-        emit(CreateCampaignActionError(f.message));
-        emit(ready);
-      }, (_) => emit(const CreateCampaignSaved()));
+        safeEmit(CreateCampaignActionError(f.message));
+        safeEmit(ready);
+      }, (_) => safeEmit(const CreateCampaignSaved()));
     } else {
       final result = await _createCampaign(formData);
       result.fold((f) {
-        emit(CreateCampaignActionError(f.message));
-        emit(ready);
-      }, (_) => emit(const CreateCampaignSaved()));
+        safeEmit(CreateCampaignActionError(f.message));
+        safeEmit(ready);
+      }, (_) => safeEmit(const CreateCampaignSaved()));
     }
   }
 }

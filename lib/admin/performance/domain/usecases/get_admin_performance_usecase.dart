@@ -8,9 +8,16 @@ class GetAdminPerformanceUsecase {
 
   GetAdminPerformanceUsecase(this._repo);
 
-  Future<Either<Failture, AdminPerformanceEntity>> call(String period) {
+  Future<Either<Failture, AdminPerformanceEntity>> call(
+    String period, {
+    bool forceRefresh = false,
+  }) {
     final startDate = _startDateFor(period);
-    return _repo.getPerformanceData(startDate, period);
+    return _repo.getPerformanceData(
+      startDate,
+      period,
+      forceRefresh: forceRefresh,
+    );
   }
 
   DateTime _startDateFor(String period) {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 
 class TaskTypeBadge extends StatelessWidget {
   const TaskTypeBadge({super.key, required this.type});
@@ -12,20 +12,20 @@ class TaskTypeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s10,
-        vertical: AppHeight.s4,
+      padding: EdgeInsetsDirectional.symmetric(
+        horizontal: Space.m * 0.85,
+        vertical: Space.vxs,
       ),
       decoration: BoxDecoration(
-        color: ColorManager.natural50,
-        borderRadius: BorderRadius.circular(AppRadius.s4),
+        color: ColorManager.surfaceSunken,
+        borderRadius: BorderRadius.circular(Radii.chip),
+        border: Border.all(color: ColorManager.line),
       ),
       child: Text(
         type,
         style: getMediumStyle(
-          fontFamily: FontConstants.fontFamily,
-          fontSize: FontSize.s10,
-          color: ColorManager.natural600,
+          fontSize: FontSize.s12,
+          color: ColorManager.inkMuted,
         ),
       ),
     );

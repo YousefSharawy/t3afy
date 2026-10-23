@@ -3,63 +3,50 @@ import 'package:t3afy/admin/performance/data/datasources/admin_performance_remot
 import 'package:t3afy/admin/performance/domain/entities/admin_performance_entity.dart';
 import 'package:t3afy/app/error_handler.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/core/utils/date_ar.dart';
 
 class AdminPerformanceRemoteDatasourceImpl
     implements AdminPerformanceRemoteDatasource {
   final _client = Supabase.instance.client;
 
-  static const _arabicMonths = [
-    'يناير',
-    'فبراير',
-    'مارس',
-    'أبريل',
-    'مايو',
-    'يونيو',
-    'يوليو',
-    'أغسطس',
-    'سبتمبر',
-    'أكتوبر',
-    'نوفمبر',
-    'ديسمبر',
-  ];
-
-  static const _arabicDays = [
-    'الاثنين',
-    'الثلاثاء',
-    'الأربعاء',
-    'الخميس',
-    'الجمعة',
-    'السبت',
-    'الأحد',
-  ];
-
   @override
   Future<AdminPerformanceEntity> getPerformanceData(
     DateTime startDate,
-    String period,
-  ) async {
+    String period, {
+    bool forceRefresh = false,
+  }) async {
     try {
       final cacheKey = 'admin_performance_$period';
-      final cached = LocalAppStorage.getCache(cacheKey);
-      if (cached != null) {
-        return _fromJson(cached as Map<String, dynamic>);
+      if (forceRefresh) {
+        // Data changed (pull-to-refresh / realtime): every cached period is
+        // stale, not just this one.
+        await LocalAppStorage.invalidateCacheByPrefix('admin_performance_');
+      } else {
+        final cached = LocalAppStorage.getCache(cacheKey);
+        if (cached != null) {
+          return _fromJson(cached as Map<String, dynamic>);
+        }
       }
 
       final startStr = startDate.toIso8601String().split('T')[0];
       final now = DateTime.now();
+      final prevStart = startDate
+          .subtract(Duration(days: _periodDays(period)))
+          .toIso8601String()
+          .split('T')[0];
 
-      final results = await Future.wait([
-        // 0: volunteers joined in period
+      final results = await Future.wait<dynamic>([
+        // 0: volunteers joined in period (count + region ranking)
         _client
             .from('users')
-            .select('joined_at')
+            .select('region')
             .inFilter('role', ['volunteer', 'user'])
             .gte('joined_at', startStr),
 
-        // 1: completed task assignments + task date for hours
+        // 1: completed assignments in period (hours, chart, verified rate)
         _client
             .from('task_assignments')
-            .select('tasks!inner(date, duration_hours)')
+            .select('is_verified, tasks!inner(date, duration_hours)')
             .eq('status', 'completed')
             .gte('tasks.date', startStr),
 
@@ -69,36 +56,27 @@ class AdminPerformanceRemoteDatasourceImpl
             .select('rating')
             .gte('created_at', startStr),
 
-        // 3: completed task_assignments for chart (date from tasks)
-        _client
-            .from('task_assignments')
-            .select('tasks!inner(date)')
-            .eq('status', 'completed')
-            .gte('tasks.date', startStr),
-
-        // 4: all volunteers by region in period
-        _client
-            .from('users')
-            .select('region')
-            .inFilter('role', ['volunteer', 'user'])
-            .gte('joined_at', startStr),
-
-        // 5: all tasks in period for completion rate
+        // 3: all tasks in period for completion rate
         _client.from('tasks').select('status').gte('date', startStr),
 
-        // 6: completed assignments for verified attendance rate
+        // 4: done tasks in the previous equivalent period (count only)
         _client
-            .from('task_assignments')
-            .select('is_verified, tasks!inner(date)')
-            .eq('status', 'completed')
-            .gte('tasks.date', startStr),
+            .from('tasks')
+            .select('id')
+            .inFilter('status', ['completed', 'done'])
+            .gte('date', prevStart)
+            .lt('date', startStr)
+            .count(CountOption.exact),
       ]);
 
+      final volunteerRows = results[0] as List;
+      final completedAssignments = results[1] as List;
+
       // --- Stats ---
-      final totalVolunteers = (results[0] as List).length;
+      final totalVolunteers = volunteerRows.length;
 
       int totalHours = 0;
-      for (final row in results[1] as List) {
+      for (final row in completedAssignments) {
         final task = row['tasks'] as Map<String, dynamic>?;
         final h = task?['duration_hours'] as num?;
         if (h != null) totalHours += h.toInt();
@@ -117,12 +95,16 @@ class AdminPerformanceRemoteDatasourceImpl
       final avgRating = ratingCount > 0 ? ratingSum / ratingCount : 0.0;
 
       // --- Chart bars ---
-      final chartRows = results[3] as List;
-      final chartBars = _buildChartBars(chartRows, startDate, now, period);
+      final chartBars = _buildChartBars(
+        completedAssignments,
+        startDate,
+        now,
+        period,
+      );
 
       // --- Regions ---
       final regionMap = <String, int>{};
-      for (final row in results[4] as List) {
+      for (final row in volunteerRows) {
         final region = row['region'] as String?;
         if (region == null || region.isEmpty) continue;
         regionMap[region] = (regionMap[region] ?? 0) + 1;
@@ -138,7 +120,6 @@ class AdminPerformanceRemoteDatasourceImpl
               .toList();
 
       // --- Verified attendance rate ---
-      final completedAssignments = results[6] as List;
       final totalCompleted = completedAssignments.length;
       final verifiedCount = completedAssignments
           .where((r) => (r['is_verified'] as bool?) == true)
@@ -148,7 +129,7 @@ class AdminPerformanceRemoteDatasourceImpl
           : 0.0;
 
       // --- Campaign completion rate ---
-      final allTasks = results[5] as List;
+      final allTasks = results[3] as List;
       final totalCampaigns = allTasks.length;
       final completedCampaigns = allTasks
           .where((t) => t['status'] == 'done' || t['status'] == 'completed')
@@ -158,20 +139,7 @@ class AdminPerformanceRemoteDatasourceImpl
           : 0.0;
 
       // --- Completion percent change vs previous equivalent period ---
-      final periodDays = _periodDays(period);
-      final prevStart = startDate
-          .subtract(Duration(days: periodDays))
-          .toIso8601String()
-          .split('T')[0];
-      final prevEnd = startStr;
-
-      final prevDoneRaw = await _client
-          .from('tasks')
-          .select('id')
-          .inFilter('status', ['completed', 'done'])
-          .gte('date', prevStart)
-          .lt('date', prevEnd);
-      final prevCount = (prevDoneRaw as List).length;
+      final prevCount = (results[4] as PostgrestResponse).count;
       final completionPercentChange = prevCount == 0
           ? (completedCampaigns > 0 ? 100.0 : 0.0)
           : ((completedCampaigns - prevCount) / prevCount * 100);
@@ -248,7 +216,7 @@ class AdminPerformanceRemoteDatasourceImpl
       final key =
           '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
       // weekday: 1=Mon … 7=Sun
-      final label = _arabicDays[day.weekday - 1];
+      final label = DateAr.weekday(day);
       bars.add(PerformanceBarEntry(label: label, count: countByDate[key] ?? 0));
     }
     return bars;
@@ -296,7 +264,7 @@ class AdminPerformanceRemoteDatasourceImpl
       final key = '${month.year}-${month.month.toString().padLeft(2, '0')}';
       bars.add(
         PerformanceBarEntry(
-          label: _arabicMonths[month.month - 1],
+          label: DateAr.month(month.month),
           count: countByMonth[key] ?? 0,
         ),
       );

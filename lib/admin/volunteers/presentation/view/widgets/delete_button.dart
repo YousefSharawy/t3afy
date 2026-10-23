@@ -2,99 +2,89 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_cubit.dart';
+import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_state.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
-import 'package:t3afy/base/primary_widgets.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/confirm_dialog.dart';
+
+/// Outlined red button for destructive actions (delete, reject).
+class DangerOutlineButton extends StatelessWidget {
+  const DangerOutlineButton({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+    this.isLoading = false,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: isLoading ? null : onPressed,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: ColorManager.error,
+        side: const BorderSide(color: ColorManager.error),
+        minimumSize: Size.fromHeight(AppSizes.touch),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Radii.input),
+        ),
+      ),
+      icon: isLoading
+          ? SizedBox(
+              width: AppSizes.iconM,
+              height: AppSizes.iconM,
+              child: const CircularProgressIndicator(
+                strokeWidth: 2,
+                color: ColorManager.error,
+              ),
+            )
+          : Icon(icon, size: AppSizes.iconM),
+      label: Text(
+        label,
+        style: getSemiBoldStyle(
+          fontSize: FontSize.s15,
+          color: ColorManager.error,
+        ),
+      ),
+    );
+  }
+}
 
 class DeleteButton extends StatelessWidget {
   const DeleteButton({super.key, required this.volunteerId});
 
   final String volunteerId;
 
-  @override
-  Widget build(BuildContext context) {
-    return PrimaryElevatedButton(
+  Future<void> _confirmDelete(BuildContext context) async {
+    HapticFeedback.mediumImpact();
+    final confirmed = await showConfirmDialog(
+      context,
       title: 'حذف المتطوع',
-      onPress: () {
-        HapticFeedback.mediumImpact();
-        _confirmDelete(context);
-      },
-      backGroundColor: ColorManager.errorLight,
-      textStyle: getBoldStyle(
-        fontFamily: FontConstants.fontFamily,
-        fontSize: FontSize.s16,
-        color: ColorManager.error,
-      ),
+      body: 'هل أنت متأكد من حذف هذا المتطوع؟ لا يمكن التراجع عن هذا الإجراء.',
+      confirmLabel: 'حذف',
+      isDestructive: true,
     );
+    if (confirmed && context.mounted) {
+      context.read<VolunteerDetailsCubit>().deleteVolunteer(volunteerId);
+    }
   }
 
-  void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          backgroundColor: ColorManager.natural50,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.s20),
-          ),
-          title: Text(
-            'حذف المتطوع',
-            style: getSemiBoldStyle(
-              color: ColorManager.natural900,
-              fontSize: FontSize.s18,
-            ),
-          ),
-          content: Text(
-            'هل أنت متأكد من حذف هذا المتطوع؟ لا يمكن التراجع عن هذا الإجراء.',
-            style: getRegularStyle(
-              color: ColorManager.natural900.withValues(alpha: 0.7),
-              fontSize: FontSize.s14,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(
-                'إلغاء',
-                style: getMediumStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: ColorManager.natural900.withValues(alpha: 0.6),
-                ),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColorManager.error,
-                foregroundColor: ColorManager.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.s30),
-                ),
-              ),
-              onPressed: () {
-                HapticFeedback.mediumImpact();
-                Navigator.of(ctx).pop();
-                context.read<VolunteerDetailsCubit>().deleteVolunteer(
-                  volunteerId,
-                );
-              },
-              child: Text(
-                'حذف',
-                style: getMediumStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: ColorManager.white,
-                ),
-              ),
-            ),
-          ],
-        ),
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<VolunteerDetailsCubit, VolunteerDetailsState, bool>(
+      selector: (s) => s is VolunteerDetailsDeleting,
+      builder: (context, deleting) => DangerOutlineButton(
+        label: 'حذف المتطوع',
+        icon: Icons.delete_outline_rounded,
+        isLoading: deleting,
+        onPressed: () => _confirmDelete(context),
       ),
     );
   }

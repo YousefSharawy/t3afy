@@ -1,114 +1,70 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/core/utils/date_ar.dart';
 
+/// Date + live line on the command band: volunteers active now and when the
+/// dashboard was last refreshed successfully.
 class StatusBanner extends StatelessWidget {
-  const StatusBanner({super.key, required this.activeVolunteersCount});
+  const StatusBanner({
+    super.key,
+    required this.activeVolunteersCount,
+    this.lastUpdated,
+  });
 
   final int activeVolunteersCount;
-
-  static String _formatDate(DateTime d) {
-    const weekdays = [
-      'الإثنين',
-      'الثلاثاء',
-      'الأربعاء',
-      'الخميس',
-      'الجمعة',
-      'السبت',
-      'الأحد',
-    ];
-    const months = [
-      '',
-      'يناير',
-      'فبراير',
-      'مارس',
-      'أبريل',
-      'مايو',
-      'يونيو',
-      'يوليو',
-      'أغسطس',
-      'سبتمبر',
-      'أكتوبر',
-      'نوفمبر',
-      'ديسمبر',
-    ];
-    final weekday = weekdays[d.weekday - 1];
-    return 'اليوم, $weekday ${d.day} ${months[d.month]} ${d.year}';
-  }
+  final DateTime? lastUpdated;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s24,
-        vertical: AppHeight.s12,
-      ),
-      decoration: BoxDecoration(
-        color: ColorManager.white,
-        borderRadius: BorderRadius.circular(AppRadius.s16),
-      ),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: .start,
-            children: [
-              Text(
-                _formatDate(DateTime.now()),
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s10,
-                  color: ColorManager.natural400,
+    final updated = lastUpdated;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'اليوم، ${DateAr.weekdayDate(DateTime.now())}',
+          style: AppText.label(color: ColorManager.onInkMuted),
+        ),
+        SizedBox(height: Space.vxs),
+        Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: ColorManager.sprout,
+                shape: BoxShape.circle,
+              ),
+            ),
+            SizedBox(width: Space.s),
+            Flexible(
+              child: Text(
+                '$activeVolunteersCount متطوع نشيط الآن',
+                style: getSemiBoldStyle(
+                  fontSize: FontSize.s14,
+                  color: ColorManager.onInk,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (updated != null) ...[
+              SizedBox(width: Space.s),
+              Flexible(
+                child: Text(
+                  '· آخر تحديث ${DateAr.timeAgo(updated)}',
+                  style: AppText.caption(color: ColorManager.onInkMuted),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              SizedBox(height: AppHeight.s4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 8.r,
-                    height: 8.r,
-                    decoration: const BoxDecoration(
-                      color: ColorManager.success,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  SizedBox(width: AppWidth.s6),
-                  Text(
-                    '$activeVolunteersCount متطوع نشيط الآن',
-                    style: getBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s12,
-                      color: ColorManager.success,
-                    ),
-                  ),
-                ],
-              ),
             ],
-          ),
-          const Spacer(),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppWidth.s8,
-              vertical: AppHeight.s4,
-            ),
-            decoration: BoxDecoration(
-              color: ColorManager.successLight,
-              borderRadius: BorderRadius.circular(AppRadius.s8),
-            ),
-            child: Text(
-              'النظام يعمل ✓',
-              style: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s10,
-                color: ColorManager.success,
-              ),
-            ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 }

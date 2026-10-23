@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/error_handler.dart';
+import 'package:t3afy/volunteer/tasks/data/volunteer_task_caches.dart';
 
 import 'check_in_data_source.dart';
 
@@ -44,6 +45,7 @@ class CheckInImplDataSource implements CheckInDataSource {
           })
           .eq('task_id', taskId)
           .eq('user_id', userId);
+      await invalidateVolunteerTaskCaches(userId);
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -69,6 +71,7 @@ class CheckInImplDataSource implements CheckInDataSource {
           })
           .eq('task_id', taskId)
           .eq('user_id', userId);
+      await invalidateVolunteerTaskCaches(userId);
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

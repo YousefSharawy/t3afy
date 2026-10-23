@@ -13,20 +13,28 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
   final _client = Supabase.instance.client;
 
   @override
-  Future<TaskDetailsModel> getTaskDetails(String taskId) async {
+  Future<TaskWithAssignment> getTaskDetails(String taskId) async {
     try {
       final currentUserId = LocalAppStorage.getUserId() ?? '';
       final response = await _client
           .from('tasks')
-          .select('*, task_assignments!inner(status, user_id), users!tasks_created_by_fkey(id, name)')
+          .select(
+            'id, title, type, description, status, date, time_start, time_end, '
+            'duration_hours, points, location_name, location_address, '
+            'location_lat, location_lng, supervisor_name, supervisor_phone, notes, '
+            'task_assignments!inner(status, user_id, checked_in_at, checked_out_at, '
+            'verified_hours, is_verified, check_in_lat, check_in_lng), '
+            'users!tasks_created_by_fkey(id, name)',
+          )
           .eq('id', taskId)
           .eq('task_assignments.user_id', currentUserId)
           .single();
 
       final assignments = response['task_assignments'] as List?;
-      final rawStatus = (assignments != null && assignments.isNotEmpty)
-          ? assignments[0]['status'] as String?
+      final assignment = (assignments != null && assignments.isNotEmpty)
+          ? Map<String, dynamic>.from(assignments[0] as Map)
           : null;
+      final rawStatus = assignment?['status'] as String?;
 
       final assignmentStatus = rawStatus != null
           ? resolveAssignmentStatus(
@@ -52,11 +60,13 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
       map['time_end'] = (map['time_end'] as String?) ?? '23:59';
       map['location_name'] = (map['location_name'] as String?) ?? '';
       map['location_address'] = (map['location_address'] as String?) ?? '';
-      map['supervisor_name'] = adminName.isNotEmpty ? adminName : ((map['supervisor_name'] as String?) ?? '');
+      map['supervisor_name'] = adminName.isNotEmpty
+          ? adminName
+          : ((map['supervisor_name'] as String?) ?? '');
       map['supervisor_phone'] = (map['supervisor_phone'] as String?) ?? '';
 
       // Calculate duration from timeStart and timeEnd if not provided
-      final durationHours = map['duration_hours'] as double?;
+      final durationHours = (map['duration_hours'] as num?)?.toDouble();
       if (durationHours == null || durationHours == 0) {
         final calculatedDuration = _calculateDuration(
           map['time_start'] as String?,
@@ -68,7 +78,7 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
       map.remove('task_assignments');
       map.remove('users');
 
-      return TaskDetailsModel.fromJson(map);
+      return (task: TaskDetailsModel.fromJson(map), assignment: assignment);
     } catch (error) {
       throw ErrorHandler.handle(error).failture;
     }
@@ -79,7 +89,7 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
     try {
       final response = await _client
           .from('task_objectives')
-          .select()
+          .select('id, task_id, title, order_index')
           .eq('task_id', taskId)
           .order('order_index', ascending: true);
       return (response as List)
@@ -95,7 +105,7 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
     try {
       final response = await _client
           .from('task_supplies')
-          .select()
+          .select('id, task_id, name, quantity')
           .eq('task_id', taskId);
       return (response as List)
           .map((e) => TaskSupplyModel.fromJson(e as Map<String, dynamic>))
@@ -110,7 +120,7 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
     try {
       final response = await _client
           .from('task_papers')
-          .select()
+          .select('id, file_url, file_name')
           .eq('task_id', taskId);
       return (response as List)
           .map(
@@ -126,66 +136,18 @@ class TaskDetailsImplRemoteDataSource implements TaskDetailsRemoteDataSource {
     }
   }
 
-  @override
-  RealtimeChannel subscribeToTask(
-    String taskId,
-    void Function(Map<String, dynamic>) onUpdate,
-  ) {
-    return _client
-        .channel('task-updates-$taskId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.update,
-          schema: 'public',
-          table: 'tasks',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'id',
-            value: taskId,
-          ),
-          callback: (payload) => onUpdate(payload.newRecord),
-        )
-        .subscribe();
-  }
-
-  @override
-  RealtimeChannel subscribeToAssignment(
-    String taskId,
-    void Function(Map<String, dynamic>) onUpdate,
-  ) {
-    final userId = LocalAppStorage.getUserId();
-    return _client
-        .channel('assignment-updates-$taskId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.update,
-          schema: 'public',
-          table: 'task_assignments',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'task_id',
-            value: taskId,
-          ),
-          callback: (payload) {
-            if (payload.newRecord['user_id'] == userId) {
-              onUpdate(payload.newRecord);
-            }
-          },
-        )
-        .subscribe();
-  }
-
-  @override
-  Future<void> unsubscribe(RealtimeChannel channel) async {
-    await _client.removeChannel(channel);
-  }
-
   double _calculateDuration(String? timeStart, String? timeEnd) {
     if (timeStart == null || timeEnd == null) return 0;
     try {
       final startParts = timeStart.split(':');
       final endParts = timeEnd.split(':');
       if (startParts.length < 2 || endParts.length < 2) return 0;
-      final startMin = (int.tryParse(startParts[0]) ?? 0) * 60 + (int.tryParse(startParts[1]) ?? 0);
-      final endMin = (int.tryParse(endParts[0]) ?? 0) * 60 + (int.tryParse(endParts[1]) ?? 0);
+      final startMin =
+          (int.tryParse(startParts[0]) ?? 0) * 60 +
+          (int.tryParse(startParts[1]) ?? 0);
+      final endMin =
+          (int.tryParse(endParts[0]) ?? 0) * 60 +
+          (int.tryParse(endParts[1]) ?? 0);
       final diff = endMin - startMin;
       return diff > 0 ? (diff / 60.0 * 10).round() / 10.0 : 0;
     } catch (_) {

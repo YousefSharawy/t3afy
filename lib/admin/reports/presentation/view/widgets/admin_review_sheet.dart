@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
-import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/reports/domain/entities/admin_report_entity.dart';
 import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
+import 'package:t3afy/admin/reports/presentation/view/widgets/admin_report_card.dart';
+import 'package:t3afy/admin/reports/presentation/view/widgets/review_detail_card.dart';
+import 'package:t3afy/admin/reports/presentation/view/widgets/review_info_row.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/extenstions.dart';
+import 'package:t3afy/app/resources/font_manager.dart';
+import 'package:t3afy/app/resources/style_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/base/primary_widgets.dart';
-import 'package:t3afy/base/widgets/app_form_field.dart';
-import 'package:t3afy/base/widgets/section_label.dart';
+import 'package:t3afy/base/widgets/confirm_dialog.dart';
+import 'package:t3afy/base/widgets/status_badge.dart';
+import 'package:t3afy/core/utils/date_ar.dart';
 
 class AdminReviewSheet extends StatefulWidget {
   const AdminReviewSheet({super.key, required this.report});
@@ -26,10 +29,56 @@ class AdminReviewSheet extends StatefulWidget {
 class _AdminReviewSheetState extends State<AdminReviewSheet> {
   final _feedbackCtrl = TextEditingController();
 
+  /// 'approved' / 'rejected' while that request is in flight.
+  String? _submitting;
+  bool _askForReason = false;
+
   @override
   void dispose() {
     _feedbackCtrl.dispose();
     super.dispose();
+  }
+
+  String? get _feedback {
+    final t = _feedbackCtrl.text.trim();
+    return t.isEmpty ? null : t;
+  }
+
+  Future<void> _reject() async {
+    final noReason = _feedback == null;
+    if (noReason) setState(() => _askForReason = true);
+    final ok = await showConfirmDialog(
+      context,
+      title: 'رفض التقرير؟',
+      body: noReason
+          ? 'لم تكتب سببًا للرفض. سيُعاد فتح المهمة للمتطوع ليرسل تقريرًا جديدًا.'
+          : 'سيصل سبب الرفض إلى المتطوع، ويُعاد فتح المهمة ليرسل تقريرًا جديدًا.',
+      confirmLabel: 'رفض التقرير',
+      isDestructive: true,
+    );
+    if (ok && mounted) await _submit('rejected');
+  }
+
+  Future<void> _submit(String status) async {
+    if (_submitting != null) return;
+    HapticFeedback.mediumImpact();
+    setState(() => _submitting = status);
+    final error = await context.read<AdminReportsCubit>().reviewReport(
+      reportId: widget.report.id,
+      status: status,
+      feedback: _feedback,
+    );
+    if (!mounted) return;
+    if (error != null) {
+      setState(() => _submitting = null);
+      Toast.error.show(context, title: error);
+      return;
+    }
+    Toast.success.show(
+      context,
+      title: status == 'approved' ? 'تم اعتماد التقرير' : 'تم رفض التقرير',
+    );
+    Navigator.of(context).pop(true);
   }
 
   @override
@@ -37,398 +86,213 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
     final report = widget.report;
     final isPending = report.status == 'pending';
 
-    return BlocListener<AdminReportsCubit, AdminReportsState>(
-      listenWhen: (prev, curr) =>
-          curr.maybeWhen(reviewed: () => true, orElse: () => false),
-      listener: (context, state) {
-        state.maybeWhen(
-          reviewed: () => Navigator.of(context).pop(true),
-          orElse: () {},
-        );
-      },
-      child: BlocListener<AdminReportsCubit, AdminReportsState>(
-        listenWhen: (prev, curr) =>
-            curr.maybeWhen(error: (_) => true, orElse: () => false),
-        listener: (context, state) {
-          state.maybeWhen(
-            error: (message) {
-              Toast.error.show(context, title: 'خطأ: $message');
-            },
-            orElse: () {},
-          );
-        },
-        child: DraggableScrollableSheet(
-          initialChildSize: 0.85,
-          maxChildSize: 0.95,
-          minChildSize: 0.5,
-          builder: (context, scrollCtrl) => Container(
-            decoration: BoxDecoration(
-              color: ColorManager.background,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        maxChildSize: 0.95,
+        minChildSize: 0.5,
+        expand: false,
+        builder: (context, scrollCtrl) => Container(
+          decoration: BoxDecoration(
+            color: ColorManager.canvas,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(Radii.sheet),
             ),
-            child: Column(
-              children: [
-                // ── Drag handle ─────────────────────────────────────────────
-                Padding(
-                  padding: EdgeInsetsDirectional.only(top: AppHeight.s12),
-                  child: Container(
-                    width: 40.w,
-                    height: 4.h,
-                    decoration: BoxDecoration(
-                      color: ColorManager.natural200,
-                      borderRadius: BorderRadius.circular(AppRadius.s2),
+          ),
+          child: Column(
+            children: [
+              _Header(report: report),
+              const Divider(height: 1, color: ColorManager.line),
+              Expanded(
+                child: ListView(
+                  controller: scrollCtrl,
+                  padding: EdgeInsetsDirectional.fromSTEB(
+                    Space.gutter,
+                    Space.vl,
+                    Space.gutter,
+                    Space.vxl,
+                  ),
+                  children: [
+                    _FactsCard(report: report),
+                    SizedBox(height: Space.vl),
+                    ReviewDetailCard(
+                      title: 'ملخص المهمة',
+                      content: report.summary.isEmpty ? '—' : report.summary,
                     ),
-                  ),
-                ),
-                // ── Title row ───────────────────────────────────────────────
-                Padding(
-                  padding: EdgeInsetsDirectional.symmetric(
-                    horizontal: AppWidth.s20,
-                    vertical: AppHeight.s14,
-                  ),
-                  child: Row(
-                    children: [
-                      const Spacer(),
-                      Text(
-                        'مراجعة التقرير',
-                        style: getSemiBoldStyle(
-                          fontFamily: FontConstants.fontFamily,
-                          fontSize: FontSize.s18,
-                          color: ColorManager.natural900,
-                        ),
-                      ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Container(
-                          width: 30.r,
-                          height: 30.r,
-                          decoration: BoxDecoration(
-                            color: ColorManager.natural100,
-                            borderRadius: BorderRadius.circular(AppRadius.s8),
-                          ),
-                          child: Icon(
-                            Icons.close_rounded,
-                            color: ColorManager.natural500,
-                            size: 18.r,
-                          ),
-                        ),
+                    if (_hasText(report.challenges)) ...[
+                      SizedBox(height: Space.vm),
+                      ReviewDetailCard(
+                        title: 'التحديات',
+                        content: report.challenges!,
                       ),
                     ],
-                  ),
-                ),
-                // ── Divider ─────────────────────────────────────────────────
-                Divider(
-                  height: 1,
-                  thickness: 0.5,
-                  color: ColorManager.natural200,
-                ),
-                // ── Scrollable content ──────────────────────────────────────
-                Expanded(
-                  child: ListView(
-                    controller: scrollCtrl,
-                    padding: EdgeInsetsDirectional.all(AppSize.s20),
-                    children: [
-                      // ── Meta info card ───────────────────────────────────
-                      _InfoCard(
-                        children: [
-                          _MetaRow(
-                            icon: IconAssets.camp,
-                            label: 'المهمة',
-                            value: report.taskTitle,
-                          ),
-                          Divider(
-                            height: 1,
-                            thickness: 0.5,
-                            color: ColorManager.natural100,
-                          ),
-                          _MetaRow(
-                            icon: IconAssets.vol,
-                            label: 'المتطوع',
-                            value: report.volunteerName,
-                          ),
-                          Divider(
-                            height: 1,
-                            thickness: 0.5,
-                            color: ColorManager.natural100,
-                          ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.symmetric(
-                              horizontal: AppWidth.s12,
-                              vertical: AppHeight.s10,
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  'التقييم',
-                                  style: getMediumStyle(
-                                    fontFamily: FontConstants.fontFamily,
-                                    fontSize: FontSize.s12,
-                                    color: ColorManager.natural400,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Row(
-                                  children: List.generate(
-                                    report.rating,
-                                    (i) => Padding(
-                                      padding: EdgeInsetsDirectional.only(
-                                        start: AppWidth.s2,
-                                      ),
-                                      child: Image.asset(
-                                        IconAssets.star,
-                                        width: 16.r,
-                                        height: 16.r,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                    if (_hasText(report.additionalNotes)) ...[
+                      SizedBox(height: Space.vm),
+                      ReviewDetailCard(
+                        title: 'ملاحظات إضافية',
+                        content: report.additionalNotes!,
                       ),
-                      SizedBox(height: AppHeight.s20),
-
-                      // ── Report content ───────────────────────────────────
-                      const SectionLabel(label: 'ملخص المهمة'),
-                      SizedBox(height: AppHeight.s8),
-                      _ContentCard(text: report.summary),
-
-                      if (report.challenges != null) ...[
-                        SizedBox(height: AppHeight.s16),
-                        const SectionLabel(label: 'التحديات'),
-                        SizedBox(height: AppHeight.s8),
-                        _ContentCard(text: report.challenges!),
-                      ],
-
-                      SizedBox(height: AppHeight.s16),
-
-                      // ── Stats row ────────────────────────────────────────
-                      _InfoCard(
-                        children: [
-                          if (report.attendeesCount != null) ...[
-                            _MetaRow(
-                              icon: IconAssets.group,
-                              label: 'عدد الحضور',
-                              value: '${report.attendeesCount}',
-                            ),
-                            Divider(
-                              height: 1,
-                              thickness: 0.5,
-                              color: ColorManager.natural100,
-                            ),
-                          ],
-                          _MetaRow(
-                            icon: IconAssets.done,
-                            label: 'توزيع المواد',
-                            value: report.materialsDistributed ? 'نعم' : 'لا',
-                          ),
-                        ],
+                    ],
+                    if (_hasText(report.adminFeedback)) ...[
+                      SizedBox(height: Space.vm),
+                      ReviewDetailCard(
+                        title: 'ملاحظات المشرف',
+                        content: report.adminFeedback!,
+                        highlighted: true,
                       ),
-
-                      if (report.additionalNotes != null) ...[
-                        SizedBox(height: AppHeight.s16),
-                        const SectionLabel(label: 'ملاحظات إضافية'),
-                        SizedBox(height: AppHeight.s8),
-                        _ContentCard(text: report.additionalNotes!),
-                      ],
-
-                      if (report.adminFeedback != null) ...[
-                        SizedBox(height: AppHeight.s16),
-                        SectionLabel(label: 'ملاحظات المشرف'),
-                        SizedBox(height: AppHeight.s8),
-                        _ContentCard(
-                          text: report.adminFeedback!,
-                          textColor: ColorManager.cyanPrimary,
-                          borderColor: ColorManager.cyanPrimary.withValues(
-                            alpha: 0.3,
-                          ),
-                          backgroundColor: ColorManager.primary50,
-                        ),
-                      ],
-
-                      // ── Review actions (pending only) ─────────────────────
-                      if (isPending) ...[
-                        SizedBox(height: AppHeight.s24),
-                        Divider(
-                          height: 1,
-                          thickness: 0.5,
-                          color: ColorManager.natural200,
-                        ),
-                        SizedBox(height: AppHeight.s16),
-                        const SectionLabel(label: 'ملاحظات المراجعة'),
-                        SizedBox(height: AppHeight.s4),
-                        Text(
-                          'اختياري',
-                          style: getRegularStyle(
-                            fontFamily: FontConstants.fontFamily,
-                            fontSize: FontSize.s12,
-                            color: ColorManager.natural400,
-                          ),
-                        ),
-                        SizedBox(height: AppHeight.s10),
-                        AppFormField(
-                          controller: _feedbackCtrl,
-                          hint: 'اكتب ملاحظاتك للمتطوع...',
-                          maxLines: 3,
-                          fillColor: ColorManager.white,
-                          borderColor: ColorManager.natural200,
-                          focusedBorderColor: ColorManager.cyanPrimary,
-                          textColor: ColorManager.natural900,
-                          hintColor: ColorManager.natural400,
-                        ),
-                        SizedBox(height: AppHeight.s20),
-                        BlocBuilder<AdminReportsCubit, AdminReportsState>(
-                          buildWhen: (prev, curr) =>
-                              curr.maybeWhen(
-                                reviewing: () => true,
-                                orElse: () => false,
-                              ) ||
-                              curr.maybeWhen(
-                                reviewed: () => true,
-                                orElse: () => false,
+                    ],
+                    if (isPending) ...[
+                      SizedBox(height: Space.vxl),
+                      PrimaryTextFF(
+                        controller: _feedbackCtrl,
+                        label: 'ملاحظات المراجعة (اختياري)',
+                        hint: 'اكتب ملاحظاتك للمتطوع…',
+                        maxLines: 4,
+                        textInputAction: TextInputAction.newline,
+                        keyboardType: TextInputType.multiline,
+                        onChanged: (v) {
+                          if (_askForReason && v.trim().isNotEmpty) {
+                            setState(() => _askForReason = false);
+                          }
+                        },
+                      ),
+                      SizedBox(height: Space.vxs),
+                      AnimatedSwitcher(
+                        duration: AppMotion.of(context, AppMotion.fast),
+                        child: _askForReason
+                            ? Text(
+                                'اكتب سبب الرفض ليعرف المتطوع ما يحتاج إلى تحسينه.',
+                                key: const ValueKey('reason'),
+                                style: AppText.caption(
+                                  color: ColorManager.warning,
+                                ),
+                              )
+                            : Text(
+                                'تصل ملاحظاتك إلى المتطوع مع نتيجة المراجعة.',
+                                key: const ValueKey('helper'),
+                                style: AppText.caption(),
                               ),
-                          builder: (context, state) {
-                            final isProcessing = state.maybeWhen(
-                              reviewing: () => true,
-                              orElse: () => false,
-                            );
-                            return Row(
-                              children: [
-                                Expanded(
-                                  child: PrimaryElevatedButton(
-                                    title: 'رفض',
-                                    height: AppHeight.s48,
-                                    buttonRadius: AppRadius.s12,
-                                    backGroundColor: ColorManager.error,
-                                    onPress: isProcessing
-                                        ? () {}
-                                        : () {
-                                            HapticFeedback.mediumImpact();
-                                            context
-                                                .read<AdminReportsCubit>()
-                                                .reviewReport(
-                                                  reportId: report.id,
-                                                  status: 'rejected',
-                                                  feedback:
-                                                      _feedbackCtrl.text
-                                                          .trim()
-                                                          .isEmpty
-                                                      ? null
-                                                      : _feedbackCtrl.text
-                                                            .trim(),
-                                                );
-                                          },
-                                  ),
-                                ),
-                                SizedBox(width: AppWidth.s12),
-                                Expanded(
-                                  child: PrimaryElevatedButton(
-                                    title: isProcessing ? '' : 'موافقة',
-                                    height: AppHeight.s48,
-                                    buttonRadius: AppRadius.s12,
-                                    backGroundColor: ColorManager.success,
-                                    isLoading: isProcessing,
-                                    onPress: isProcessing
-                                        ? () {}
-                                        : () {
-                                            HapticFeedback.mediumImpact();
-                                            context
-                                                .read<AdminReportsCubit>()
-                                                .reviewReport(
-                                                  reportId: report.id,
-                                                  status: 'approved',
-                                                  feedback:
-                                                      _feedbackCtrl.text
-                                                          .trim()
-                                                          .isEmpty
-                                                      ? null
-                                                      : _feedbackCtrl.text
-                                                            .trim(),
-                                                );
-                                          },
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ],
-
-                      SizedBox(height: AppHeight.s100),
+                      ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              if (isPending)
+                _ActionBar(
+                  submitting: _submitting,
+                  onReject: _reject,
+                  onApprove: () => _submit('approved'),
+                ),
+            ],
           ),
         ),
       ),
     );
   }
+
+  static bool _hasText(String? s) => s != null && s.trim().isNotEmpty;
 }
 
-// ── Private helper widgets ────────────────────────────────────────────────────
-
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.children});
-  final List<Widget> children;
+class _Header extends StatelessWidget {
+  const _Header({required this.report});
+  final AdminReportEntity report;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: ColorManager.white,
-        borderRadius: BorderRadius.circular(AppRadius.s16),
-        border: Border.all(color: ColorManager.natural100, width: 0.5),
-      ),
-      child: Column(children: children),
+    return Column(
+      children: [
+        SizedBox(height: Space.vm),
+        Container(
+          width: 40,
+          height: 4,
+          decoration: BoxDecoration(
+            color: ColorManager.line,
+            borderRadius: BorderRadius.circular(Radii.small),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(
+            Space.gutter,
+            Space.vm,
+            Space.xs,
+            Space.vm,
+          ),
+          child: Row(
+            children: [
+              VolunteerAvatar(
+                name: report.volunteerName,
+                url: report.volunteerAvatarUrl,
+                size: 44,
+              ),
+              SizedBox(width: Space.m),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      report.taskTitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.title(),
+                    ),
+                    Text(
+                      '${report.volunteerName} · ${DateAr.date(report.createdAt)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.label(),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: Space.s),
+              StatusBadge(status: report.status, compact: true),
+              IconButton(
+                tooltip: 'إغلاق',
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(AppIcons.x, color: ColorManager.inkMuted),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _MetaRow extends StatelessWidget {
-  const _MetaRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final String icon;
-  final String label;
-  final String value;
+class _FactsCard extends StatelessWidget {
+  const _FactsCard({required this.report});
+  final AdminReportEntity report;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsetsDirectional.symmetric(
-        horizontal: AppWidth.s12,
-        vertical: AppHeight.s10,
+    const divider = Divider(height: 1, color: ColorManager.line);
+    return Container(
+      decoration: BoxDecoration(
+        color: ColorManager.surface,
+        borderRadius: BorderRadius.circular(Radii.card),
+        border: Border.all(color: ColorManager.line),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Image.asset(icon, width: 20.r, height: 20.r),
-          SizedBox(width: AppWidth.s10),
-          Text(
-            label,
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color: ColorManager.natural400,
-            ),
+          ReviewInfoRow(
+            icon: AppIcons.star,
+            label: 'التقييم',
+            trailing: RatingStars(rating: report.rating, size: AppSizes.iconM),
           ),
-          const Spacer(),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: getSemiBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s13,
-                color: ColorManager.natural800,
-              ),
+          if (report.attendeesCount != null) ...[
+            divider,
+            ReviewInfoRow(
+              icon: AppIcons.group,
+              label: 'عدد الحضور',
+              value: '${report.attendeesCount}',
             ),
+          ],
+          divider,
+          ReviewInfoRow(
+            icon: AppIcons.done,
+            label: 'توزيع المواد',
+            value: report.materialsDistributed ? 'نعم' : 'لا',
           ),
         ],
       ),
@@ -436,41 +300,79 @@ class _MetaRow extends StatelessWidget {
   }
 }
 
-class _ContentCard extends StatelessWidget {
-  const _ContentCard({
-    required this.text,
-    this.textColor,
-    this.backgroundColor,
-    this.borderColor,
+class _ActionBar extends StatelessWidget {
+  const _ActionBar({
+    required this.submitting,
+    required this.onReject,
+    required this.onApprove,
   });
 
-  final String text;
-  final Color? textColor;
-  final Color? backgroundColor;
-  final Color? borderColor;
+  final String? submitting;
+  final VoidCallback onReject;
+  final VoidCallback onApprove;
 
   @override
   Widget build(BuildContext context) {
+    final busy = submitting != null;
+    final rejecting = submitting == 'rejected';
     return Container(
-      width: double.infinity,
-      padding: EdgeInsetsDirectional.all(AppSize.s14),
-      decoration: BoxDecoration(
-        color: backgroundColor ?? ColorManager.white,
-        borderRadius: BorderRadius.circular(AppRadius.s12),
-        border: Border.all(
-          color: borderColor ?? ColorManager.natural100,
-          width: 0.5,
-        ),
+      decoration: const BoxDecoration(
+        color: ColorManager.surface,
+        border: Border(top: BorderSide(color: ColorManager.line)),
       ),
-      child: Text(
-        text,
-        style: getRegularStyle(
-          fontFamily: FontConstants.fontFamily,
-          fontSize: FontSize.s13,
-          color: textColor ?? ColorManager.natural700,
-          height: 1.6,
-        ),
-        textAlign: TextAlign.start,
+      padding: EdgeInsetsDirectional.fromSTEB(
+        Space.gutter,
+        Space.vm,
+        Space.gutter,
+        Space.vm + MediaQuery.paddingOf(context).bottom,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: AppSizes.touch,
+              child: OutlinedButton(
+                onPressed: busy ? null : onReject,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ColorManager.error,
+                  side: const BorderSide(color: ColorManager.error),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(Radii.input),
+                  ),
+                ),
+                child: rejecting
+                    ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.4,
+                          color: ColorManager.error,
+                        ),
+                      )
+                    : Text(
+                        'رفض',
+                        style: getSemiBoldStyle(
+                          fontSize: FontSize.s15,
+                          color: busy
+                              ? ColorManager.inkFaint
+                              : ColorManager.error,
+                        ),
+                      ),
+              ),
+            ),
+          ),
+          SizedBox(width: Space.m),
+          Expanded(
+            flex: 2,
+            child: PrimaryElevatedButton(
+              title: 'اعتماد التقرير',
+              icon: AppIcons.done,
+              height: AppSizes.touch,
+              backGroundColor: ColorManager.sprout,
+              isLoading: submitting == 'approved',
+              onPress: busy ? () {} : onApprove,
+            ),
+          ),
+        ],
       ),
     );
   }

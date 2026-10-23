@@ -8,17 +8,17 @@ import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.
 class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
   final _client = Supabase.instance.client;
 
-  @override
-  RealtimeChannel subscribeOnlineStatus(void Function() onChanged) {
-    return _client
-        .channel('users_online_status_volunteers')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.update,
-          schema: 'public',
-          table: 'users',
-          callback: (_) => onChanged(),
-        )
-        .subscribe();
+  static const _listCacheKey = 'admin_volunteers';
+
+  /// Also read by the create-campaign volunteer picker (campaigns datasource).
+  static const _pickerCacheKey = 'all_volunteers';
+
+  static const _listColumns =
+      'id, name, avatar_url, rating, region, total_hours, total_tasks, is_online, last_seen_at, role, level';
+
+  Future<void> _invalidateVolunteerLists() async {
+    await LocalAppStorage.invalidateCache(_listCacheKey);
+    await LocalAppStorage.invalidateCache(_pickerCacheKey);
   }
 
   @override
@@ -26,9 +26,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
     try {
       final data = await _client
           .from('users')
-          .select(
-            'id, name, avatar_url, rating, region, total_hours, total_tasks, is_online, last_seen_at, role',
-          )
+          .select(_listColumns)
           .eq('role', 'user')
           .order('joined_at', ascending: false);
       return (data as List)
@@ -56,17 +54,19 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
         'qualification': qualification,
         'role': 'volunteer',
       });
-      await LocalAppStorage.invalidateCache('admin_volunteers');
+      await _invalidateVolunteerLists();
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
   }
 
   @override
-  Future<List<AdminVolunteerEntity>> getVolunteers() async {
+  Future<List<AdminVolunteerEntity>> getVolunteers({
+    bool forceRefresh = false,
+  }) async {
     try {
-      const cacheKey = 'admin_volunteers';
-      final cached = LocalAppStorage.getCache(cacheKey);
+      const cacheKey = _listCacheKey;
+      final cached = forceRefresh ? null : LocalAppStorage.getCache(cacheKey);
       if (cached != null) {
         return (cached as List)
             .map<AdminVolunteerEntity>(
@@ -79,9 +79,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
 
       final data = await _client
           .from('users')
-          .select(
-            'id, name, avatar_url, rating, region, total_hours, total_tasks, is_online, last_seen_at, role',
-          )
+          .select(_listColumns)
           .inFilter('role', ['volunteer', 'user'])
           .order('name');
       final volunteers = (data as List)
@@ -102,31 +100,25 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
   @override
   Future<VolunteerDetailsEntity> getVolunteerDetails(String volunteerId) async {
     try {
-      final userRaw = await _client
-          .from('users')
-          .select('*')
-          .eq('id', volunteerId)
-          .single();
-      final tasksRaw = await _client
-          .from('task_assignments')
-          .select(
-            '*, is_verified, verified_hours, checked_in_at, checked_out_at, tasks(title, duration_hours)',
-          )
-          .eq('user_id', volunteerId)
-          .order('assigned_at', ascending: false);
+      // One assignments query (with the task type) instead of two sequential
+      // ones; runs in parallel with the profile fetch.
+      final results = await Future.wait<dynamic>([
+        _client.from('users').select('*').eq('id', volunteerId).single(),
+        _client
+            .from('task_assignments')
+            .select(
+              '*, is_verified, verified_hours, checked_in_at, checked_out_at, tasks(title, duration_hours, type)',
+            )
+            .eq('user_id', volunteerId)
+            .order('assigned_at', ascending: false),
+      ]);
+      final userRaw = results[0] as Map<String, dynamic>;
+      final tasksRaw = (results[1] as List).cast<Map<String, dynamic>>();
       final tasks = tasksRaw
-          .map(
-            (e) => VolunteerTaskAssignmentEntity.fromJson(
-              e,
-            ),
-          )
+          .map(VolunteerTaskAssignmentEntity.fromJson)
           .toList();
-      final areasRaw = await _client
-          .from('task_assignments')
-          .select('tasks!inner(type)')
-          .eq('user_id', volunteerId);
-      final volunteerAreas = (areasRaw as List)
-          .map((e) => (e['tasks'] as Map<String, dynamic>)['type'] as String?)
+      final volunteerAreas = tasksRaw
+          .map((e) => (e['tasks'] as Map<String, dynamic>?)?['type'] as String?)
           .whereType<String>()
           .toSet()
           .toList();
@@ -153,7 +145,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
           .delete()
           .eq('user_id', volunteerId);
       await _client.from('users').delete().eq('id', volunteerId);
-      await LocalAppStorage.invalidateCache('admin_volunteers');
+      await _invalidateVolunteerLists();
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -166,7 +158,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
           .from('users')
           .update({'role': 'volunteer'})
           .eq('id', volunteerId);
-      await LocalAppStorage.invalidateCache('admin_volunteers');
+      await _invalidateVolunteerLists();
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -189,7 +181,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
 
       var query = _client
           .from('tasks')
-          .select('id, title, date, type')
+          .select('id, title, date, type, location_name')
           .inFilter('status', ['upcoming', 'active']);
 
       if (assignedIds.isNotEmpty) {
@@ -270,9 +262,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
         'created_at': DateTime.now().toUtc().toIso8601String(),
       });
 
-      await LocalAppStorage.invalidateCache('admin_volunteers');
-      await LocalAppStorage.invalidateCache('today_tasks_$volunteerId');
-      await LocalAppStorage.invalidateCache('tasks_stats_$volunteerId');
+      await LocalAppStorage.invalidateCache(_listCacheKey);
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -321,7 +311,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
           .from('users')
           .update({'rating': rating.toDouble()})
           .eq('id', volunteerId);
-      await LocalAppStorage.invalidateCache('admin_volunteers');
+      await LocalAppStorage.invalidateCache(_listCacheKey);
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -338,7 +328,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
           .from('users')
           .update({'level': level})
           .eq('id', volunteerId);
-      await LocalAppStorage.invalidateCache('admin_volunteers');
+      await LocalAppStorage.invalidateCache(_listCacheKey);
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -351,7 +341,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
   }) async {
     try {
       await _client.from('users').update(fields).eq('id', volunteerId);
-      await LocalAppStorage.invalidateCache('admin_volunteers');
+      await _invalidateVolunteerLists();
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -444,10 +434,9 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
         'created_at': now,
       });
 
-      await LocalAppStorage.invalidateCache('admin_volunteers');
+      await LocalAppStorage.invalidateCache(_listCacheKey);
       await LocalAppStorage.invalidateCache('campaigns_list');
       await LocalAppStorage.invalidateCache('campaigns_stats');
-      await LocalAppStorage.invalidateCache('today_tasks_$volunteerId');
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -460,7 +449,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
           .from('users')
           .update({'role': 'suspended'})
           .eq('id', volunteerId);
-      await LocalAppStorage.invalidateCache('admin_volunteers');
+      await _invalidateVolunteerLists();
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }

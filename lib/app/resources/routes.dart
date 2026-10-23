@@ -1,3 +1,5 @@
+import 'package:t3afy/app/resources/app_transitions.dart';
+import 'package:flutter/foundation.dart';
 // routes.dart
 
 import 'package:flutter/material.dart';
@@ -81,12 +83,13 @@ class AppNavigation {
   static final GoRouter router = GoRouter(
     initialLocation: Routes.splash,
     navigatorKey: _rootNK,
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: kDebugMode,
     routes: <RouteBase>[
       GoRoute(
         path: Routes.splash,
-        pageBuilder: (context, state) => CustomTransitionPage2(
+        pageBuilder: (context, state) => appPage(
           key: state.pageKey,
+          fade: true,
           child: BlocProvider(
             create: (_) => SplashCubit(),
             child: const SplashView(),
@@ -95,31 +98,32 @@ class AppNavigation {
       ),
       GoRoute(
         path: Routes.onboarding1,
-        pageBuilder: (context, state) => CustomTransitionPage2(
+        pageBuilder: (context, state) => appPage(
           key: state.pageKey,
+          fade: true,
           child: const FirstOnboarding(),
         ),
       ),
       GoRoute(
         path: Routes.login,
         pageBuilder: (context, state) =>
-            CustomTransitionPage2(key: state.pageKey, child: const LoginView()),
+            appPage(key: state.pageKey, fade: true, child: const LoginView()),
       ),
       // GoRoute(
       //   path: Routes.adminHome,
       //   pageBuilder: (context, state) =>
-      //       CustomTransitionPage2(key: state.pageKey, child: const AdminView()),
+      //       appPage(key: state.pageKey, child: const AdminView()),
       // ),
       // GoRoute(
       //   path: Routes.adminReports,
-      //   pageBuilder: (context, state) => CustomTransitionPage2(
+      //   pageBuilder: (context, state) => appPage(
       //     key: state.pageKey,
       //     child: const AdminReportsView(),
       //   ),
       // ),
       GoRoute(
         path: Routes.notifications,
-        pageBuilder: (context, state) => CustomTransitionPage2(
+        pageBuilder: (context, state) => appPage(
           key: state.pageKey,
           child: BlocProvider(
             create: (_) => getIt<NotificationsCubit>(),
@@ -129,7 +133,7 @@ class AppNavigation {
       ),
       GoRoute(
         path: Routes.adminNotifications,
-        pageBuilder: (context, state) => CustomTransitionPage2(
+        pageBuilder: (context, state) => appPage(
           key: state.pageKey,
           child: BlocProvider(
             create: (_) => getIt<AdminNotificationsCubit>(),
@@ -139,16 +143,14 @@ class AppNavigation {
       ),
       GoRoute(
         path: Routes.register,
-        pageBuilder: (context, state) => CustomTransitionPage2(
-          key: state.pageKey,
-          child: const RegisterView(),
-        ),
+        pageBuilder: (context, state) =>
+            appPage(key: state.pageKey, child: const RegisterView()),
       ),
       GoRoute(
         path: Routes.taskDetails,
         pageBuilder: (context, state) {
           final taskId = state.extra as String;
-          return CustomTransitionPage2(
+          return appPage(
             key: state.pageKey,
             child: BlocProvider(
               create: (_) => getIt<TaskDetailsCubit>(),
@@ -159,7 +161,7 @@ class AppNavigation {
       ),
       GoRoute(
         path: Routes.volunteerProfile,
-        pageBuilder: (context, state) => CustomTransitionPage2(
+        pageBuilder: (context, state) => appPage(
           key: state.pageKey,
           child: BlocProvider(
             create: (_) => getIt<ProfileCubit>(),
@@ -169,7 +171,7 @@ class AppNavigation {
       ),
       GoRoute(
         path: Routes.adminProfile,
-        pageBuilder: (context, state) => CustomTransitionPage2(
+        pageBuilder: (context, state) => appPage(
           key: state.pageKey,
           child: BlocProvider(
             create: (_) => getIt<AdminProfileCubit>(),
@@ -178,32 +180,43 @@ class AppNavigation {
         ),
       ),
       // Shell route with bottom nav
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) {
-          return MultiBlocProvider(
-            providers: [
-              BlocProvider(create: (_) => getIt<HomeCubit>()),
-              BlocProvider(create: (_) => ChatbotCubit()),
-              BlocProvider(create: (_) => getIt<PerformanceCubit>()),
-              //              BlocProvider(
-              //   create: (_) {
-              //     debugPrint('🟡 Creating OnlineStatusCubit...');
-              //     return getIt<OnlineStatusCubit>();
-              //   },
-              // ),
-            ],
-            child: VolunteerScaffoldWithNavBar(
-              navigationShell: navigationShell,
+      StatefulShellRoute(
+        navigatorContainerBuilder: (context, navigationShell, children) =>
+            AnimatedBranchContainer(
+              currentIndex: navigationShell.currentIndex,
+              children: children,
             ),
-          );
-        },
+        pageBuilder: (context, state, navigationShell) => appPage(
+          key: state.pageKey,
+          fade: true,
+          child: Builder(
+            builder: (context) {
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider(create: (_) => getIt<HomeCubit>()),
+                  BlocProvider(create: (_) => ChatbotCubit()),
+                  BlocProvider(create: (_) => getIt<PerformanceCubit>()),
+                  //              BlocProvider(
+                  //   create: (_) {
+                  //     debugPrint('🟡 Creating OnlineStatusCubit...');
+                  //     return getIt<OnlineStatusCubit>();
+                  //   },
+                  // ),
+                ],
+                child: VolunteerScaffoldWithNavBar(
+                  navigationShell: navigationShell,
+                ),
+              );
+            },
+          ),
+        ),
         branches: <StatefulShellBranch>[
           // Tab 0: Home
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
                 path: Routes.volunteerHome,
-                pageBuilder: (context, state) => CustomTransitionPage2(
+                pageBuilder: (context, state) => appPage(
                   key: state.pageKey,
                   child: const VolunteerHomeView(),
                 ),
@@ -227,7 +240,7 @@ class AppNavigation {
             routes: <RouteBase>[
               GoRoute(
                 path: Routes.volunteerMap,
-                pageBuilder: (context, state) => CustomTransitionPage2(
+                pageBuilder: (context, state) => appPage(
                   key: state.pageKey,
                   child: const VolunteerMapView(),
                 ),
@@ -239,7 +252,7 @@ class AppNavigation {
             routes: <RouteBase>[
               GoRoute(
                 path: Routes.volunteerPerformance,
-                pageBuilder: (context, state) => CustomTransitionPage2(
+                pageBuilder: (context, state) => appPage(
                   key: state.pageKey,
                   child: VolunteerPerformanceView(),
                 ),
@@ -251,10 +264,8 @@ class AppNavigation {
             routes: <RouteBase>[
               GoRoute(
                 path: Routes.bot,
-                pageBuilder: (context, state) => CustomTransitionPage2(
-                  key: state.pageKey,
-                  child: VolunteerChatbotView(),
-                ),
+                pageBuilder: (context, state) =>
+                    appPage(key: state.pageKey, child: VolunteerChatbotView()),
               ),
             ],
           ),
@@ -264,7 +275,7 @@ class AppNavigation {
         path: '/volunteerDetails/:id',
         pageBuilder: (context, state) {
           final volunteerId = state.pathParameters['id']!;
-          return CustomTransitionPage2(
+          return appPage(
             key: state.pageKey,
             child: BlocProvider(
               create: (_) => getIt<VolunteerDetailsCubit>(),
@@ -277,7 +288,7 @@ class AppNavigation {
         path: '/campaignDetails/:id',
         pageBuilder: (context, state) {
           final taskId = state.pathParameters['id']!;
-          return CustomTransitionPage2(
+          return appPage(
             key: state.pageKey,
             child: BlocProvider(
               create: (_) => getIt<CampaignDetailCubit>(),
@@ -288,7 +299,7 @@ class AppNavigation {
       ),
       GoRoute(
         path: '/createCampaign',
-        pageBuilder: (context, state) => CustomTransitionPage2(
+        pageBuilder: (context, state) => appPage(
           key: state.pageKey,
           child: BlocProvider(
             create: (_) => getIt<CreateCampaignCubit>(),
@@ -300,7 +311,7 @@ class AppNavigation {
         path: '/editCampaign/:id',
         pageBuilder: (context, state) {
           final taskId = state.pathParameters['id']!;
-          return CustomTransitionPage2(
+          return appPage(
             key: state.pageKey,
             child: BlocProvider(
               create: (_) => getIt<CreateCampaignCubit>(),
@@ -309,17 +320,28 @@ class AppNavigation {
           );
         },
       ),
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) {
-          return AdminScaffoldWithNavBar(navigationShell: navigationShell);
-        },
+      StatefulShellRoute(
+        navigatorContainerBuilder: (context, navigationShell, children) =>
+            AnimatedBranchContainer(
+              currentIndex: navigationShell.currentIndex,
+              children: children,
+            ),
+        pageBuilder: (context, state, navigationShell) => appPage(
+          key: state.pageKey,
+          fade: true,
+          child: Builder(
+            builder: (context) {
+              return AdminScaffoldWithNavBar(navigationShell: navigationShell);
+            },
+          ),
+        ),
         branches: <StatefulShellBranch>[
           // Tab 0: Home
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
                 path: Routes.adminHome,
-                pageBuilder: (context, state) => CustomTransitionPage2(
+                pageBuilder: (context, state) => appPage(
                   key: state.pageKey,
                   child: BlocProvider(
                     create: (_) => getIt<AdminHomeCubit>(),
@@ -334,7 +356,7 @@ class AppNavigation {
             routes: [
               GoRoute(
                 path: Routes.volunteers,
-                pageBuilder: (context, state) => CustomTransitionPage2(
+                pageBuilder: (context, state) => appPage(
                   key: state.pageKey,
                   child: BlocProvider(
                     create: (_) => getIt<VolunteersCubit>(),
@@ -349,10 +371,10 @@ class AppNavigation {
             routes: <RouteBase>[
               GoRoute(
                 path: Routes.campaigns,
-                pageBuilder: (context, state) => CustomTransitionPage2(
+                pageBuilder: (context, state) => appPage(
                   key: state.pageKey,
-                  child: BlocProvider.value(
-                    value: getIt<CampaignsCubit>(),
+                  child: BlocProvider(
+                    create: (_) => getIt<CampaignsCubit>(),
                     child: const CampaignsView(),
                   ),
                 ),
@@ -364,7 +386,7 @@ class AppNavigation {
             routes: <RouteBase>[
               GoRoute(
                 path: Routes.adminReports,
-                pageBuilder: (context, state) => CustomTransitionPage2(
+                pageBuilder: (context, state) => appPage(
                   key: state.pageKey,
                   child: BlocProvider(
                     create: (_) => getIt<AdminReportsCubit>(),
@@ -379,7 +401,7 @@ class AppNavigation {
             routes: <RouteBase>[
               GoRoute(
                 path: Routes.adminPerformance,
-                pageBuilder: (context, state) => CustomTransitionPage2(
+                pageBuilder: (context, state) => appPage(
                   key: state.pageKey,
                   child: BlocProvider(
                     create: (_) => getIt<AdminPerformanceCubit>(),
@@ -435,35 +457,6 @@ class CustomTransitionPage extends Page {
         );
       },
       fullscreenDialog: false,
-    );
-  }
-}
-
-class CustomTransitionPage2 extends Page {
-  final Widget child;
-  final Duration duration;
-
-  const CustomTransitionPage2({
-    required LocalKey key,
-    required this.child,
-    this.duration = const Duration(milliseconds: 400),
-  }) : super(key: key);
-
-  @override
-  Route createRoute(BuildContext context) {
-    return PageRouteBuilder(
-      settings: this,
-      transitionDuration: duration,
-      reverseTransitionDuration: duration,
-      pageBuilder: (context, animation, secondaryAnimation) => child,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final fadeAnimation = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeInOut,
-        );
-
-        return FadeTransition(opacity: fadeAnimation, child: child);
-      },
     );
   }
 }

@@ -8,10 +8,13 @@ class AdminProfileRemoteDatasourceImpl implements AdminProfileRemoteDatasource {
   final _client = Supabase.instance.client;
 
   @override
-  Future<AdminProfileEntity> getProfile(String userId) async {
+  Future<AdminProfileEntity> getProfile(
+    String userId, {
+    bool forceRefresh = false,
+  }) async {
     try {
       final cacheKey = 'admin_profile_$userId';
-      final cached = LocalAppStorage.getCache(cacheKey);
+      final cached = forceRefresh ? null : LocalAppStorage.getCache(cacheKey);
       if (cached != null) {
         final data = Map<String, dynamic>.from(cached as Map);
         return AdminProfileEntity(

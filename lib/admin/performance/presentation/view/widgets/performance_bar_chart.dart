@@ -2,11 +2,15 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/admin/performance/domain/entities/admin_performance_entity.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/empty_state_text.dart';
+import 'package:t3afy/base/widgets/after_transition.dart';
 
+/// Completed tasks per bucket; the last (current) bucket is highlighted.
 class PerformanceBarChart extends StatelessWidget {
   const PerformanceBarChart({
     super.key,
@@ -27,170 +31,201 @@ class PerformanceBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (bars.isEmpty) return const SizedBox.shrink();
-
-    final maxY = bars
-        .map((e) => e.count)
-        .reduce((a, b) => a > b ? a : b)
-        .toDouble();
+    final isEmpty = bars.isEmpty || bars.every((b) => b.count == 0);
     final pct = _percentageChange;
+    final up = pct >= 0;
+    final flat = pct == 0;
+    final trendColor = flat
+        ? ColorManager.inkFaint
+        : up
+        ? ColorManager.sproutText
+        : ColorManager.error;
 
     return Container(
-      padding: EdgeInsets.all(12.sp),
+      padding: EdgeInsetsDirectional.all(Space.l),
       decoration: BoxDecoration(
-        color: ColorManager.natural50,
-        borderRadius: BorderRadius.circular(AppRadius.s16),
-        border: Border.all(
-          color: ColorManager.primary500.withValues(alpha: 0.1),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
+        color: ColorManager.surface,
+        borderRadius: BorderRadius.circular(Radii.card),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: ColorManager.natural600,
+              Expanded(child: Text(title, style: AppText.bodyStrong())),
+              if (!isEmpty)
+                Semantics(
+                  label: up
+                      ? 'زيادة $pct٪ عن الفترة السابقة'
+                      : 'انخفاض ${pct.abs()}٪ عن الفترة السابقة',
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Trend arrows must not mirror in RTL (up stays up).
+                      Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Icon(
+                          flat
+                              ? AppIcons.trendFlat
+                              : up
+                              ? AppIcons.trendUp
+                              : AppIcons.trendDown,
+                          size: AppSizes.iconS,
+                          color: trendColor,
+                        ),
+                      ),
+                      SizedBox(width: Space.xxs),
+                      Text(
+                        '${pct.abs()}%',
+                        style: getNumericStyle(
+                          fontSize: FontSize.s13,
+                          color: trendColor,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Text(
-                pct >= 0 ? '$pct% ↑' : '${pct.abs()}% ↓',
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: pct >= 0 ? ColorManager.success : ColorManager.error,
-                ),
-              ),
             ],
           ),
-          SizedBox(height: AppHeight.s13),
-          SizedBox(
-            height: AppHeight.s140,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final count = bars.length;
-                final minWidth = count * AppWidth.s64;
-                final chartWidth = minWidth > constraints.maxWidth
-                    ? minWidth
-                    : constraints.maxWidth;
-                final barWidth = (chartWidth / count).clamp(
-                  AppWidth.s64,
-                  AppWidth.s81,
-                );
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                    width: chartWidth,
-                    child: BarChart(
-                      BarChartData(
-                        maxY: maxY == 0 ? 1 : maxY * 1.2,
-                        backgroundColor: Colors.transparent,
-                        gridData: FlGridData(
-                          show: true,
-                          drawVerticalLine: false,
-                          getDrawingHorizontalLine: (_) => FlLine(
-                            color: ColorManager.primary500.withValues(
-                              alpha: 0.06,
-                            ),
-                            strokeWidth: 1,
-                          ),
-                        ),
-                        borderData: FlBorderData(show: false),
-                        barTouchData: BarTouchData(
-                          enabled: true,
-                          touchTooltipData: BarTouchTooltipData(
-                            getTooltipColor: (_) => ColorManager.natural50,
-                            tooltipRoundedRadius: AppRadius.s8,
-                            tooltipPadding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            tooltipMargin: 8,
-                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                              final idx = group.x;
-                              if (idx < 0 || idx >= bars.length) return null;
-                              final bar = bars[idx];
-                              return BarTooltipItem(
-                                '${bar.label}: ${bar.count} مهام',
-                                getMediumStyle(
-                                  fontFamily: FontConstants.fontFamily,
-                                  fontSize: FontSize.s12,
-                                  color: ColorManager.natural900,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        titlesData: FlTitlesData(
-                          leftTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          rightTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          topTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 28,
-                              getTitlesWidget: (value, meta) {
-                                final idx = value.toInt();
-                                if (idx < 0 || idx >= bars.length) {
-                                  return const SizedBox.shrink();
-                                }
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 6),
-                                  child: Text(
-                                    bars[idx].label,
-                                    style: getLightStyle(
-                                      fontFamily: FontConstants.fontFamily,
-                                      fontSize: FontSize.s12,
-                                      color: ColorManager.natural900,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        barGroups: List.generate(bars.length, (i) {
-                          return BarChartGroupData(
-                            x: i,
-                            barRods: [
-                              BarChartRodData(
-                                toY: bars[i].count.toDouble(),
-                                color: ColorManager.primary500,
-                                width: barWidth,
-                                borderRadius: BorderRadius.circular(
-                                  AppRadius.s16,
-                                ),
-                              ),
-                            ],
-                          );
-                        }),
-                      ),
-                    ),
-                  ),
-                );
-              },
+          SizedBox(height: Space.vm),
+          if (isEmpty)
+            const AppEmptyState(
+              title: 'لا توجد مهام منجزة في هذه الفترة',
+              icon: AppIcons.performance,
+              compact: true,
+            )
+          else
+            SizedBox(
+              height: 160.h,
+              child: AfterTransition(
+                placeholder: const SizedBox.shrink(),
+                child: _chart(),
+              ),
             ),
-          ),
         ],
       ),
+    );
+  }
+
+  Widget _chart() {
+    final maxY = bars
+        .map((e) => e.count)
+        .reduce((a, b) => a > b ? a : b)
+        .toDouble();
+    final lastIndex = bars.length - 1;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final count = bars.length;
+        final minSlot = 52.w;
+        final chartWidth = count * minSlot > constraints.maxWidth
+            ? count * minSlot
+            : constraints.maxWidth;
+        final barWidth = (chartWidth / count * 0.55).clamp(12.w, 36.w);
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: chartWidth,
+            child: BarChart(
+              BarChartData(
+                maxY: maxY == 0 ? 1 : maxY * 1.2,
+                backgroundColor: Colors.transparent,
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (_) =>
+                      const FlLine(color: ColorManager.line, strokeWidth: 1),
+                ),
+                borderData: FlBorderData(show: false),
+                barTouchData: BarTouchData(
+                  enabled: true,
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipColor: (_) => ColorManager.ink,
+                    tooltipRoundedRadius: Radii.small,
+                    tooltipPadding: EdgeInsets.symmetric(
+                      horizontal: Space.s,
+                      vertical: Space.vxs,
+                    ),
+                    tooltipMargin: Space.vs,
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      final idx = group.x;
+                      if (idx < 0 || idx >= bars.length) return null;
+                      final bar = bars[idx];
+                      return BarTooltipItem(
+                        '${bar.label}\n',
+                        getMediumStyle(
+                          fontSize: FontSize.s11,
+                          color: ColorManager.onInkMuted,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: '${bar.count} مهمة',
+                            style: getNumericStyle(
+                              fontSize: FontSize.s13,
+                              color: ColorManager.onInk,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 28.h,
+                      getTitlesWidget: (value, meta) {
+                        final idx = value.toInt();
+                        if (idx < 0 || idx >= bars.length) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: EdgeInsetsDirectional.only(top: Space.vxs),
+                          child: Text(
+                            bars[idx].label,
+                            style: AppText.caption(
+                              color: idx == lastIndex
+                                  ? ColorManager.ink
+                                  : ColorManager.inkFaint,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                barGroups: List.generate(bars.length, (i) {
+                  return BarChartGroupData(
+                    x: i,
+                    barRods: [
+                      BarChartRodData(
+                        toY: bars[i].count.toDouble(),
+                        color: i == lastIndex
+                            ? ColorManager.brand
+                            : ColorManager.brandSoft,
+                        width: barWidth,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(Radii.small),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

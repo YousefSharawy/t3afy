@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 
+/// The "rising together" moment at the top of Home: Deep Root band with the
+/// volunteer's name and level.
 class GreetingCard extends StatelessWidget {
   const GreetingCard({
     super.key,
@@ -16,61 +19,104 @@ class GreetingCard extends StatelessWidget {
   final int level;
   final String levelTitle;
 
-  String get _greeting {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'صباح الخير';
-    return 'مساء الخير';
-  }
+  String get _greeting =>
+      DateTime.now().hour < 12 ? 'صباح الخير' : 'مساء الخير';
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s16,
-        vertical: AppHeight.s20,
+      padding: EdgeInsetsDirectional.fromSTEB(
+        Space.l,
+        Space.vl,
+        Space.l,
+        Space.vl,
       ),
       decoration: BoxDecoration(
-        color: ColorManager.primary50,
-        borderRadius: BorderRadius.circular(AppRadius.s12),
+        color: ColorManager.ink,
+        borderRadius: BorderRadius.circular(Radii.card),
+        boxShadow: AppShadows.card,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            _greeting,
-            style: getRegularStyle(
-              fontFamily: FontConstants.fontFamily,
-              color: ColorManager.natural400,
-              fontSize: FontSize.s11,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _greeting,
+                  style: getMediumStyle(
+                    fontSize: FontSize.s13,
+                    color: ColorManager.onInkMuted,
+                  ),
+                ),
+                SizedBox(height: Space.vxs),
+                Text(
+                  name,
+                  style: getDisplayStyle(
+                    fontSize: FontSize.s22,
+                    color: ColorManager.onInk,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: Space.vm),
+                _Pill(
+                  icon: AppIcons.medal,
+                  text: '$levelTitle · المستوى $level',
+                ),
+              ],
             ),
           ),
-          SizedBox(height: AppHeight.s2),
-          Text(
-            name,
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              color: ColorManager.natural800,
-              fontSize: FontSize.s20,
-            ),
-          ),
-          SizedBox(height: AppHeight.s8),
+          SizedBox(width: Space.m),
           Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppWidth.s12,
-              vertical: AppHeight.s4,
-            ),
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
-              color: ColorManager.primary100,
-              borderRadius: BorderRadius.circular(AppRadius.s16),
+              color: ColorManager.brand.withValues(alpha: 0.22),
+              shape: BoxShape.circle,
             ),
+            child: const Icon(
+              AppIcons.vol,
+              color: ColorManager.onInk,
+              size: 28,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: Space.s + 2, vertical: 4),
+      decoration: BoxDecoration(
+        color: ColorManager.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(Radii.chip),
+        border: Border.all(color: ColorManager.white.withValues(alpha: 0.10)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: ColorManager.onInkMuted),
+          SizedBox(width: Space.xs),
+          Flexible(
             child: Text(
-              '$levelTitle المستوى $level',
-              style: getSemiBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                color: ColorManager.primary600,
-                fontSize: FontSize.s10,
+              text,
+              style: getMediumStyle(
+                fontSize: FontSize.s12,
+                color: ColorManager.onInk,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

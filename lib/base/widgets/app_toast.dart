@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
+import 'package:t3afy/app/resources/style_manager.dart';
 
 enum AppToastType { success, error, warning, info }
 
@@ -12,7 +12,7 @@ class AppToast {
     BuildContext context, {
     required String message,
     required AppToastType type,
-    Duration duration = const Duration(seconds: 5),
+    Duration duration = const Duration(milliseconds: 3500),
   }) {
     _current?.remove();
     _current = null;
@@ -101,43 +101,40 @@ class _AppToastWidgetState extends State<_AppToastWidget>
     super.dispose();
   }
 
+  // Calm, consistent toast: Deep Root surface, meaning carried by the icon.
   (Color bg, Color border, Color icon, IconData iconData) get _theme {
-    switch (widget.type) {
-      case AppToastType.success:
-        return (
-          const Color(0xFF00C47C),
-          const Color(0xFF00A367),
-          Colors.white,
-          Icons.check_circle_rounded,
-        );
-      case AppToastType.error:
-        return (
-          const Color(0xFFFF4757),
-          const Color(0xFFE03049),
-          Colors.white,
-          Icons.cancel_rounded,
-        );
-      case AppToastType.warning:
-        return (
-          const Color(0xFFFFAA00),
-          const Color(0xFFE09600),
-          Colors.white,
-          Icons.warning_rounded,
-        );
-      case AppToastType.info:
-        return (
-          ColorManager.primary500,
-          ColorManager.primary600,
-          Colors.white,
-          Icons.info_rounded,
-        );
-    }
+    return switch (widget.type) {
+      AppToastType.success => (
+        ColorManager.ink,
+        ColorManager.ink,
+        ColorManager.sprout,
+        Icons.check_circle_rounded,
+      ),
+      AppToastType.error => (
+        ColorManager.ink,
+        ColorManager.ink,
+        const Color(0xFFFF8A80),
+        Icons.error_rounded,
+      ),
+      AppToastType.warning => (
+        ColorManager.ink,
+        ColorManager.ink,
+        ColorManager.star,
+        Icons.warning_rounded,
+      ),
+      AppToastType.info => (
+        ColorManager.ink,
+        ColorManager.ink,
+        ColorManager.primary200,
+        Icons.info_rounded,
+      ),
+    };
   }
 
   @override
   Widget build(BuildContext context) {
     final (bg, border, iconColor, iconData) = _theme;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
     return Positioned(
       bottom: bottomPadding + 80.h,
@@ -177,11 +174,9 @@ class _AppToastWidgetState extends State<_AppToastWidget>
                             Expanded(
                               child: Text(
                                 widget.message,
-                                style: TextStyle(
-                                  fontFamily: FontConstants.fontFamily,
+                                style: getMediumStyle(
                                   fontSize: 13.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: ColorManager.onInk,
                                   height: 1.4,
                                 ),
                               ),
@@ -192,7 +187,7 @@ class _AppToastWidgetState extends State<_AppToastWidget>
                                 padding: EdgeInsets.all(6.r),
                                 child: Icon(
                                   Icons.close,
-                                  color: Colors.white.withValues(alpha: 0.8),
+                                  color: ColorManager.onInkMuted,
                                   size: 16.sp,
                                 ),
                               ),
@@ -215,7 +210,7 @@ class _AppToastWidgetState extends State<_AppToastWidget>
                                   width:
                                       constraints.maxWidth *
                                       (1 - _countdownCtrl.value),
-                                  color: Colors.white.withValues(alpha: 0.7),
+                                  color: ColorManager.onInkMuted,
                                 ),
                               ),
                             );

@@ -14,9 +14,9 @@ class ProfileInfoSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.sp),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
       decoration: BoxDecoration(
-        color: ColorManager.white,
+        color: ColorManager.surface,
         borderRadius: BorderRadius.circular(AppRadius.s16),
       ),
       child: Column(
@@ -24,39 +24,33 @@ class ProfileInfoSection extends StatelessWidget {
         children: [
           for (int i = 0; i < items.length; i++) ...[
             Padding(
-              padding: EdgeInsets.only(bottom: AppHeight.s10),
+              padding: EdgeInsets.symmetric(vertical: AppHeight.s8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     items[i].label,
-                    style: getBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.natural400,
-                      fontSize: FontSize.s12,
+                    style: getMediumStyle(
+                      color: ColorManager.inkMuted,
+                      fontSize: FontSize.s13,
                     ),
                   ),
-                  Text(
-                    items[i].value,
-                    style: getRegularStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.natural400,
-                      fontSize: FontSize.s12,
+                  SizedBox(width: AppWidth.s12),
+                  Flexible(
+                    child: Text(
+                      items[i].value,
+                      textAlign: TextAlign.end,
+                      style: getSemiBoldStyle(
+                        color: ColorManager.ink,
+                        fontSize: FontSize.s13,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
             if (items[i].hasDivider)
-              Center(
-                child: SizedBox(
-                  width: AppWidth.s108,
-                  child: Divider(
-                    color: ColorManager.natural200,
-                    thickness: 1.sp,
-                  ),
-                ),
-              ),
+              Divider(height: 1, thickness: 1, color: ColorManager.line),
           ],
         ],
       ),

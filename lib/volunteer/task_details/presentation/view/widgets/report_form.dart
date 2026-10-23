@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/base/primary_widgets.dart';
+
 import 'report_labeled_field.dart';
 import 'report_star_rating.dart';
 
@@ -38,86 +38,76 @@ class ReportForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gap = SizedBox(height: Space.vl);
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
+      padding: EdgeInsetsDirectional.fromSTEB(
+        Space.gutter,
+        Space.vs,
+        Space.gutter,
+        Space.vl + MediaQuery.viewInsetsOf(context).bottom,
+      ),
       child: Form(
         key: formKey,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ReportLabeledField(
               label: 'ملخص المهمة',
+              isRequired: true,
               controller: summaryCtrl,
               maxLines: 4,
               hint: 'اكتب ملخصاً عما تم إنجازه...',
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'هذا الحقل مطلوب' : null,
             ),
-            SizedBox(height: AppHeight.s16),
+            gap,
             ReportLabeledField(
               label: 'التحديات التي واجهتها',
               controller: challengesCtrl,
               maxLines: 3,
               hint: 'اذكر أي تحديات أو عقبات (اختياري)',
             ),
-            SizedBox(height: AppHeight.s16),
+            gap,
             ReportLabeledField(
               label: 'عدد الحضور',
               controller: attendeesCtrl,
               hint: 'عدد المستفيدين أو الحضور',
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: AppHeight.s16),
+            gap,
             ReportLabeledField(
               label: 'المواد الموزعة',
               controller: materialsCtrl,
               hint: 'المستلزمات التي تم توزيعها (اختياري)',
             ),
-            SizedBox(height: AppHeight.s16),
+            gap,
             ReportStarRating(rating: rating, onRatingChanged: onRatingChanged),
-            SizedBox(height: AppHeight.s16),
+            gap,
             ReportLabeledField(
               label: 'ملاحظات إضافية',
               controller: notesCtrl,
               maxLines: 3,
               hint: 'أي ملاحظات أخرى (اختياري)',
             ),
-            SizedBox(height: AppHeight.s24),
+            SizedBox(height: Space.vxl),
             PrimaryElevatedButton(
-              title: 'إرسال',
-              onPress: isSubmitting
-                  ? () {}
-                  : () {
-                      HapticFeedback.mediumImpact();
-                      onSubmit();
-                    },
-              textStyle: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s16,
-                color: Colors.white,
-              ),
-              titleWidget: isSubmitting
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : null,
+              title: 'إرسال التقرير',
+              icon: AppIcons.send,
+              isLoading: isSubmitting,
+              onPress: () {
+                HapticFeedback.mediumImpact();
+                onSubmit();
+              },
             ),
-            SizedBox(height: AppHeight.s12),
-            PrimaryElevatedButton(
-              title: 'إلغاء',
-              onPress: onCancel,
-              backGroundColor: ColorManager.natural200,
-              textStyle: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s16,
-                color: Colors.black87,
+            SizedBox(height: Space.vs),
+            TextButton(
+              onPressed: isSubmitting ? null : onCancel,
+              style: TextButton.styleFrom(
+                foregroundColor: ColorManager.inkMuted,
+                minimumSize: Size.fromHeight(AppSizes.touch),
               ),
+              child: const Text('إلغاء'),
             ),
-            SizedBox(height: AppHeight.s24),
           ],
         ),
       ),

@@ -1,29 +1,35 @@
 import 'dart:io';
 
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/volunteer_entity.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/app/services/tutorial_service.dart';
 import 'package:t3afy/base/primary_widgets.dart';
+import 'package:t3afy/base/widgets/app_card.dart';
+import 'package:t3afy/base/widgets/app_map_preview.dart';
+import 'package:t3afy/core/utils/date_ar.dart';
 import 'add_item_header.dart';
-import 'campaign_form_helpers.dart';
-import 'create_volunteer_picker_sheet.dart';
 import 'dropdown_field.dart';
 import 'form_field_label.dart';
 import 'location_picker_view.dart';
 import 'objective_field.dart';
 import 'supply_field.dart';
+import 'volunteer_picker_sheet.dart';
 import 'volunteer_selection_list.dart';
 
+/// The campaign form, grouped into cards in the order a manager thinks:
+/// basics → when → where → team → details → status.
+///
+/// Cubit-owned values (type, date, time, location, team, force-complete) are
+/// read per section with [BlocSelector], so a change to one field rebuilds only
+/// its card. Text fields are plain controllers owned by the view.
 class CampaignFormBody extends StatelessWidget {
   const CampaignFormBody({
     super.key,
@@ -39,13 +45,6 @@ class CampaignFormBody extends StatelessWidget {
     required this.objectiveCtrls,
     required this.supplyNameCtrls,
     required this.supplyQtyCtrls,
-    required this.selectedType,
-    required this.isForceCompleted,
-    required this.selectedDate,
-    required this.timeStart,
-    required this.timeEnd,
-    required this.volunteers,
-    required this.selectedIds,
     required this.onPickDate,
     required this.onPickCombinedTime,
     required this.onAddObjective,
@@ -55,8 +54,7 @@ class CampaignFormBody extends StatelessWidget {
     required this.selectedPapers,
     required this.onAddPaper,
     required this.onRemovePaper,
-    this.selectedLat,
-    this.selectedLng,
+    this.bottomPadding = 0,
   });
 
   final TextEditingController titleCtrl;
@@ -71,13 +69,6 @@ class CampaignFormBody extends StatelessWidget {
   final List<TextEditingController> objectiveCtrls;
   final List<TextEditingController> supplyNameCtrls;
   final List<TextEditingController> supplyQtyCtrls;
-  final String selectedType;
-  final bool isForceCompleted;
-  final DateTime? selectedDate;
-  final TimeOfDay? timeStart;
-  final TimeOfDay? timeEnd;
-  final List<VolunteerEntity> volunteers;
-  final Set<String> selectedIds;
   final VoidCallback onPickDate;
   final VoidCallback onPickCombinedTime;
   final VoidCallback onAddObjective;
@@ -87,455 +78,557 @@ class CampaignFormBody extends StatelessWidget {
   final List<File> selectedPapers;
   final VoidCallback onAddPaper;
   final void Function(int index) onRemovePaper;
-  final double? selectedLat;
-  final double? selectedLng;
+  final double bottomPadding;
 
   @override
   Widget build(BuildContext context) {
-    final selectedVolunteers = volunteers
-        .where((v) => selectedIds.contains(v.id))
-        .toList();
+    final gap = SizedBox(height: Space.vl);
+    final fieldGap = SizedBox(height: Space.vm);
+    final labelGap = SizedBox(height: Space.vs);
 
     return ListView(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s18,
-        vertical: AppHeight.s16,
+      padding: EdgeInsets.fromLTRB(
+        Space.gutter,
+        Space.vs,
+        Space.gutter,
+        Space.vxl + bottomPadding,
       ),
       children: [
-        // ── 1. Campaign name ──────────────────────────────────────────────
-        const FormFieldLabel('اسم الحملة'),
-        SizedBox(height: AppHeight.s8),
-        PrimaryTextFF(
+        // ── Basics ─────────────────────────────────────────────────────
+        _FormCard(
           key: AppTutorialKeys.createCampaignGeneralKey,
-          textAlign: .right,
-          controller: titleCtrl,
-          hint: 'أدخل اسم الحملة',
-          validator: (v) => v == null || v.isEmpty ? 'مطلوب' : null,
+          title: 'بيانات الحملة',
+          icon: AppIcons.campaigns,
+          children: [
+            const FormFieldLabel('اسم الحملة'),
+            labelGap,
+            PrimaryTextFF(
+              controller: titleCtrl,
+              hint: 'أدخل اسم الحملة',
+              textInputAction: TextInputAction.next,
+              validator: (v) =>
+                  v == null || v.trim().isEmpty ? 'اسم الحملة مطلوب' : null,
+            ),
+            fieldGap,
+            _Select<String>(
+              select: (f) => f.selectedType,
+              fallback: campaignTypes.first,
+              builder: (context, type) => DropdownField(
+                label: 'نوع الحملة',
+                value: campaignTypes.contains(type) ? type : campaignTypes.first,
+                items: campaignTypes,
+                onChanged: (v) {
+                  if (v != null) context.read<CreateCampaignCubit>().setType(v);
+                },
+              ),
+            ),
+            fieldGap,
+            const FormFieldLabel('وصف الحملة'),
+            labelGap,
+            PrimaryTextFF(
+              controller: descCtrl,
+              hint: 'ما الذي ستقدمه هذه الحملة؟',
+              maxLines: 4,
+            ),
+          ],
         ),
-        SizedBox(height: AppHeight.s16),
+        gap,
 
-        // ── 2. Campaign type ──────────────────────────────────────────────
-        DropdownField(
-          label: 'نوع الحملة',
-          value: campaignTypes.contains(selectedType)
-              ? selectedType
-              : campaignTypes.first,
-          items: campaignTypes,
-          onChanged: (v) {
-            if (v != null) context.read<CreateCampaignCubit>().setType(v);
-          },
-        ),
-        SizedBox(height: AppHeight.s16),
-
-        // ── 4. Location ───────────────────────────────────────────────────
-        const FormFieldLabel('اسم الموقع'),
-        SizedBox(height: AppHeight.s8),
-        PrimaryTextFF(
-          textAlign: .right,
-          controller: locationNameCtrl,
-          hint: 'أدخل اسم الموقع',
-        ),
-        SizedBox(height: AppHeight.s8),
-        const FormFieldLabel('عنوان الموقع'),
-        SizedBox(height: AppHeight.s8),
-        PrimaryTextFF(
-          textAlign: .right,
-          controller: locationAddressCtrl,
-          hint: 'أدخل عنوان الموقع',
-        ),
-        SizedBox(height: AppHeight.s8),
-        // Map picker button / mini preview
-        Container(
-          key: AppTutorialKeys.createCampaignLocationKey,
-          child: _LocationPickerSection(
-            selectedLat: selectedLat,
-            selectedLng: selectedLng,
-          ),
-        ),
-        SizedBox(height: AppHeight.s8),
-
-        // ── 3. Date ───────────────────────────────────────────────────────
-        const FormFieldLabel('التاريخ'),
-        SizedBox(height: AppHeight.s8),
-        PrimaryTextFF(
+        // ── When ───────────────────────────────────────────────────────
+        _FormCard(
           key: AppTutorialKeys.createCampaignDateKey,
-          textAlign: .right,
-          controller: TextEditingController(
-            text: selectedDate != null ? formatArabicDate(selectedDate!) : '',
-          ),
-          hint: 'اختر التاريخ',
-          readOnly: true,
-          onTap: onPickDate,
-        ),
-        SizedBox(height: AppHeight.s8),
-
-        // ── 4. Time (combined) ────────────────────────────────────────────
-        const FormFieldLabel('الوقت'),
-        SizedBox(height: AppHeight.s8),
-        PrimaryTextFF(
-          textAlign: .right,
-          controller: TextEditingController(
-            text: (timeStart != null || timeEnd != null)
-                ? combinedTimeLabel(timeStart, timeEnd)
-                : '',
-          ),
-          hint: 'اختر الوقت',
-          readOnly: true,
-          onTap: onPickCombinedTime,
-        ),
-        SizedBox(height: AppHeight.s8),
-
-        // ── 5. Target beneficiaries ───────────────────────────────────────
-        const FormFieldLabel('العدد المستهدف'),
-        SizedBox(height: AppHeight.s8),
-        PrimaryTextFF(
-          textAlign: .right,
-          controller: targetCtrl,
-          hint: '0',
-          keyboardType: TextInputType.number,
-        ),
-        SizedBox(height: AppHeight.s8),
-
-        // ── 6. Objectives ─────────────────────────────────────────────────
-        AddItemHeader(label: 'الأهداف', onAdd: onAddObjective),
-        SizedBox(height: AppHeight.s8),
-        ...objectiveCtrls.asMap().entries.map(
-          (e) => ObjectiveField(
-            index: e.key,
-            controller: e.value,
-            onRemove: () => onRemoveObjective(e.key),
-          ),
-        ),
-        SizedBox(height: AppHeight.s8),
-
-        // ── 7. Supplies ───────────────────────────────────────────────────
-        AddItemHeader(label: 'المستلزمات', onAdd: onAddSupply),
-        SizedBox(height: AppHeight.s8),
-        ...supplyNameCtrls.asMap().entries.map(
-          (e) => SupplyField(
-            index: e.key,
-            nameController: e.value,
-            quantityController: supplyQtyCtrls[e.key],
-            onRemove: () => onRemoveSupply(e.key),
-          ),
-        ),
-        SizedBox(height: AppHeight.s8),
-
-        // ── 7b. Permission papers ─────────────────────────────────────────
-        Container(
-          key: AppTutorialKeys.createCampaignPapersKey,
-          child: AddItemHeader(label: 'أوراق التصاريح', onAdd: onAddPaper),
-        ),
-        SizedBox(height: AppHeight.s8),
-        if (selectedPapers.isNotEmpty)
-          SizedBox(
-            height: 110.w,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: selectedPapers.length,
-              itemBuilder: (context, index) {
-                final file = selectedPapers[index];
-                return Padding(
-                  padding: EdgeInsetsDirectional.only(end: AppWidth.s8),
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: 100.w,
-                        height: 100.w,
-                        decoration: BoxDecoration(
-                          color: ColorManager.natural100,
-                          borderRadius: BorderRadius.circular(AppRadius.s12),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(AppRadius.s12),
-                          child: Image.file(
-                            file,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Icon(
-                              Icons.insert_drive_file_outlined,
-                              size: 40.r,
-                              color: ColorManager.natural400,
-                            ),
-                          ),
-                        ),
+          title: 'الموعد',
+          icon: AppIcons.calendar,
+          children: [
+            const FormFieldLabel('التاريخ'),
+            labelGap,
+            _Select<DateTime?>(
+              select: (f) => f.selectedDate,
+              fallback: null,
+              builder: (context, date) => _PickerField(
+                icon: AppIcons.calendar,
+                hint: 'اختر التاريخ',
+                value: date == null ? null : DateAr.weekdayDate(date),
+                onTap: onPickDate,
+              ),
+            ),
+            fieldGap,
+            const FormFieldLabel('الوقت'),
+            labelGap,
+            _Select<(TimeOfDay?, TimeOfDay?)>(
+              select: (f) => (f.timeStart, f.timeEnd),
+              fallback: (null, null),
+              builder: (context, t) => _PickerField(
+                icon: AppIcons.alarm,
+                hint: 'من – إلى',
+                value: t.$1 == null && t.$2 == null
+                    ? null
+                    : DateAr.timeRange(
+                        t.$1 == null ? null : CreateCampaignCubit.formatTime(t.$1!),
+                        t.$2 == null ? null : CreateCampaignCubit.formatTime(t.$2!),
                       ),
-                      PositionedDirectional(
-                        top: 4,
-                        end: 4,
-                        child: GestureDetector(
-                          onTap: () => onRemovePaper(index),
-                          child: Container(
-                            width: 22.r,
-                            height: 22.r,
-                            decoration: BoxDecoration(
-                              color: ColorManager.natural900.withValues(
-                                alpha: 0.6,
-                              ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.close,
-                              size: 14.r,
-                              color: ColorManager.white,
-                            ),
-                          ),
-                        ),
+                onTap: onPickCombinedTime,
+              ),
+            ),
+          ],
+        ),
+        gap,
+
+        // ── Where ──────────────────────────────────────────────────────
+        _FormCard(
+          title: 'المكان',
+          icon: AppIcons.location,
+          children: [
+            const FormFieldLabel('اسم الموقع'),
+            labelGap,
+            PrimaryTextFF(
+              controller: locationNameCtrl,
+              hint: 'مثال: مدرسة النور',
+              textInputAction: TextInputAction.next,
+            ),
+            fieldGap,
+            const FormFieldLabel('العنوان'),
+            labelGap,
+            PrimaryTextFF(
+              controller: locationAddressCtrl,
+              hint: 'الحي، الشارع',
+            ),
+            fieldGap,
+            Container(
+              key: AppTutorialKeys.createCampaignLocationKey,
+              child: const _LocationPickerSection(),
+            ),
+          ],
+        ),
+        gap,
+
+        // ── Team ───────────────────────────────────────────────────────
+        _FormCard(
+          key: AppTutorialKeys.createCampaignVolunteersKey,
+          title: 'الفريق',
+          icon: AppIcons.group,
+          children: [
+            const FormFieldLabel('المتطوعون'),
+            labelGap,
+            const _VolunteersSection(),
+            fieldGap,
+            const FormFieldLabel('اسم المشرف'),
+            labelGap,
+            PrimaryTextFF(
+              controller: supervisorNameCtrl,
+              hint: 'اسم مشرف الحملة في الموقع',
+              textInputAction: TextInputAction.next,
+            ),
+            fieldGap,
+            const FormFieldLabel('هاتف المشرف'),
+            labelGap,
+            PrimaryTextFF(
+              controller: supervisorPhoneCtrl,
+              hint: '01xxxxxxxxx',
+              keyboardType: TextInputType.phone,
+            ),
+          ],
+        ),
+        gap,
+
+        // ── Details ────────────────────────────────────────────────────
+        _FormCard(
+          title: 'التفاصيل',
+          icon: AppIcons.details,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const FormFieldLabel('العدد المستهدف'),
+                      labelGap,
+                      PrimaryTextFF(
+                        controller: targetCtrl,
+                        hint: '0',
+                        keyboardType: TextInputType.number,
                       ),
                     ],
                   ),
-                );
-              },
-            ),
-          )
-        else
-          DottedBorder(
-            options: RoundedRectDottedBorderOptions(
-              radius: Radius.circular(AppRadius.s12),
-              color: ColorManager.natural300,
-              strokeWidth: 1.5,
-              dashPattern: const [6, 4],
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              height: 60.h,
-              child: Center(
-                child: Text(
-                  'لم يتم إضافة أوراق بعد',
-                  style: TextStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s12,
-                    color: ColorManager.natural400,
+                ),
+                SizedBox(width: Space.m),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const FormFieldLabel('النقاط'),
+                      labelGap,
+                      PrimaryTextFF(
+                        controller: pointsCtrl,
+                        hint: '10',
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
                   ),
                 ),
-              ),
+              ],
             ),
-          ),
-        SizedBox(height: AppHeight.s8),
-
-        // ── 8. Description ────────────────────────────────────────────────
-        const FormFieldLabel('وصف الحملة'),
-        SizedBox(height: AppHeight.s8),
-        PrimaryTextFF(
-          textAlign: .right,
-          controller: descCtrl,
-          hint: 'أدخل وصف الحملة',
-          maxLines: 5,
-        ),
-        SizedBox(height: AppHeight.s8),
-
-        // ── 9. Force-completed toggle ─────────────────────────────────────
-        Container(
-          decoration: BoxDecoration(
-            color: isForceCompleted
-                ? ColorManager.primary500.withValues(alpha: 0.06)
-                : ColorManager.white,
-            borderRadius: BorderRadius.circular(AppRadius.s12),
-            border: Border.all(
-              color: isForceCompleted
-                  ? ColorManager.primary500
-                  : ColorManager.natural200,
-              width: 1,
+            fieldGap,
+            AddItemHeader(label: 'الأهداف', onAdd: onAddObjective),
+            for (final e in objectiveCtrls.asMap().entries)
+              ObjectiveField(
+                key: ObjectKey(e.value),
+                index: e.key,
+                controller: e.value,
+                onRemove: () => onRemoveObjective(e.key),
+              ),
+            AddItemHeader(label: 'المستلزمات', onAdd: onAddSupply),
+            for (final e in supplyNameCtrls.asMap().entries)
+              SupplyField(
+                key: ObjectKey(e.value),
+                index: e.key,
+                nameController: e.value,
+                quantityController: supplyQtyCtrls[e.key],
+                onRemove: () => onRemoveSupply(e.key),
+              ),
+            Container(
+              key: AppTutorialKeys.createCampaignPapersKey,
+              child: AddItemHeader(label: 'أوراق التصاريح', onAdd: onAddPaper),
             ),
-          ),
-          padding: EdgeInsetsDirectional.fromSTEB(
-            AppWidth.s14,
-            AppHeight.s12,
-            AppWidth.s8,
-            AppHeight.s12,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'احتساب الحملة كمكتملة مباشرة',
-                      style: TextStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s13,
-                        fontWeight: FontWeightManager.semiBold,
-                        color: isForceCompleted
-                            ? ColorManager.primary500
-                            : ColorManager.natural900,
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      isForceCompleted
-                          ? 'سيتم احتساب النقاط للمتطوعين المعينين فوراً'
-                          : 'سيتم احتساب النقاط والساعات للمتطوعين فوراً',
-                      style: TextStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s11,
-                        color: isForceCompleted
-                            ? ColorManager.primary500
-                            : ColorManager.natural400,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: isForceCompleted,
-                onChanged: (v) =>
-                    context.read<CreateCampaignCubit>().setForceCompleted(v),
-                activeThumbColor: ColorManager.primary500,
-                activeTrackColor: ColorManager.primary500.withValues(
-                  alpha: 0.25,
-                ),
-                inactiveThumbColor: ColorManager.natural400,
-                inactiveTrackColor: ColorManager.natural200,
-              ),
-            ],
-          ),
+            _PapersPreview(papers: selectedPapers, onRemove: onRemovePaper),
+            fieldGap,
+            const FormFieldLabel('ملاحظات'),
+            labelGap,
+            PrimaryTextFF(
+              controller: notesCtrl,
+              hint: 'أي تعليمات إضافية للفريق',
+              maxLines: 3,
+            ),
+          ],
         ),
-        SizedBox(height: AppHeight.s8),
+        gap,
 
-        // ── 10. Volunteers ────────────────────────────────────────────────
-        const FormFieldLabel('المتطوعون'),
-        SizedBox(height: AppHeight.s8),
-        Container(
-          key: AppTutorialKeys.createCampaignVolunteersKey,
-          child: VolunteerSelectionList(
-            volunteers: volunteers,
-            selectedIds: selectedIds,
-            onToggle: (id) =>
-                context.read<CreateCampaignCubit>().toggleVolunteer(id),
-            onAddPressed: () => _showVolunteerPicker(context),
-            selectedVolunteers: selectedVolunteers,
-          ),
-        ),
-        SizedBox(height: AppHeight.s100),
+        // ── Status ─────────────────────────────────────────────────────
+        const _ForceCompleteCard(),
       ],
     );
   }
+}
 
-  void _showVolunteerPicker(BuildContext context) {
+/// Rebuilds [builder] only when the selected form value changes.
+class _Select<T> extends StatelessWidget {
+  const _Select({
+    super.key,
+    required this.select,
+    required this.fallback,
+    required this.builder,
+  });
+
+  final T Function(CreateCampaignReady form) select;
+  final T fallback;
+  final Widget Function(BuildContext context, T value) builder;
+
+  @override
+  Widget build(BuildContext context) {
     final cubit = context.read<CreateCampaignCubit>();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => CreateVolunteerPickerSheet(
-        volunteers: volunteers,
-        alreadySelected: selectedIds,
-        onConfirm: cubit.addVolunteers,
+    return BlocSelector<CreateCampaignCubit, CreateCampaignState, T>(
+      selector: (_) {
+        final form = cubit.form;
+        return form == null ? fallback : select(form);
+      },
+      builder: builder,
+    );
+  }
+}
+
+class _FormCard extends StatelessWidget {
+  const _FormCard({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
+
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              AppIconBadge(icon: icon, size: 32),
+              SizedBox(width: Space.s),
+              Text(title, style: AppText.title()),
+            ],
+          ),
+          SizedBox(height: Space.vl),
+          ...children,
+        ],
       ),
     );
   }
 }
 
-// ── Location picker section ────────────────────────────────────────────────────
+/// Read-only field that opens a picker (date / time).
+class _PickerField extends StatelessWidget {
+  const _PickerField({
+    required this.icon,
+    required this.hint,
+    required this.value,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String hint;
+  final String? value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(Radii.input);
+    return Semantics(
+      button: true,
+      label: value ?? hint,
+      child: Material(
+        color: ColorManager.surfaceSunken,
+        borderRadius: radius,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: Container(
+            constraints: BoxConstraints(minHeight: AppSizes.touch),
+            padding: EdgeInsets.symmetric(horizontal: Space.m),
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              border: Border.all(color: ColorManager.line),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: AppSizes.iconM, color: ColorManager.inkMuted),
+                SizedBox(width: Space.s),
+                Expanded(
+                  child: Text(
+                    value ?? hint,
+                    style: value == null
+                        ? getRegularStyle(
+                            fontSize: FontSize.s15,
+                            color: ColorManager.inkFaint,
+                          )
+                        : getNumericStyle(
+                            fontSize: FontSize.s15,
+                            color: ColorManager.ink,
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VolunteersSection extends StatelessWidget {
+  const _VolunteersSection();
+
+  Future<void> _openPicker(BuildContext context) {
+    final cubit = context.read<CreateCampaignCubit>();
+    final form = cubit.form;
+    return VolunteerPickerSheet.show(
+      context,
+      volunteers: form?.volunteers ?? const [],
+      initialSelected: form?.selectedIds ?? const {},
+      confirmLabel: 'تأكيد',
+      onRefresh: () async {
+        await cubit.refreshVolunteers();
+        return cubit.form?.volunteers ?? const <VolunteerEntity>[];
+      },
+      onConfirm: (ids) async {
+        cubit.setVolunteers(ids);
+        return true;
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _Select<(List<VolunteerEntity>, Set<String>)>(
+      select: (f) => (f.volunteers, f.selectedIds),
+      fallback: (const [], const {}),
+      builder: (context, v) => VolunteerSelectionList(
+        selectedVolunteers: v.$1.where((x) => v.$2.contains(x.id)).toList(),
+        onRemove: context.read<CreateCampaignCubit>().toggleVolunteer,
+        onAddPressed: () => _openPicker(context),
+      ),
+    );
+  }
+}
 
 class _LocationPickerSection extends StatelessWidget {
-  const _LocationPickerSection({this.selectedLat, this.selectedLng});
+  const _LocationPickerSection();
 
-  final double? selectedLat;
-  final double? selectedLng;
-
-  bool get _hasLocation =>
-      selectedLat != null &&
-      selectedLng != null &&
-      selectedLat != 0 &&
-      selectedLng != 0;
-
-  Future<void> _openPicker(BuildContext context) async {
+  Future<void> _openPicker(BuildContext context, LatLng? initial) async {
     final cubit = context.read<CreateCampaignCubit>();
-    final initial = _hasLocation ? LatLng(selectedLat!, selectedLng!) : null;
     final result = await Navigator.of(context).push<LatLng>(
       MaterialPageRoute(
         builder: (_) => LocationPickerView(initialLocation: initial),
       ),
     );
-    if (result != null) {
-      cubit.setLocation(result.latitude, result.longitude);
-    }
+    if (result != null) cubit.setLocation(result.latitude, result.longitude);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_hasLocation) {
-      final point = LatLng(selectedLat!, selectedLng!);
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Mini static map preview
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.s12),
-            child: SizedBox(
-              height: 150.h,
-              width: double.infinity,
-              child: FlutterMap(
-                options: MapOptions(
-                  initialCenter: point,
-                  initialZoom: 14,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.none,
+    return _Select<(double?, double?)>(
+      select: (f) => (f.locationLat, f.locationLng),
+      fallback: (null, null),
+      builder: (context, loc) {
+        final has =
+            loc.$1 != null && loc.$2 != null && loc.$1 != 0 && loc.$2 != 0;
+        final point = has ? LatLng(loc.$1!, loc.$2!) : null;
+        final button = OutlinedButton.icon(
+          onPressed: () => _openPicker(context, point),
+          icon: Icon(
+            has ? Icons.edit_location_alt_rounded : Icons.add_location_alt_rounded,
+            size: 20,
+          ),
+          label: Text(has ? 'تغيير الموقع على الخريطة' : 'تحديد الموقع على الخريطة'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: ColorManager.brand,
+            side: const BorderSide(color: ColorManager.brand),
+            minimumSize: Size(double.infinity, AppSizes.touch),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(Radii.input),
+            ),
+          ),
+        );
+        if (point == null) return button;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppMapPreview(
+              point: point,
+              height: 150,
+              onTap: () => _openPicker(context, point),
+            ),
+            SizedBox(height: Space.vs),
+            button,
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _PapersPreview extends StatelessWidget {
+  const _PapersPreview({required this.papers, required this.onRemove});
+
+  final List<File> papers;
+  final void Function(int index) onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    if (papers.isEmpty) {
+      return Container(
+        padding: EdgeInsets.symmetric(vertical: Space.vl),
+        decoration: BoxDecoration(
+          color: ColorManager.surfaceSunken,
+          borderRadius: BorderRadius.circular(Radii.input),
+          border: Border.all(color: ColorManager.line),
+        ),
+        child: Text(
+          'لم تتم إضافة أوراق بعد',
+          style: AppText.label(color: ColorManager.inkFaint),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+    const size = 96.0;
+    return SizedBox(
+      height: size,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: papers.length,
+        separatorBuilder: (_, _) => SizedBox(width: Space.s),
+        itemBuilder: (context, index) => Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(Radii.input),
+              child: Container(
+                width: size,
+                height: size,
+                color: ColorManager.surfaceSunken,
+                child: Image.file(
+                  papers[index],
+                  fit: BoxFit.cover,
+                  cacheWidth: (size * 2).round(),
+                  errorBuilder: (_, _, _) => const Icon(
+                    AppIcons.details,
+                    color: ColorManager.inkFaint,
                   ),
                 ),
+              ),
+            ),
+            PositionedDirectional(
+              top: 0,
+              end: 0,
+              child: IconButton(
+                tooltip: 'إزالة',
+                onPressed: () => onRemove(index),
+                style: IconButton.styleFrom(
+                  backgroundColor: ColorManager.scrim,
+                  foregroundColor: ColorManager.white,
+                ),
+                iconSize: 16,
+                icon: const Icon(AppIcons.x),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ForceCompleteCard extends StatelessWidget {
+  const _ForceCompleteCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return _Select<bool>(
+      select: (f) => f.isForceCompleted,
+      fallback: false,
+      builder: (context, on) => AppCard(
+        border: Border.all(color: on ? ColorManager.brand : ColorManager.transparent),
+        onTap: () => context.read<CreateCampaignCubit>().setForceCompleted(!on),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.t3afy.app',
-                  ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: point,
-                        width: 36.r,
-                        height: 36.r,
-                        child: Icon(
-                          Icons.location_pin,
-                          color: ColorManager.primary500,
-                          size: 36.r,
-                        ),
-                      ),
-                    ],
+                  Text('احتساب الحملة كمكتملة الآن', style: AppText.bodyStrong()),
+                  SizedBox(height: Space.vxs * 0.5),
+                  Text(
+                    on
+                        ? 'ستُحتسب النقاط والساعات للمتطوعين المعيّنين فور الحفظ'
+                        : 'تُحدَّد حالة الحملة تلقائياً حسب التاريخ والوقت',
+                    style: AppText.label(
+                      color: on ? ColorManager.brandStrong : ColorManager.inkMuted,
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
-          SizedBox(height: AppHeight.s6),
-          Text(
-            'خط العرض: ${selectedLat!.toStringAsFixed(4)} — خط الطول: ${selectedLng!.toStringAsFixed(4)}',
-            style: getRegularStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color: ColorManager.natural500,
+            Switch(
+              value: on,
+              onChanged: context.read<CreateCampaignCubit>().setForceCompleted,
+              activeThumbColor: ColorManager.brand,
+              activeTrackColor: ColorManager.brandSoft,
             ),
-          ),
-          SizedBox(height: AppHeight.s8),
-          OutlinedButton.icon(
-            onPressed: () => _openPicker(context),
-            icon: const Icon(Icons.edit_location_alt_outlined),
-            label: const Text('تغيير الموقع على الخريطة'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: ColorManager.primary500,
-              side: BorderSide(color: ColorManager.primary500),
-              minimumSize: Size(double.infinity, AppHeight.s44),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.s12),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    // No location selected yet — show picker button
-    return OutlinedButton.icon(
-      onPressed: () => _openPicker(context),
-      icon: const Icon(Icons.add_location_alt_outlined),
-      label: const Text('📍 تحديد الموقع على الخريطة'),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: ColorManager.primary500,
-        side: BorderSide(color: ColorManager.primary500),
-        minimumSize: Size(double.infinity, AppHeight.s44),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s12),
+          ],
         ),
       ),
     );

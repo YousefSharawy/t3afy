@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/app_card.dart';
 
+/// Volunteer areas (distinct task types the volunteer has worked on).
 class QualificationRow extends StatelessWidget {
   const QualificationRow({super.key, required this.values});
 
@@ -12,76 +13,39 @@ class QualificationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: AppHeight.s8),
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s12,
-        vertical: AppHeight.s8,
-      ),
-      decoration: BoxDecoration(
-        color: ColorManager.white,
-        borderRadius: BorderRadius.circular(AppRadius.s12),
-      ),
-      child: Row(
+    return AppCard(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Text('مجالات التطوع', style: AppText.caption()),
+          SizedBox(height: Space.vs),
+          if (values.isEmpty)
+            Text('—', style: AppText.bodyStrong())
+          else
+            Wrap(
+              spacing: Space.s,
+              runSpacing: Space.vs,
               children: [
-                Text(
-                  'مجالات التطوع',
-                  style: getRegularStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s10,
-                    color: ColorManager.natural700,
-                  ),
-                ),
-                SizedBox(height: AppHeight.s8),
-                values.isEmpty
-                    ? Text(
-                        '—',
-                        style: getMediumStyle(
-                          fontFamily: FontConstants.fontFamily,
-                          fontSize: FontSize.s13,
-                          color: ColorManager.natural900,
-                        ),
-                      )
-                    : Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: values
-                            .map(
-                              (v) => Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: AppWidth.s10,
-                                  vertical: AppHeight.s2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: ColorManager.primary50,
-                                  border: Border.all(
-                                    width: 0.5.sp,
-                                    color: ColorManager.primary500,
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                    AppRadius.s6,
-                                  ),
-                                ),
-                                child: Text(
-                                  v,
-                                  style: getBoldStyle(
-                                    fontFamily: FontConstants.fontFamily,
-                                    fontSize: FontSize.s10,
-                                    color: ColorManager.primary500,
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
+                for (final v in values)
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Space.m,
+                      vertical: Space.vxs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: ColorManager.brandSoft,
+                      borderRadius: BorderRadius.circular(Radii.chip),
+                    ),
+                    child: Text(
+                      v,
+                      style: getSemiBoldStyle(
+                        fontSize: FontSize.s12,
+                        color: ColorManager.brandStrong,
                       ),
+                    ),
+                  ),
               ],
             ),
-          ),
         ],
       ),
     );

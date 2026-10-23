@@ -1,22 +1,23 @@
-import 'dart:async';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/core/data/realtime_hub.dart';
+import 'package:t3afy/core/data/safe_emit.dart';
 import 'package:t3afy/volunteer/tasks/domain/entities/home_enities.dart';
 import 'package:t3afy/volunteer/tasks/domain/use_cases/get_completed_tasks.dart';
 import 'package:t3afy/volunteer/tasks/domain/use_cases/get_tasks_stats.dart';
 import 'package:t3afy/volunteer/tasks/domain/use_cases/get_today_tasks.dart';
 import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_state.dart';
 
-class TasksCubit extends Cubit<TasksState> {
+class TasksCubit extends Cubit<TasksState> with SafeEmit<TasksState> {
   final GetTodayTasks _getTodayTasks;
   final GetCompletedTasks _getCompletedTasks;
   final GetTasksStats _getTasksStats;
+  final RealtimeHub _hub = RealtimeHub();
 
-  RealtimeChannel? _assignmentsChannel;
-  RealtimeChannel? _tasksChannel;
-  Timer? _debounce;
+  /// Ids of the tasks currently shown, so edits to other users' tasks are
+  /// ignored instead of reloading this screen on every device.
+  Set<String> _taskIds = const {};
 
   TasksCubit(this._getTodayTasks, this._getCompletedTasks, this._getTasksStats)
     : super(const TasksState.initial()) {
@@ -25,112 +26,102 @@ class TasksCubit extends Cubit<TasksState> {
   }
 
   void _subscribeToRealtime(String userId) {
-    _assignmentsChannel = Supabase.instance.client
-        .channel('tasks_assignments_$userId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'task_assignments',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'user_id',
-            value: userId,
-          ),
-          callback: (_) => _onRealtimeChange(),
-        )
-        .subscribe();
-
-    _tasksChannel = Supabase.instance.client
-        .channel('tasks_table_$userId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.update,
-          schema: 'public',
-          table: 'tasks',
-          callback: (_) => _onRealtimeChange(),
-        )
-        .subscribe();
+    _hub.watch(
+      name: 'tasks_assignments_$userId',
+      table: 'task_assignments',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'user_id',
+        value: userId,
+      ),
+      onChange: _backgroundRefresh,
+    );
+    // Unassign: DELETE events can't be filtered server-side.
+    _hub.watch(
+      name: 'tasks_assignments_del_$userId',
+      table: 'task_assignments',
+      event: PostgresChangeEvent.delete,
+      ignore: (p) => deletedRowNotFor(p, 'user_id', userId),
+      onChange: _backgroundRefresh,
+    );
+    // Task field edits (time, place, status) still need to show up, but only
+    // for tasks this volunteer actually has.
+    _hub.watch(
+      name: 'tasks_table_$userId',
+      table: 'tasks',
+      ignore: (p) => !_taskIds.contains(payloadRowId(p)),
+      onChange: _backgroundRefresh,
+    );
   }
 
-  void _onRealtimeChange() {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), _silentRefresh);
-  }
+  bool get _hasData => state is TasksStateLoaded;
 
-  Future<void> _silentRefresh() async {
-    final userId = LocalAppStorage.getUserId();
-    if (userId == null) return;
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    await LocalAppStorage.invalidateCache('today_tasks_${userId}_$today');
-    await LocalAppStorage.invalidateCache('completed_tasks_$userId');
-    await LocalAppStorage.invalidateCache('tasks_stats_$userId');
-    final todayResult = await _getTodayTasks(userId, skipCache: true);
-    final completedResult = await _getCompletedTasks(userId, skipCache: true);
-    final statsResult = await _getTasksStats(userId, skipCache: true);
-    statsResult.fold((_) {}, (stats) {
-      final todayTasks = todayResult.fold((_) => <TaskEntity>[], (t) => t);
-      final completedTasks = completedResult.fold(
-        (_) => <TaskEntity>[],
-        (t) => t,
-      );
-      final currentTab = state.maybeWhen(
-        loaded: (todayTasks, completedTasks, stats, tab) => tab,
-        orElse: () => 0,
-      );
-      emit(
-        TasksState.loaded(
-          todayTasks: todayTasks,
-          completedTasks: completedTasks,
-          stats: stats,
-          selectedTab: currentTab,
-        ),
-      );
-    });
-  }
-
-  @override
-  Future<void> close() async {
-    _debounce?.cancel();
-    final client = Supabase.instance.client;
-    if (_assignmentsChannel != null) client.removeChannel(_assignmentsChannel!);
-    if (_tasksChannel != null) client.removeChannel(_tasksChannel!);
-    return super.close();
-  }
-
+  /// Tab open / retry. Uses the cache; with data on screen it refreshes in
+  /// place (no skeleton, selected tab kept).
   Future<void> loadTasks() async {
-    emit(const TasksState.loading());
+    final silent = _hasData;
+    if (!silent) emit(const TasksState.loading());
+    await _fetch(skipCache: false, silent: silent);
+  }
 
+  /// Pull-to-refresh, return from task details and realtime: bypasses the
+  /// cache and keeps current data on failure. Returns false when it failed.
+  Future<bool> refresh() => _fetch(skipCache: true, silent: _hasData);
+
+  /// Realtime-driven: never replaces the screen with an error.
+  void _backgroundRefresh() => _fetch(skipCache: true, silent: true);
+
+  Future<bool> _fetch({required bool skipCache, required bool silent}) async {
     final userId = LocalAppStorage.getUserId();
     if (userId == null) {
-      emit(const TasksState.error('User not found'));
-      return;
+      if (!silent) safeEmit(const TasksState.error('User not found'));
+      return false;
     }
 
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    await LocalAppStorage.invalidateCache('today_tasks_${userId}_$today');
-    await LocalAppStorage.invalidateCache('completed_tasks_$userId');
-    await LocalAppStorage.invalidateCache('tasks_stats_$userId');
+    final (todayResult, completedResult, statsResult) = await (
+      _getTodayTasks(userId, skipCache: skipCache),
+      _getCompletedTasks(userId, skipCache: skipCache),
+      _getTasksStats(userId, skipCache: skipCache),
+    ).wait;
 
-    final todayResult = await _getTodayTasks(userId, skipCache: true);
-    final completedResult = await _getCompletedTasks(userId, skipCache: true);
-    final statsResult = await _getTasksStats(userId, skipCache: true);
+    final stats = statsResult.fold((_) => null, (s) => s);
+    if (stats == null) {
+      if (!silent) {
+        safeEmit(
+          TasksState.error(statsResult.fold((f) => f.message, (_) => '')),
+        );
+      }
+      return false;
+    }
 
-    statsResult.fold((failure) => emit(TasksState.error(failure.message)), (
-      stats,
-    ) {
-      final todayTasks = todayResult.fold((_) => <TaskEntity>[], (t) => t);
-      final completedTasks = completedResult.fold(
-        (_) => <TaskEntity>[],
-        (t) => t,
-      );
+    final current = state;
+    final todayTasks = todayResult.fold(
+      (_) => current is TasksStateLoaded ? current.todayTasks : <TaskEntity>[],
+      (t) => t,
+    );
+    final completedTasks = completedResult.fold(
+      (_) =>
+          current is TasksStateLoaded ? current.completedTasks : <TaskEntity>[],
+      (t) => t,
+    );
+    _taskIds = {
+      ...todayTasks.map((t) => t.id),
+      ...completedTasks.map((t) => t.id),
+    };
 
-      emit(
-        TasksState.loaded(
-          todayTasks: todayTasks,
-          completedTasks: completedTasks,
-          stats: stats,
+    safeEmit(
+      TasksState.loaded(
+        todayTasks: todayTasks,
+        completedTasks: completedTasks,
+        stats: TasksStatsEntity(
+          todayCount: todayTasks.length,
+          completedCount: stats.completedCount,
+          earnedPoints: stats.earnedPoints,
         ),
-      );
-    });
+        selectedTab: current is TasksStateLoaded ? current.selectedTab : 0,
+      ),
+    );
+    return todayResult.isRight() && completedResult.isRight();
   }
 
   void switchTab(int index) {
@@ -138,5 +129,11 @@ class TasksCubit extends Cubit<TasksState> {
     if (currentState is TasksStateLoaded) {
       emit(currentState.copyWith(selectedTab: index));
     }
+  }
+
+  @override
+  Future<void> close() async {
+    await _hub.dispose();
+    return super.close();
   }
 }

@@ -3,12 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/app/services/tutorial_service.dart';
+import 'package:t3afy/base/shimmers.dart';
+import 'package:t3afy/base/widgets/app_nav_shell.dart';
+import 'package:t3afy/base/widgets/app_page_header.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
-import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:t3afy/volunteer/performance/domain/entities/performance_entities.dart';
 import 'package:t3afy/volunteer/performance/presentation/cubit/performance_cubit.dart';
 import 'package:t3afy/volunteer/performance/presentation/view/widgets/honor_board.dart';
@@ -72,7 +73,6 @@ class _VolunteerPerformanceViewState extends State<VolunteerPerformanceView> {
 
     state.maybeWhen(
       loaded: (_, _, _, _) {
-        debugPrint('📘 TUTORIAL: Performance state is LOADED, marking _lastCheckedPhase=4 and showing tutorial');
         _lastCheckedPhase = 4; // Mark as processed ONLY when state is loaded
         Future.delayed(const Duration(milliseconds: 300), () {
           if (!mounted) return;
@@ -80,7 +80,6 @@ class _VolunteerPerformanceViewState extends State<VolunteerPerformanceView> {
         });
       },
       orElse: () {
-        debugPrint('📘 TUTORIAL: Performance state still LOADING, will retry when loaded');
         // Don't set _lastCheckedPhase yet - wait for state to load
       },
     );
@@ -89,39 +88,50 @@ class _VolunteerPerformanceViewState extends State<VolunteerPerformanceView> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: BlocConsumer<PerformanceCubit, PerformanceState>(
-        listener: (context, state) {
-          state.maybeWhen(
-            loaded: (_, _, _, _) {
-              // GlobalKeys are valid once loaded — trigger tutorial if waiting.
-              WidgetsBinding.instance.addPostFrameCallback((_) => _checkTutorial());
-            },
-            orElse: () {},
-          );
-        },
-        builder: (context, state) {
-          return state.when(
-            initial: () => const SizedBox.shrink(),
-            loading: () => const LoadingIndicator(),
-            error: (message) => ErrorState(
-              message: message,
-              onRetry: () {
-                final userId = LocalAppStorage.getUserId();
-                if (userId != null) {
-                  context.read<PerformanceCubit>().loadPerformance(userId);
-                }
+      bottom: false,
+      child: Column(
+        children: [
+          const AppPageHeader(title: 'الأداء والتقييم', reserveBellSpace: true),
+          Expanded(
+            child: BlocConsumer<PerformanceCubit, PerformanceState>(
+              listener: (context, state) {
+                state.maybeWhen(
+                  loaded: (_, _, _, _) {
+                    // GlobalKeys are valid once loaded — trigger tutorial if waiting.
+                    WidgetsBinding.instance.addPostFrameCallback(
+                      (_) => _checkTutorial(),
+                    );
+                  },
+                  orElse: () {},
+                );
+              },
+              builder: (context, state) {
+                return state.when(
+                  initial: () => const _PerformanceSkeleton(),
+                  loading: () => const _PerformanceSkeleton(),
+                  error: (message) => ErrorState(
+                    message: message,
+                    onRetry: () {
+                      final userId = LocalAppStorage.getUserId();
+                      if (userId != null) {
+                        context.read<PerformanceCubit>().loadPerformance(
+                          userId,
+                        );
+                      }
+                    },
+                  ),
+                  loaded: (stats, monthlyHours, leaderboard, currentUserId) =>
+                      _buildContent(
+                        stats,
+                        monthlyHours,
+                        leaderboard,
+                        currentUserId,
+                      ),
+                );
               },
             ),
-            loaded: (stats, monthlyHours, leaderboard, currentUserId) {
-              return _buildContent(
-                stats,
-                monthlyHours,
-                leaderboard,
-                currentUserId,
-              );
-            },
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -173,33 +183,19 @@ class _VolunteerPerformanceViewState extends State<VolunteerPerformanceView> {
     }
 
     if (targets.isEmpty) {
-      debugPrint(
-        '📘 TUTORIAL: VolunteerPerformance screen has no targets, advancing to next phase',
-      );
       TutorialPhaseService.instance.advanceToNextPhase();
       return;
     }
 
-    TutorialCoachMark(
+    TutorialService.buildPhaseContinuing(
       targets: targets,
-      colorShadow: Colors.black,
-      opacityShadow: 0.8,
-      textSkip: "تخطي",
-      paddingFocus: 10,
-      focusAnimationDuration: const Duration(milliseconds: 300),
-      unFocusAnimationDuration: const Duration(milliseconds: 300),
-      pulseAnimationDuration: const Duration(milliseconds: 600),
-      textStyleSkip: TextStyle(color: Colors.white, fontSize: 14.sp, fontFamily: FontConstants.fontFamily),
       onFinish: () => TutorialPhaseService.instance.advanceToNextPhase(),
-      onSkip: () {
-        TutorialPhaseService.instance.advanceToNextPhase(); // Continue chain, don't kill it
-        return true;
-      },
     ).show(context: context, rootOverlay: true);
   }
 
-  Future<void> _refresh() {
-    return context.read<PerformanceCubit>().refreshPerformance();
+  Future<void> _refresh() async {
+    final error = await context.read<PerformanceCubit>().refreshPerformance();
+    if (error != null && mounted) Toast.error.show(context, title: error);
   }
 
   Widget _buildContent(
@@ -208,54 +204,72 @@ class _VolunteerPerformanceViewState extends State<VolunteerPerformanceView> {
     List<LeaderboardEntryEntity> leaderboard,
     String currentUserId,
   ) {
-    return Column(
-      children: [
-        Padding(
-          padding: EdgeInsets.only(top: AppHeight.s10),
-          child: Text(
-            'الاداء و التقييم',
-            style: getExtraBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              color: ColorManager.natural900,
-              fontSize: FontSize.s16,
-            ),
-          ),
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      color: ColorManager.brand,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsetsDirectional.only(
+          start: Space.gutter,
+          end: Space.gutter,
+          top: Space.vs,
+          bottom: AppNavShell.bottomInset(context),
         ),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: _refresh,
-            color: const Color(0xFF00ABD2),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.only(
-                left: AppWidth.s18,
-                right: AppWidth.s18,
-                top: AppHeight.s24,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  RatingCard(key: _ratingCardKey, stats: stats),
-                  SizedBox(height: AppHeight.s16),
-                  PerformanceStatsRow(stats: stats),
-                  SizedBox(height: AppHeight.s12),
-                  MonthlyChart(
-                    key: _monthlyChartKey,
-                    monthlyHours: monthlyHours,
-                  ),
-                  SizedBox(height: AppHeight.s16),
-                  HonorBoard(
-                    key: _honorBoardKey,
-                    leaderboard: leaderboard,
-                    currentUserId: currentUserId,
-                  ),
-                  SizedBox(height: AppHeight.s100),
-                ],
-              ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            RatingCard(key: _ratingCardKey, stats: stats),
+            SizedBox(height: Space.vm),
+            PerformanceStatsRow(stats: stats),
+            SizedBox(height: Space.vxl),
+            MonthlyChart(key: _monthlyChartKey, monthlyHours: monthlyHours),
+            SizedBox(height: Space.vxl),
+            HonorBoard(
+              key: _honorBoardKey,
+              leaderboard: leaderboard,
+              currentUserId: currentUserId,
             ),
-          ),
+          ],
         ),
-      ],
+      ),
+    );
+  }
+}
+
+class _PerformanceSkeleton extends StatelessWidget {
+  const _PerformanceSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Skeleton(
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsetsDirectional.symmetric(
+          horizontal: Space.gutter,
+          vertical: Space.vs,
+        ),
+        children: [
+          SkeletonBox(height: 150.h, radius: Radii.card),
+          SizedBox(height: Space.vm),
+          Row(
+            children: [
+              for (var i = 0; i < 3; i++) ...[
+                if (i > 0) SizedBox(width: Space.s),
+                Expanded(
+                  child: SkeletonBox(height: 96.h, radius: Radii.card),
+                ),
+              ],
+            ],
+          ),
+          SizedBox(height: Space.vxl),
+          SkeletonBox(height: 220.h, radius: Radii.card),
+          SizedBox(height: Space.vxl),
+          for (var i = 0; i < 3; i++) ...[
+            SkeletonBox(height: 64.h, radius: Radii.card),
+            SizedBox(height: Space.vs),
+          ],
+        ],
+      ),
     );
   }
 }

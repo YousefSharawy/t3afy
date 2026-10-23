@@ -4,10 +4,10 @@ import 'package:t3afy/admin/volunteers/domain/entities/admin_volunteer_entity.da
 import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
 
 abstract class VolunteersRepo {
-  Future<Either<Failture, List<AdminVolunteerEntity>>> getVolunteers();
+  Future<Either<Failture, List<AdminVolunteerEntity>>> getVolunteers({
+    bool forceRefresh = false,
+  });
   Future<Either<Failture, List<AdminVolunteerEntity>>> getPendingUsers();
-  void subscribeRealtime(void Function() onChanged);
-  void disposeRealtime();
   Future<Either<Failture, void>> addVolunteer({
     required String name,
     required String email,

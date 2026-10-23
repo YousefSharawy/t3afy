@@ -1,18 +1,27 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/admin/campaigns/domain/entities/campaign_detail_entity.dart';
-import 'package:t3afy/admin/campaigns/presentation/cubit/campaign_detail_cubit.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/style_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/app_card.dart';
+import 'package:t3afy/base/widgets/app_map_preview.dart';
+import 'package:t3afy/base/widgets/empty_state_text.dart';
+import 'package:t3afy/core/data/realtime_hub.dart';
+import 'package:t3afy/core/utils/date_ar.dart';
+import 'package:t3afy/base/widgets/after_transition.dart';
 
+/// Live positions of the campaign team.
+///
+/// Only the latest point per volunteer is fetched (newest 500 rows, deduped)
+/// instead of the whole location history. Updates come from realtime inserts
+/// for this campaign (coalesced) plus a slow 60 s safety poll. TabBarView only
+/// keeps the visible tab alive, so neither runs while another tab is shown.
 class LiveMapTab extends StatefulWidget {
   const LiveMapTab({super.key, required this.detail});
 
@@ -23,77 +32,86 @@ class LiveMapTab extends StatefulWidget {
 }
 
 class _LiveMapTabState extends State<LiveMapTab> {
+  static const _staleAfter = Duration(minutes: 15);
+  static const _siteRadiusMeters = 200.0;
+
   final _client = Supabase.instance.client;
+  final _hub = RealtimeHub(
+    debounce: const Duration(milliseconds: 500),
+    maxWait: const Duration(seconds: 1),
+  );
+  Timer? _poll;
   List<_VolunteerPin> _pins = [];
   bool _loading = true;
-  Timer? _refreshTimer;
-  RealtimeChannel? _channel;
+  bool _fetching = false;
+
+  bool get _hasCoords =>
+      widget.detail.locationLat != null &&
+      widget.detail.locationLng != null &&
+      widget.detail.locationLat != 0 &&
+      widget.detail.locationLng != 0;
 
   @override
   void initState() {
     super.initState();
+    if (!_hasCoords) return;
     _fetchPins();
-    _refreshTimer = Timer.periodic(
-      const Duration(seconds: 30),
-      (_) => _fetchPins(),
+    _hub.watch(
+      name: 'live-map',
+      table: 'volunteer_locations',
+      event: PostgresChangeEvent.insert,
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'task_id',
+        value: widget.detail.id,
+      ),
+      onChange: _fetchPins,
     );
-    _channel = _client
-        .channel('live_map_${widget.detail.id}')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.insert,
-          schema: 'public',
-          table: 'volunteer_locations',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'task_id',
-            value: widget.detail.id,
-          ),
-          callback: (_) => _fetchPins(),
-        )
-        .subscribe();
+    _poll = Timer.periodic(const Duration(seconds: 60), (_) => _fetchPins());
   }
 
   @override
   void dispose() {
-    _refreshTimer?.cancel();
-    if (_channel != null) _client.removeChannel(_channel!);
+    _poll?.cancel();
+    _hub.dispose();
     super.dispose();
   }
 
   Future<void> _fetchPins() async {
+    if (_fetching) return;
+    _fetching = true;
     try {
-      // Get latest location per volunteer for this task
       final raw = await _client
           .from('volunteer_locations')
           .select('user_id, latitude, longitude, recorded_at')
           .eq('task_id', widget.detail.id)
-          .order('recorded_at', ascending: false);
+          .order('recorded_at', ascending: false)
+          .limit(500);
 
-      // Deduplicate — keep only the latest entry per user
+      final memberMap = {for (final m in widget.detail.members) m.id: m};
       final seen = <String>{};
-      final deduped = <Map<String, dynamic>>[];
+      final now = DateTime.now();
+      final pins = <_VolunteerPin>[];
       for (final row in raw as List) {
         final uid = row['user_id'] as String;
-        if (seen.add(uid)) {
-          deduped.add(row as Map<String, dynamic>);
-        }
-      }
-
-      // Match with member info
-      final memberMap = {for (final m in widget.detail.members) m.id: m};
-      final pins = deduped.map((row) {
-        final uid = row['user_id'] as String;
+        if (!seen.add(uid)) continue;
         final member = memberMap[uid];
-        return _VolunteerPin(
-          userId: uid,
-          name: member?.name ?? 'متطوع',
-          lat: (row['latitude'] as num).toDouble(),
-          lng: (row['longitude'] as num).toDouble(),
-          isCheckedIn:
-              member?.checkedInAt != null && member?.checkedOutAt == null,
+        final at = DateTime.tryParse('${row['recorded_at']}')?.toLocal();
+        final checkedIn =
+            member?.checkedInAt != null && member?.checkedOutAt == null;
+        pins.add(
+          _VolunteerPin(
+            userId: uid,
+            name: member?.name ?? 'متطوع',
+            point: LatLng(
+              (row['latitude'] as num).toDouble(),
+              (row['longitude'] as num).toDouble(),
+            ),
+            recordedAt: at,
+            isLive: checkedIn && at != null && now.difference(at) < _staleAfter,
+          ),
         );
-      }).toList();
-
+      }
       if (mounted) {
         setState(() {
           _pins = pins;
@@ -102,331 +120,166 @@ class _LiveMapTabState extends State<LiveMapTab> {
       }
     } catch (_) {
       if (mounted) setState(() => _loading = false);
+    } finally {
+      _fetching = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasCoords =
-        widget.detail.locationLat != null &&
-        widget.detail.locationLng != null &&
-        widget.detail.locationLat != 0 &&
-        widget.detail.locationLng != 0;
-
-    if (!hasCoords) {
-      return _NoLocationBody();
+    if (!_hasCoords) {
+      return const AppEmptyState(
+        title: 'لم يتم تحديد موقع لهذه الحملة',
+        icon: Icons.location_off_rounded,
+      );
     }
+    final site = LatLng(widget.detail.locationLat!, widget.detail.locationLng!);
+    final live = _pins.where((p) => p.isLive).length;
 
     return ListView(
-      padding: EdgeInsets.all(AppSize.s16),
+      padding: EdgeInsets.fromLTRB(
+        Space.gutter,
+        Space.vl,
+        Space.gutter,
+        Space.vxl + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
-        _buildMap(),
-        SizedBox(height: AppHeight.s16),
-        _buildLegend(),
-        SizedBox(height: AppHeight.s80),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(Radii.card),
+          child: SizedBox(
+            height: 340,
+            child: Stack(
+              children: [
+                AfterTransition(
+                  child: FlutterMap(
+                    options: MapOptions(initialCenter: site, initialZoom: 15),
+                    children: [
+                      AppMapTiles.layer(),
+                      CircleLayer(
+                        circles: [
+                          CircleMarker(
+                            point: site,
+                            radius: _siteRadiusMeters,
+                            useRadiusInMeter: true,
+                            color: ColorManager.brand.withValues(alpha: 0.10),
+                            borderColor: ColorManager.brand,
+                            borderStrokeWidth: 1.5,
+                          ),
+                        ],
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: site,
+                            width: 36,
+                            height: 36,
+                            child: const AppMapPin(icon: AppIcons.flag),
+                          ),
+                          for (final pin in _pins)
+                            Marker(
+                              point: pin.point,
+                              width: 30,
+                              height: 30,
+                              child: Tooltip(
+                                message: pin.name,
+                                child: AppMapPin(
+                                  color: pin.isLive
+                                      ? ColorManager.sprout
+                                      : ColorManager.inkFaint,
+                                  icon: AppIcons.person,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      AppMapTiles.attribution(),
+                    ],
+                  ),
+                ),
+                if (_loading)
+                  const PositionedDirectional(
+                    top: 0,
+                    start: 0,
+                    end: 0,
+                    child: LinearProgressIndicator(
+                      minHeight: 2,
+                      backgroundColor: Colors.transparent,
+                      color: ColorManager.brand,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(height: Space.vm),
+        Wrap(
+          spacing: Space.l,
+          runSpacing: Space.vxs,
+          children: const [
+            _LegendItem(color: ColorManager.sprout, label: 'متواجد الآن'),
+            _LegendItem(color: ColorManager.inkFaint, label: 'غير نشط'),
+            _LegendItem(color: ColorManager.brand, label: 'موقع الحملة'),
+          ],
+        ),
+        SizedBox(height: Space.vl),
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SectionHeader(
+                title: 'مواقع الفريق',
+                trailing: Text(
+                  '$live متواجد',
+                  style: AppText.label(color: ColorManager.sproutText),
+                ),
+              ),
+              if (_pins.isEmpty && !_loading)
+                Text('لا توجد مواقع مسجلة للفريق بعد', style: AppText.label())
+              else
+                for (final pin in _pins)
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: Space.vxs),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.circle,
+                          size: 10,
+                          color: pin.isLive
+                              ? ColorManager.sprout
+                              : ColorManager.inkFaint,
+                        ),
+                        SizedBox(width: Space.s),
+                        Expanded(child: Text(pin.name, style: AppText.body())),
+                        if (pin.recordedAt != null)
+                          Text(
+                            DateAr.timeAgo(pin.recordedAt),
+                            style: AppText.caption(),
+                          ),
+                      ],
+                    ),
+                  ),
+            ],
+          ),
+        ),
       ],
     );
   }
-
-  Widget _buildMap() {
-    final taskLat = widget.detail.locationLat!;
-    final taskLng = widget.detail.locationLng!;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.s16),
-      child: SizedBox(
-        height: 350.h,
-        child: Stack(
-          children: [
-            FlutterMap(
-              options: MapOptions(
-                initialCenter: LatLng(taskLat, taskLng),
-                initialZoom: 14,
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.t3afy.app',
-                ),
-                // 200m radius circle
-                CircleLayer(
-                  circles: [
-                    CircleMarker(
-                      point: LatLng(taskLat, taskLng),
-                      radius: 200,
-                      useRadiusInMeter: true,
-                      color: ColorManager.primary500.withValues(alpha: 0.08),
-                      borderColor: ColorManager.primary500.withValues(
-                        alpha: 0.4,
-                      ),
-                      borderStrokeWidth: 1.5,
-                    ),
-                  ],
-                ),
-                MarkerLayer(
-                  markers: [
-                    // Task location pin
-                    Marker(
-                      point: LatLng(taskLat, taskLng),
-                      width: 36.r,
-                      height: 36.r,
-                      child: Icon(
-                        Icons.location_pin,
-                        color: ColorManager.primary500,
-                        size: 36.r,
-                      ),
-                    ),
-                    // Volunteer dots
-                    ..._pins.map(
-                      (pin) => Marker(
-                        point: LatLng(pin.lat, pin.lng),
-                        width: 60.r,
-                        height: 40.r,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 4.w,
-                                vertical: 2.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: pin.isCheckedIn
-                                    ? ColorManager.success
-                                    : ColorManager.natural400,
-                                borderRadius: BorderRadius.circular(
-                                  AppRadius.s4,
-                                ),
-                              ),
-                              child: Text(
-                                pin.name.split(' ').first,
-                                style: getBoldStyle(
-                                  fontFamily: FontConstants.fontFamily,
-                                  fontSize: FontSize.s8,
-                                  color: ColorManager.white,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Container(
-                              width: 10.r,
-                              height: 10.r,
-                              decoration: BoxDecoration(
-                                color: pin.isCheckedIn
-                                    ? ColorManager.success
-                                    : ColorManager.natural400,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: ColorManager.white,
-                                  width: 1.5,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            // Loading overlay
-            if (_loading)
-              Positioned.fill(
-                child: Container(
-                  color: Colors.black12,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: ColorManager.primary500,
-                      strokeWidth: 2,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLegend() {
-    return Container(
-      padding: EdgeInsets.all(AppSize.s16),
-      decoration: BoxDecoration(
-        color: ColorManager.white,
-        borderRadius: BorderRadius.circular(AppRadius.s12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'المتطوعون النشطون',
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s13,
-                  color: ColorManager.natural900,
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  _fetchPins();
-                  context.read<CampaignDetailCubit>().load(widget.detail.id);
-                },
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.refresh_rounded,
-                      size: 14.r,
-                      color: ColorManager.primary500,
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      'تحديث',
-                      style: getMediumStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s11,
-                        color: ColorManager.primary500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: AppHeight.s12),
-          if (_pins.isEmpty && !_loading)
-            Text(
-              'لا يوجد متطوعين في الموقع حالياً',
-              style: getRegularStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s12,
-                color: ColorManager.natural400,
-              ),
-            )
-          else
-            ..._pins.map((pin) => _PinRow(pin: pin)),
-          SizedBox(height: AppHeight.s8),
-          Row(
-            children: [
-              _LegendDot(color: ColorManager.success),
-              SizedBox(width: 6.w),
-              Text(
-                'متواجد الآن',
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s10,
-                  color: ColorManager.natural500,
-                ),
-              ),
-              SizedBox(width: AppWidth.s16),
-              _LegendDot(color: ColorManager.natural400),
-              SizedBox(width: 6.w),
-              Text(
-                'غير نشط',
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s10,
-                  color: ColorManager.natural500,
-                ),
-              ),
-              SizedBox(width: AppWidth.s16),
-              _LegendDot(color: ColorManager.primary500),
-              SizedBox(width: 6.w),
-              Text(
-                'موقع المهمة',
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s10,
-                  color: ColorManager.natural500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-class _NoLocationBody extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(AppSize.s32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.location_off_outlined,
-              size: 48,
-              color: ColorManager.natural300,
-            ),
-            SizedBox(height: AppHeight.s12),
-            Text(
-              'لم يتم تحديد موقع لهذه الحملة',
-              style: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s14,
-                color: ColorManager.natural400,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PinRow extends StatelessWidget {
-  const _PinRow({required this.pin});
-  final _VolunteerPin pin;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: AppHeight.s8),
-      child: Row(
-        children: [
-          Container(
-            width: 8.w,
-            height: 8.w,
-            decoration: BoxDecoration(
-              color: pin.isCheckedIn
-                  ? ColorManager.success
-                  : ColorManager.natural400,
-              shape: BoxShape.circle,
-            ),
-          ),
-          SizedBox(width: 8.w),
-          Text(
-            pin.name,
-            style: getMediumStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color: ColorManager.natural700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LegendDot extends StatelessWidget {
-  const _LegendDot({required this.color});
+class _LegendItem extends StatelessWidget {
+  const _LegendItem({required this.color, required this.label});
   final Color color;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 8.w,
-      height: 8.w,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.circle, size: 10, color: color),
+        SizedBox(width: Space.xs),
+        Text(label, style: AppText.caption(color: ColorManager.inkMuted)),
+      ],
     );
   }
 }
@@ -434,15 +287,15 @@ class _LegendDot extends StatelessWidget {
 class _VolunteerPin {
   final String userId;
   final String name;
-  final double lat;
-  final double lng;
-  final bool isCheckedIn;
+  final LatLng point;
+  final DateTime? recordedAt;
+  final bool isLive;
 
   const _VolunteerPin({
     required this.userId,
     required this.name,
-    required this.lat,
-    required this.lng,
-    required this.isCheckedIn,
+    required this.point,
+    required this.recordedAt,
+    required this.isLive,
   });
 }

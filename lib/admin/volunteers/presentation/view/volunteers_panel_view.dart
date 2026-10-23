@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/admin_volunteer_entity.dart';
@@ -9,16 +10,20 @@ import 'package:t3afy/admin/volunteers/presentation/view/widgets/add_volunteer_s
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_card.dart';
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_filter_chips.dart';
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_search_bar.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_sheet_frame.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/app/services/tutorial_service.dart';
-import 'package:t3afy/base/primary_widgets.dart';
+import 'package:t3afy/base/shimmers.dart';
+import 'package:t3afy/base/widgets/app_nav_shell.dart';
+import 'package:t3afy/base/widgets/app_page_header.dart';
 import 'package:t3afy/base/widgets/empty_state_text.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
-import 'package:t3afy/base/widgets/loading_indicator.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class VolunteersPanelView extends StatefulWidget {
@@ -59,119 +64,85 @@ class _VolunteersPanelViewState extends State<VolunteersPanelView> {
     if (svc.currentPhase != 2 || !svc.isAdmin) return;
     if (_lastCheckedPhase == 2) return; // Already showed phase 2
 
-    debugPrint('📘 TUTORIAL: Volunteers screen starting phase 2, marking _lastCheckedPhase=2');
     _lastCheckedPhase = 2; // Mark immediately since volunteers list renders synchronously
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) _showVolunteersTutorial();
     });
   }
 
+  void _openAddSheet() {
+    HapticFeedback.mediumImpact();
+    final cubit = context.read<VolunteersCubit>();
+    showVolunteerSheet<void>(
+      context,
+      BlocProvider.value(value: cubit, child: const AddVolunteerSheet()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: ColorManager.background,
-        appBar: AppBar(
-          backgroundColor: ColorManager.background,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          centerTitle: true,
-          title: Text(
-            'ادارة المتطوعين',
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s16,
-              color: ColorManager.natural900,
+    return Scaffold(
+      backgroundColor: ColorManager.canvas,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            AppPageHeader(
+              title: 'إدارة المتطوعين',
+              reserveBellSpace: true,
+              actions: [_AddVolunteerAction(onPressed: _openAddSheet)],
             ),
-          ),
-          leadingWidth: AppWidth.s110,
-          leading: Padding(
-            padding: EdgeInsets.only(right: AppWidth.s18),
-            child: PrimaryElevatedButton(
-              backGroundColor: ColorManager.primary50,
-              borderColor: ColorManager.primary500,
-              buttonRadius: AppRadius.s20,
-              iconPath: IconAssets.add,
-              textStyle: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s12,
-                color: ColorManager.primary500,
-              ),
-              height: AppHeight.s26,
-              title: "إضافة متطوع",
-              onPress: () {
-                HapticFeedback.mediumImpact();
-                final cubit = context.read<VolunteersCubit>();
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => BlocProvider.value(
-                    value: cubit,
-                    child: const AddVolunteerSheet(),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        body: BlocConsumer<VolunteersCubit, VolunteersState>(
-          listener: (context, state) {
-            state.maybeWhen(
-              loaded: (_, _, _, _, _) {
-                WidgetsBinding.instance.addPostFrameCallback(
-                  (_) => _checkTutorial(),
-                );
-              },
-              orElse: () {},
-            );
-          },
-          builder: (context, state) {
-            return state.when(
-              initial: () => const SizedBox.shrink(),
-              loading: () => const LoadingIndicator(),
-              error: (message) => ErrorState(
-                message: message,
-                onRetry: () => context.read<VolunteersCubit>().loadVolunteers(),
-              ),
-              loaded:
-                  (
-                    volunteers,
-                    filter,
-                    searchQuery,
-                    pendingUsers,
-                    pendingLoading,
-                  ) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-                      child: Column(
-                        children: [
-                          SizedBox(height: AppHeight.s16),
-                          VolunteerSearchBar(key: _searchBarKey),
-                          SizedBox(height: AppHeight.s16),
-                          VolunteerFilterChips(
-                            key: _filterChipsKey,
-                            volunteers: volunteers,
-                            selectedFilter: filter,
-                          ),
-                          SizedBox(height: AppHeight.s8),
-                          Expanded(
-                            child: _buildVolunteerList(
-                              context,
-                              _applyFilters(
-                                volunteers,
-                                filter: filter,
-                                searchQuery: searchQuery,
-                              ),
+            Expanded(
+              child: BlocConsumer<VolunteersCubit, VolunteersState>(
+                listenWhen: (p, c) =>
+                    c.maybeWhen(loaded: (_, _, _, _, _) => true, orElse: () => false) &&
+                    !p.maybeWhen(loaded: (_, _, _, _, _) => true, orElse: () => false),
+                listener: (context, state) {
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => _checkTutorial(),
+                  );
+                },
+                builder: (context, state) {
+                  return state.when(
+                    initial: () => const _PanelSkeleton(),
+                    loading: () => const _PanelSkeleton(),
+                    error: (message) => ErrorState(
+                      message: message,
+                      onRetry: () =>
+                          context.read<VolunteersCubit>().loadVolunteers(),
+                    ),
+                    loaded:
+                        (volunteers, filter, searchQuery, pendingUsers, _) =>
+                            Column(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Space.gutter,
+                                  ),
+                                  child: VolunteerSearchBar(key: _searchBarKey),
+                                ),
+                                SizedBox(height: Space.vm),
+                                // Re-renders once a minute so "online" badges
+                                // and the status counts age out on their own.
+                                Expanded(
+                                  child: _MinuteTicker(
+                                    builder: (context) => _LoadedBody(
+                                      volunteers: volunteers,
+                                      filter: filter,
+                                      searchQuery: searchQuery,
+                                      filterChipsKey: _filterChipsKey,
+                                      firstCardKey: _firstCardKey,
+                                      onAdd: _openAddSheet,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-            );
-          },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -225,93 +196,230 @@ class _VolunteersPanelViewState extends State<VolunteersPanelView> {
     }
 
     if (targets.isEmpty) {
-      debugPrint(
-        '📘 TUTORIAL: AdminVolunteers screen has no targets, advancing to next phase',
-      );
       TutorialPhaseService.instance.advanceToNextPhase();
       return;
     }
 
-    TutorialCoachMark(
+    TutorialService.buildPhaseContinuing(
       targets: targets,
-      colorShadow: Colors.black,
-      opacityShadow: 0.8,
-      textSkip: "تخطي",
-      paddingFocus: 10,
-      focusAnimationDuration: const Duration(milliseconds: 300),
-      unFocusAnimationDuration: const Duration(milliseconds: 300),
-      pulseAnimationDuration: const Duration(milliseconds: 600),
-      textStyleSkip: TextStyle(color: Colors.white, fontSize: 14.sp, fontFamily: FontConstants.fontFamily),
       onFinish: () => TutorialPhaseService.instance.advanceToNextPhase(),
-      onSkip: () {
-        TutorialPhaseService.instance.advanceToNextPhase(); // Continue chain, don't kill it
-        return true;
-      },
     ).show(context: context, rootOverlay: true);
   }
+}
 
-  Widget _buildVolunteerList(
-    BuildContext context,
-    List<AdminVolunteerEntity> displayed,
-  ) {
-    if (displayed.isEmpty) {
-      return const EmptyStateText(message: 'لا يوجد متطوعون');
-    }
-    final cubit = context.read<VolunteersCubit>();
-    return RefreshIndicator(
-      onRefresh: () async {
-        HapticFeedback.mediumImpact();
-        try {
-          await cubit.loadVolunteers();
-          HapticFeedback.lightImpact();
-        } catch (e) {
-          HapticFeedback.heavyImpact();
-        }
-      },
-      color: ColorManager.white,
-      backgroundColor: ColorManager.primary500,
-      displacement: 40.0,
-      strokeWidth: 2.5,
-      semanticsLabel: 'تحديث المتطوعين',
-      semanticsValue: '0%',
-      child: ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: displayed.length,
-        itemBuilder: (context, i) => VolunteerCard(
-          key: i == 0 ? _firstCardKey : null,
-          volunteer: displayed[i],
-          onTap: () async {
-            final changed = await context.push<bool>(
-              '/volunteerDetails/${displayed[i].id}',
-            );
-            if (changed == true && context.mounted) {
-              cubit.loadVolunteers();
-            }
-          },
+class _AddVolunteerAction extends StatelessWidget {
+  const _AddVolunteerAction({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(AppIcons.add3, size: AppSizes.iconS),
+      label: Text(
+        'إضافة متطوع',
+        style: getSemiBoldStyle(
+          fontSize: FontSize.s13,
+          color: ColorManager.brandStrong,
         ),
+      ),
+      style: TextButton.styleFrom(
+        foregroundColor: ColorManager.brandStrong,
+        backgroundColor: ColorManager.brandSoft,
+        padding: EdgeInsets.symmetric(horizontal: Space.m),
+        minimumSize: Size(0, AppHeight.s36),
+        tapTargetSize: MaterialTapTargetSize.padded,
+        shape: const StadiumBorder(),
       ),
     );
   }
+}
 
-  List<AdminVolunteerEntity> _applyFilters(
-    List<AdminVolunteerEntity> all, {
-    required String filter,
-    required String searchQuery,
-  }) {
-    var list = all;
-    if (filter != 'all') {
-      list = list.where((v) => v.status == filter).toList();
+class _LoadedBody extends StatelessWidget {
+  const _LoadedBody({
+    required this.volunteers,
+    required this.filter,
+    required this.searchQuery,
+    required this.filterChipsKey,
+    required this.firstCardKey,
+    required this.onAdd,
+  });
+
+  final List<AdminVolunteerEntity> volunteers;
+  final String filter;
+  final String searchQuery;
+  final GlobalKey filterChipsKey;
+  final GlobalKey firstCardKey;
+  final VoidCallback onAdd;
+
+  List<AdminVolunteerEntity> _applyFilters() {
+    final q = searchQuery.toLowerCase();
+    if (filter == 'all' && q.isEmpty) return volunteers;
+    return volunteers.where((v) {
+      if (filter != 'all' && v.status != filter) return false;
+      if (q.isEmpty) return true;
+      return v.name.toLowerCase().contains(q) ||
+          (v.region?.toLowerCase().contains(q) ?? false);
+    }).toList();
+  }
+
+  Future<void> _onRefresh(BuildContext context) async {
+    HapticFeedback.mediumImpact();
+    final error = await context.read<VolunteersCubit>().refresh();
+    if (error != null && context.mounted) {
+      Toast.error.show(context, title: error);
     }
-    if (searchQuery.isNotEmpty) {
-      final q = searchQuery.toLowerCase();
-      list = list
-          .where(
-            (v) =>
-                v.name.toLowerCase().contains(q) ||
-                (v.region?.toLowerCase().contains(q) ?? false),
-          )
-          .toList();
-    }
-    return list;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final displayed = _applyFilters();
+    final cubit = context.read<VolunteersCubit>();
+    final bottom = AppNavShell.bottomInset(context);
+
+    return Column(
+      children: [
+        VolunteerFilterChips(
+          key: filterChipsKey,
+          volunteers: volunteers,
+          selectedFilter: filter,
+        ),
+        SizedBox(height: Space.vm),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => _onRefresh(context),
+            color: ColorManager.brand,
+            backgroundColor: ColorManager.surface,
+            semanticsLabel: 'تحديث المتطوعين',
+            child: displayed.isEmpty
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(bottom: bottom),
+                    children: [
+                      volunteers.isEmpty
+                          ? AppEmptyState(
+                              icon: AppIcons.group,
+                              title: 'لا يوجد متطوعون بعد',
+                              message: 'أضف أول متطوع ليظهر هنا',
+                              actionLabel: 'إضافة متطوع',
+                              onAction: onAdd,
+                            )
+                          : const AppEmptyState(
+                              icon: AppIcons.search,
+                              title: 'لا توجد نتائج مطابقة',
+                              message: 'جرّب كلمة بحث أخرى أو غيّر التصفية',
+                            ),
+                    ],
+                  )
+                : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(
+                      Space.gutter,
+                      0,
+                      Space.gutter,
+                      bottom,
+                    ),
+                    itemCount: displayed.length,
+                    separatorBuilder: (_, _) => SizedBox(height: Space.vs),
+                    itemBuilder: (context, i) {
+                      final v = displayed[i];
+                      return KeyedSubtree(
+                        key: ValueKey(v.id),
+                        child: VolunteerCard(
+                          key: i == 0 ? firstCardKey : null,
+                          volunteer: v,
+                          onTap: () async {
+                            final changed = await context.push<bool>(
+                              '/volunteerDetails/${v.id}',
+                            );
+                            if (changed == true) cubit.refresh();
+                          },
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Rebuilds [builder] every minute. Kept tiny so only the list re-renders.
+class _MinuteTicker extends StatefulWidget {
+  const _MinuteTicker({required this.builder});
+
+  final WidgetBuilder builder;
+
+  @override
+  State<_MinuteTicker> createState() => _MinuteTickerState();
+}
+
+class _MinuteTickerState extends State<_MinuteTicker> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(context);
+}
+
+class _PanelSkeleton extends StatelessWidget {
+  const _PanelSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: Space.gutter),
+          child: Skeleton(
+            child: Column(
+              children: [
+                SkeletonBox(height: AppHeight.s48, radius: Radii.input),
+                SizedBox(height: Space.vm),
+                Row(
+                  children: [
+                    for (var i = 0; i < 4; i++) ...[
+                      SkeletonBox(
+                        width: AppWidth.s72,
+                        height: AppHeight.s36,
+                        radius: Radii.chip,
+                      ),
+                      SizedBox(width: Space.s),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          child: SkeletonList(
+            count: 6,
+            itemHeight: AppHeight.s90,
+            padding: EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.vm,
+              Space.gutter,
+              AppNavShell.bottomInset(context),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

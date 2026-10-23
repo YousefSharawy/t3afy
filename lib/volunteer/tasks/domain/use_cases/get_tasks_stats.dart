@@ -7,7 +7,10 @@ class GetTasksStats {
   final TasksRepository _repository;
   GetTasksStats(this._repository);
 
-  Future<Either<Failture, TasksStatsEntity>> call(String userId, {bool skipCache = false}) {
+  Future<Either<Failture, TasksStatsEntity>> call(
+    String userId, {
+    bool skipCache = false,
+  }) {
     return _repository.getTasksStats(userId, skipCache: skipCache);
   }
 }

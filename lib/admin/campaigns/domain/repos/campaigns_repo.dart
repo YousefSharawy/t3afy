@@ -5,8 +5,6 @@ import '../entities/campaign_detail_entity.dart';
 import '../entities/volunteer_entity.dart';
 
 abstract class CampaignsRepo {
-  void subscribeRealtime(void Function() onChanged);
-  void disposeRealtime();
   Future<Either<Failture, List<CampaignEntity>>> getCampaigns({bool skipCache = false});
   Future<Either<Failture, Map<String, int>>> getCampaignStats({bool skipCache = false});
   Future<Either<Failture, CampaignDetailEntity>> getCampaignDetail(String id);
@@ -35,5 +33,7 @@ abstract class CampaignsRepo {
   Future<Either<Failture, List<VolunteerEntity>>> getUnassignedVolunteers(
     String taskId,
   );
-  Future<Either<Failture, List<VolunteerEntity>>> getAllVolunteers();
+  Future<Either<Failture, List<VolunteerEntity>>> getAllVolunteers({
+    bool skipCache = false,
+  });
 }

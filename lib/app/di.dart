@@ -159,7 +159,7 @@ Future<void> initAppModule() async {
   getIt.registerFactory<AuthCubit>(
     () => AuthCubit(getIt(), getIt(), getIt(), getIt()),
   );
-  getIt.registerFactory(() => HomeCubit(getIt(), getIt(), getIt()));
+  getIt.registerFactory(() => HomeCubit(getIt(), getIt()));
 
   getIt.registerLazySingleton<VolunteerHomeRemoteDataSource>(
     () => VolunteerImplHomeRemoteDataSource(),
@@ -171,7 +171,6 @@ Future<void> initAppModule() async {
 
   getIt.registerLazySingleton(() => GetVolunteerStats(getIt()));
   getIt.registerLazySingleton(() => GetHomeTodayTasks(getIt()));
-  getIt.registerLazySingleton(() => GetUnreadNotificationsCount(getIt()));
   getIt.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileImplRemoteDataSource(),
   );
@@ -237,19 +236,13 @@ Future<void> initAppModule() async {
   );
   getIt.registerLazySingleton<CheckInDataSource>(() => CheckInImplDataSource());
   getIt.registerLazySingleton<TaskDetailsRepository>(
-    () => TaskDetailsImplRepository(
-      getIt<TaskDetailsRemoteDataSource>(),
-      checkInDataSource: getIt<CheckInDataSource>(),
-    ),
+    () => TaskDetailsImplRepository(getIt<TaskDetailsRemoteDataSource>()),
   );
   getIt.registerLazySingleton(
     () => GetTaskDetailsUseCase(getIt<TaskDetailsRepository>()),
   );
   getIt.registerFactory(
-    () => TaskDetailsCubit(
-      getIt<GetTaskDetailsUseCase>(),
-      getIt<TaskDetailsImplRemoteDataSource>(),
-    ),
+    () => TaskDetailsCubit(getIt<GetTaskDetailsUseCase>()),
   );
 
   // ===== Report =====
@@ -417,7 +410,7 @@ Future<void> initAppModule() async {
       getIt<UpdateCampaignUsecase>(),
     ),
   );
-  getIt.registerLazySingleton(
+  getIt.registerFactory(
     () => CampaignsCubit(
       getIt<GetCampaignsUsecase>(),
       getIt<GetCampaignStatsUsecase>(),

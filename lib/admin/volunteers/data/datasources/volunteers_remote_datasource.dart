@@ -1,11 +1,11 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/admin_volunteer_entity.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
 
 abstract class VolunteersRemoteDatasource {
-  Future<List<AdminVolunteerEntity>> getVolunteers();
+  Future<List<AdminVolunteerEntity>> getVolunteers({bool forceRefresh = false});
   Future<List<AdminVolunteerEntity>> getPendingUsers();
-  RealtimeChannel subscribeOnlineStatus(void Function() onChanged);
+
+  /// All `users` changes (insert/update/delete); the caller decides what to do.
   Future<void> addVolunteer({
     required String name,
     required String email,

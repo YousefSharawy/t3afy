@@ -1,18 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:photo_view/photo_view.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/base/shimmers.dart';
-import 'package:t3afy/base/widgets/section_label.dart';
+import 'package:t3afy/base/widgets/app_card.dart';
+import 'package:t3afy/core/utils/date_ar.dart';
+import 'package:t3afy/core/utils/photo_viewer.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:t3afy/base/widgets/after_transition.dart';
 import 'qualification_row.dart';
-import 'package:t3afy/base/widgets/info_row.dart';
 
 class VolunteerDataTab extends StatefulWidget {
   const VolunteerDataTab({super.key, required this.details});
@@ -31,235 +30,218 @@ class _VolunteerDataTabState extends State<VolunteerDataTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final d = widget.details;
+    final isApproved = d.role == 'volunteer';
+    final joined = DateAr.tryParse(d.joinedAt);
     return ListView(
+      padding: EdgeInsets.only(
+        top: Space.vs,
+        bottom: Space.vxl + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
-        // ── ID photo section ──
-        Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(
-            AppWidth.s16,
-            AppHeight.s12,
-            AppWidth.s16,
-            0,
+        const SectionHeader(title: 'صورة الهوية'),
+        _IdSection(url: d.idFileUrl),
+        SizedBox(height: Space.vm),
+        MetaItem(
+          icon: isApproved ? AppIcons.commit : AppIcons.alarm,
+          text: isApproved ? 'تم التحقق' : 'بانتظار المراجعة',
+          color: isApproved ? ColorManager.sproutText : ColorManager.warning,
+        ),
+        SizedBox(height: Space.vxl),
+        const SectionHeader(title: 'البيانات الشخصية'),
+        AppCard(
+          padding: EdgeInsets.symmetric(
+            horizontal: Space.l,
+            vertical: Space.vs,
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SectionLabel(label: 'صورة الهوية'),
-              SizedBox(height: AppHeight.s8),
-              _buildIdSection(),
-              SizedBox(height: AppHeight.s12),
-              _buildStatusBadge(),
-              SizedBox(height: AppHeight.s8),
+              _InfoLine(
+                icon: AppIcons.phone,
+                label: 'رقم الهاتف',
+                value: d.phone ?? '—',
+                ltr: d.phone != null,
+              ),
+              const _Divider(),
+              _InfoLine(
+                icon: AppIcons.email2,
+                label: 'البريد',
+                value: d.email ?? '—',
+                ltr: d.email != null,
+              ),
+              const _Divider(),
+              _InfoLine(
+                icon: AppIcons.location,
+                label: 'المنطقة',
+                value: d.region ?? '—',
+              ),
+              const _Divider(),
+              _InfoLine(
+                icon: AppIcons.calendar,
+                label: 'تاريخ الانضمام',
+                value: joined != null
+                    ? '${DateAr.month(joined.month)} ${joined.year}'
+                    : '—',
+              ),
+              const _Divider(),
+              _InfoLine(
+                icon: AppIcons.hours,
+                label: 'آخر ظهور',
+                value: d.lastSeenAt != null
+                    ? DateAr.timeAgo(d.lastSeenAt)
+                    : '—',
+              ),
             ],
           ),
         ),
-        InfoRow(
-          icon: IconAssets.phone,
-          label: 'رقم الهاتف',
-          value: widget.details.phone ?? '—',
-        ),
-        InfoRow(
-          icon: IconAssets.email2,
-          label: 'البريد',
-          value: widget.details.email ?? '—',
-        ),
-        InfoRow(
-          icon: IconAssets.location,
-          label: 'المنطقة',
-          value: widget.details.region ?? '—',
-        ),
-        InfoRow(
-          icon: IconAssets.calendar,
-          label: 'تاريخ الانضمام',
-          value: widget.details.joinedAt != null
-              ? _formatArabicMonth(widget.details.joinedAt!)
-              : '—',
-        ),
-        InfoRow(
-          icon: IconAssets.hours,
-          label: 'آخر ظهور',
-          value: widget.details.lastSeenAt != null
-              ? _timeAgo(widget.details.lastSeenAt!)
-              : '—',
-        ),
-        QualificationRow(values: widget.details.volunteerAreas),
+        SizedBox(height: Space.vm),
+        QualificationRow(values: d.volunteerAreas),
       ],
     );
   }
+}
 
-  Widget _buildIdSection() {
-    final url = widget.details.idFileUrl;
-    if (url == null || url.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(AppHeight.s16),
-        decoration: BoxDecoration(
-          color: ColorManager.natural100,
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        child: Text(
-          'لم يتم رفع صورة الهوية',
-          textAlign: TextAlign.center,
-          style: getRegularStyle(
-            fontFamily: FontConstants.fontFamily,
-            color: ColorManager.natural400,
-            fontSize: FontSize.s13,
-          ),
+class _IdSection extends StatelessWidget {
+  const _IdSection({required this.url});
+
+  final String? url;
+
+  @override
+  Widget build(BuildContext context) {
+    final u = url;
+    if (u == null || u.isEmpty) {
+      return AppCard(
+        child: Row(
+          children: [
+            const AppIconBadge(
+              icon: AppIcons.person,
+              color: ColorManager.inkFaint,
+            ),
+            SizedBox(width: Space.m),
+            Expanded(
+              child: Text('لم يتم رفع صورة الهوية', style: AppText.label()),
+            ),
+          ],
         ),
       );
     }
-    final isPdf = url.toLowerCase().endsWith('.pdf');
-    if (isPdf) {
-      return GestureDetector(
+    if (u.toLowerCase().endsWith('.pdf')) {
+      return AppCard(
         onTap: () =>
-            launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
-        child: Container(
-          width: double.infinity,
-          height: 200.h,
-          decoration: BoxDecoration(
-            color: ColorManager.natural100,
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.picture_as_pdf_outlined,
-                size: 48.r,
-                color: ColorManager.error,
-              ),
-              SizedBox(height: AppHeight.s8),
-              Text(
-                'عرض الهوية',
-                style: getSemiBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.primary500,
-                  fontSize: FontSize.s14,
-                ),
-              ),
-            ],
-          ),
+            launchUrl(Uri.parse(u), mode: LaunchMode.externalApplication),
+        semanticLabel: 'عرض ملف الهوية',
+        child: Row(
+          children: [
+            const AppIconBadge(icon: AppIcons.pdf, color: ColorManager.error),
+            SizedBox(width: Space.m),
+            Expanded(
+              child: Text('عرض ملف الهوية (PDF)', style: AppText.bodyStrong()),
+            ),
+            const Icon(AppIcons.chevron, color: ColorManager.inkFaint),
+          ],
         ),
       );
     }
-    return GestureDetector(
-      onTap: () => _openFullscreen(url),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12.r),
-        child: CachedNetworkImage(
-          imageUrl: url,
-          width: double.infinity,
-          height: 200.h,
-          fit: BoxFit.cover,
-          placeholder: (context, url) => CustomShimmerWrapW(
-            width: double.infinity,
-            height: 200.h,
-            itemCount: 1,
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          errorWidget: (context, url, error) => Container(
-            width: double.infinity,
-            height: 200.h,
-            color: ColorManager.natural100,
-            child: Icon(
-              Icons.broken_image_outlined,
-              size: 40.r,
-              color: ColorManager.natural300,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _openFullscreen(String url) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            backgroundColor: Colors.black,
-            iconTheme: const IconThemeData(color: Colors.white),
-          ),
-          body: PhotoView(
-            imageProvider: CachedNetworkImageProvider(url),
-            backgroundDecoration: const BoxDecoration(color: Colors.black),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge() {
-    final role = widget.details.role;
-    final isApproved = role == 'volunteer';
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsetsDirectional.symmetric(
-            horizontal: AppWidth.s12,
-            vertical: AppHeight.s4,
-          ),
-          decoration: BoxDecoration(
-            color: isApproved
-                ? ColorManager.successLight
-                : ColorManager.warningLight,
-            borderRadius: BorderRadius.circular(20.r),
-            border: Border.all(
-              color: isApproved ? ColorManager.success : ColorManager.warning,
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isApproved ? Icons.verified_outlined : Icons.hourglass_empty,
-                size: 14.r,
-                color: isApproved ? ColorManager.success : ColorManager.warning,
-              ),
-              SizedBox(width: AppWidth.s4),
-              Text(
-                isApproved ? 'تم التحقق' : 'بانتظار المراجعة',
-                style: getSemiBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  color: isApproved
-                      ? ColorManager.success
-                      : ColorManager.warning,
-                  fontSize: FontSize.s12,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dpr = MediaQuery.devicePixelRatioOf(context);
+        return Semantics(
+          button: true,
+          label: 'عرض صورة الهوية',
+          child: GestureDetector(
+            onTap: () => openPhotoViewer(context, u, heroTag: 'id-$u'),
+            child: Hero(
+              tag: 'id-$u',
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(Radii.card),
+                child: AspectRatio(
+                  aspectRatio: 16 / 10,
+                  child: AfterTransition(
+                    placeholder: Skeleton(
+                      child: SkeletonBox(
+                        height: double.infinity,
+                        radius: Radii.card,
+                      ),
+                    ),
+                    child: CachedNetworkImage(
+                      imageUrl: u,
+                      fit: BoxFit.cover,
+                      memCacheWidth: (constraints.maxWidth * dpr).round(),
+                      placeholder: (_, _) => Skeleton(
+                        child: SkeletonBox(
+                          height: double.infinity,
+                          radius: Radii.card,
+                        ),
+                      ),
+                      errorWidget: (_, _, _) => Container(
+                        color: ColorManager.surfaceSunken,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.broken_image_rounded,
+                          size: AppSizes.iconL * 1.6,
+                          color: ColorManager.inkFaint,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
+}
 
-  String _formatArabicMonth(DateTime dt) {
-    const months = [
-      'يناير',
-      'فبراير',
-      'مارس',
-      'أبريل',
-      'مايو',
-      'يونيو',
-      'يوليو',
-      'أغسطس',
-      'سبتمبر',
-      'أكتوبر',
-      'نوفمبر',
-      'ديسمبر',
-    ];
-    return '${months[dt.month - 1]} ${dt.year}';
-  }
+class _InfoLine extends StatelessWidget {
+  const _InfoLine({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.ltr = false,
+  });
 
-  String _timeAgo(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inSeconds < 60) return 'منذ لحظات';
-    if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
-    if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
-    if (diff.inDays < 30) return 'منذ ${diff.inDays} يوم';
-    return 'منذ أكثر من شهر';
+  final IconData icon;
+  final String label;
+  final String value;
+
+  /// Phone / email read left-to-right.
+  final bool ltr;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: Space.vs),
+      child: Row(
+        children: [
+          AppIconBadge(icon: icon, size: 32),
+          SizedBox(width: Space.m),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppText.caption()),
+                Text(
+                  value,
+                  style: AppText.bodyStrong(),
+                  textDirection: ltr ? TextDirection.ltr : null,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
+}
+
+class _Divider extends StatelessWidget {
+  const _Divider();
+
+  @override
+  Widget build(BuildContext context) =>
+      const Divider(height: 1, thickness: 1, color: ColorManager.line);
 }

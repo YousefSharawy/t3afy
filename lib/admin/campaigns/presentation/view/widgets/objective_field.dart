@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/base/primary_widgets.dart';
 
 class ObjectiveField extends StatelessWidget {
@@ -18,33 +18,31 @@ class ObjectiveField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: AppHeight.s8),
+      padding: EdgeInsets.only(bottom: Space.vs),
       child: Row(
         children: [
           Expanded(
-            child: PrimaryTextFF(
-              textAlign: .right,
-              controller: controller,
-              hint: 'هدف ${index + 1}',
-            ),
+            child: PrimaryTextFF(controller: controller, hint: 'هدف ${index + 1}'),
           ),
-          SizedBox(width: AppWidth.s8),
-          GestureDetector(
-            onTap: onRemove,
-            child: Container(
-              padding: EdgeInsets.all(AppSize.s8),
-              decoration: BoxDecoration(
-                color: ColorManager.errorLight,
-                borderRadius: BorderRadius.circular(AppRadius.s8),
-              ),
-              child: Icon(
-                Icons.remove_circle_outline,
-                color: ColorManager.error,
-                size: AppSize.s18,
-              ),
-            ),
-          ),
+          RemoveFieldButton(onPressed: onRemove),
         ],
+      ),
+    );
+  }
+}
+
+class RemoveFieldButton extends StatelessWidget {
+  const RemoveFieldButton({super.key, required this.onPressed});
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: 'حذف',
+      onPressed: onPressed,
+      icon: const Icon(
+        Icons.remove_circle_outline_rounded,
+        color: ColorManager.error,
       ),
     );
   }

@@ -15,6 +15,7 @@ class AdminReportEntity {
   final DateTime createdAt;
   final String taskTitle;
   final String volunteerName;
+  final String? volunteerAvatarUrl;
 
   const AdminReportEntity({
     required this.id,
@@ -33,7 +34,30 @@ class AdminReportEntity {
     required this.createdAt,
     required this.taskTitle,
     required this.volunteerName,
+    this.volunteerAvatarUrl,
   });
+
+  /// Local copy after a review, so the list updates before the refetch lands.
+  AdminReportEntity reviewed({required String status, String? feedback}) =>
+      AdminReportEntity(
+        id: id,
+        taskId: taskId,
+        userId: userId,
+        summary: summary,
+        challenges: challenges,
+        attendeesCount: attendeesCount,
+        materialsDistributed: materialsDistributed,
+        additionalNotes: additionalNotes,
+        rating: rating,
+        status: status,
+        adminFeedback: feedback ?? adminFeedback,
+        reviewedBy: reviewedBy,
+        reviewedAt: DateTime.now(),
+        createdAt: createdAt,
+        taskTitle: taskTitle,
+        volunteerName: volunteerName,
+        volunteerAvatarUrl: volunteerAvatarUrl,
+      );
 
   factory AdminReportEntity.fromJson(Map<String, dynamic> json) {
     final tasks = json['tasks'] as Map<String, dynamic>?;
@@ -57,6 +81,7 @@ class AdminReportEntity {
       createdAt: DateTime.parse(json['created_at'] as String),
       taskTitle: (tasks?['title'] as String?) ?? 'مهمة',
       volunteerName: (users?['name'] as String?) ?? 'متطوع',
+      volunteerAvatarUrl: users?['avatar_url'] as String?,
     );
   }
 }

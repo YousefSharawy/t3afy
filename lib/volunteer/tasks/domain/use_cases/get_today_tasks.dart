@@ -7,7 +7,10 @@ class GetTodayTasks {
   final TasksRepository _repository;
   GetTodayTasks(this._repository);
 
-  Future<Either<Failture, List<TaskEntity>>> call(String userId, {bool skipCache = false}) {
+  Future<Either<Failture, List<TaskEntity>>> call(
+    String userId, {
+    bool skipCache = false,
+  }) {
     return _repository.getTodayTasks(userId, skipCache: skipCache);
   }
 }

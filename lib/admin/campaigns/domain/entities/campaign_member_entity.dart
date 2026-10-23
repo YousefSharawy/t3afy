@@ -16,6 +16,12 @@ class CampaignMemberEntity {
   final double? verifiedHours;
   final bool isVerified;
 
+  /// Assignment status (`assigned`, `completed`, …).
+  final String assignmentStatus;
+
+  /// Same rule as the campaigns list: checked in, or marked completed.
+  bool get attended => checkedInAt != null || assignmentStatus == 'completed';
+
   const CampaignMemberEntity({
     required this.id,
     required this.name,
@@ -33,6 +39,7 @@ class CampaignMemberEntity {
     this.checkOutLng,
     this.verifiedHours,
     this.isVerified = false,
+    this.assignmentStatus = '',
   });
 
   bool get isActiveNow {

@@ -11,6 +11,7 @@ class VolunteerStatsEntity {
   final int totalTasks;
   final int placesVisited;
   final int totalPoints;
+  final String role;
 
   VolunteerStatsEntity({
     required this.id,
@@ -25,6 +26,7 @@ class VolunteerStatsEntity {
     required this.totalTasks,
     required this.placesVisited,
     required this.totalPoints,
+    this.role = '',
   });
 }
 

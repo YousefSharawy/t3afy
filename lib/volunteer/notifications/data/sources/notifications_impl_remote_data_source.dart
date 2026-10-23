@@ -10,7 +10,7 @@ class NotificationsImplRemoteDataSource
     try {
       final res = await Supabase.instance.client
           .from('admin_notes')
-          .select()
+          .select('id, volunteer_id, title, body, is_read, created_at')
           .eq('volunteer_id', volunteerId)
           .order('created_at', ascending: false);
       return (res as List)

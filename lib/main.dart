@@ -1,5 +1,6 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,28 +12,25 @@ import 'package:t3afy/app/fcm_service.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/my_app.dart';
 import 'package:t3afy/app/resources/constants_manager.dart';
-import 'package:t3afy/firebase_options.dart';
 import 'package:t3afy/translation/codegen_loader.g.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await EasyLocalization.ensureInitialized();
-  await initAppModule();
-  await LocalAppStorage.init();
-  await dotenv.load(fileName: '.env');
+  Bloc.observer = MyBlocObserver();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  await Future.wait([
+    EasyLocalization.ensureInitialized(),
+    LocalAppStorage.init(),
+    dotenv.load(fileName: '.env'),
+  ]);
+  unawaited(LocalAppStorage.purgeExpiredCache());
   await Supabase.initialize(
     url: "${dotenv.env['SUPABASE_URL']}",
     anonKey: "${dotenv.env['SUPABASE_ANON_KEY']}",
   );
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FcmService.init();
-  await FcmService.setForegroundPresentationOptions();
-  // await MobileAds.instance.initialize();
+  await initAppModule();
 
-  Bloc.observer = MyBlocObserver();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
-  await Future.delayed(const Duration(milliseconds: 200));
   runApp(
     EasyLocalization(
       supportedLocales: const [ConstantsManager.arLocale],
@@ -42,6 +40,12 @@ void main() async {
       assetLoader: const CodegenLoader(),
       child: const MyApp(),
     ),
+  );
+
+  // Firebase/FCM (and the OS permission dialog) are not needed for the first
+  // frame; FcmService awaits its own init wherever it is used.
+  WidgetsBinding.instance.addPostFrameCallback(
+    (_) => FcmService.requestPermission(),
   );
 }
 

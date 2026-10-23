@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+
 import '../../../domain/entities/task_details_entity.dart';
 import 'supplies_card.dart';
 import 'supplies_note_card.dart';
@@ -15,9 +16,8 @@ class TaskSuppliesTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SuppliesCard(supplies: task.supplies),
-        SizedBox(height: AppHeight.s8),
+        SizedBox(height: Space.vl),
         const SuppliesNoteCard(),
-        SizedBox(height: AppHeight.s26),
       ],
     );
   }

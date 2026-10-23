@@ -8,7 +8,10 @@ class GetAdminProfileUsecase {
 
   GetAdminProfileUsecase(this._repo);
 
-  Future<Either<Failture, AdminProfileEntity>> call(String userId) {
-    return _repo.getProfile(userId);
+  Future<Either<Failture, AdminProfileEntity>> call(
+    String userId, {
+    bool forceRefresh = false,
+  }) {
+    return _repo.getProfile(userId, forceRefresh: forceRefresh);
   }
 }

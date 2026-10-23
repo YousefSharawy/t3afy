@@ -1,47 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 
-/// Full error state with message and retry button for BLoC error states.
-/// Always provide [onRetry] (e.g. call cubit's load method again).
+/// Error state with a clear retry. Shown only when there is no data to keep
+/// on screen — refresh failures on loaded data should use a toast instead.
 class ErrorState extends StatelessWidget {
-  const ErrorState({super.key, required this.message, required this.onRetry});
+  const ErrorState({
+    super.key,
+    required this.message,
+    required this.onRetry,
+    this.title = 'تعذّر تحميل البيانات',
+  });
 
   final String message;
   final VoidCallback onRetry;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.wifi_off_rounded, color: Colors.white38, size: 52.sp),
-          SizedBox(height: 12.h),
-          Text(
-            message,
-            style: getMediumStyle(color: Colors.white54, fontSize: 14.sp),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16.h),
-          GestureDetector(
-            onTap: onRetry,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF00ABD2), Color(0xFF02389E)],
-                ),
-                borderRadius: BorderRadius.circular(20.sp),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: Space.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: const BoxDecoration(
+                color: ColorManager.errorLight,
+                shape: BoxShape.circle,
               ),
-              child: Text(
-                'إعادة المحاولة',
-                style: getBoldStyle(color: Colors.white, fontSize: 14.sp),
+              child: const Icon(
+                AppIcons.offline,
+                color: ColorManager.error,
+                size: 30,
               ),
             ),
-          ),
-        ],
+            SizedBox(height: Space.vl),
+            Text(title, style: AppText.title(), textAlign: TextAlign.center),
+            SizedBox(height: Space.vxs),
+            Text(message, style: AppText.label(), textAlign: TextAlign.center),
+            SizedBox(height: Space.vl),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(AppIcons.refresh, size: 20),
+              label: const Text('إعادة المحاولة'),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+typedef AppErrorState = ErrorState;

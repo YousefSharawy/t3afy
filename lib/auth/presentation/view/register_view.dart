@@ -3,18 +3,19 @@ import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/app/extenstions.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/routes.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
+import 'package:t3afy/auth/presentation/view/widgets/auth_field_label.dart';
 import 'package:t3afy/auth/presentation/view/widgets/gender_drop_down.dart';
 import 'package:t3afy/auth/presentation/view/widgets/role_switcher.dart';
 import 'package:t3afy/app/resources/extenstions.dart';
@@ -52,51 +53,59 @@ class _RegisterViewState extends State<RegisterView> {
   Future<void> _pickFile() async {
     showModalBottomSheet(
       context: context,
-      backgroundColor: ColorManager.natural50,
+      backgroundColor: ColorManager.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.sheet)),
       ),
       builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('اختر من المعرض'),
-              onTap: () async {
-                Navigator.pop(ctx);
-                final picked = await ImagePicker().pickImage(
-                  source: ImageSource.gallery,
-                  imageQuality: 85,
-                );
-                if (picked != null) {
-                  setState(() {
-                    _idFile = File(picked.path);
-                    _isPdf = false;
-                    _idError = false;
-                  });
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf_outlined),
-              title: const Text('اختر ملف PDF'),
-              onTap: () async {
-                Navigator.pop(ctx);
-                final result = await FilePicker.platform.pickFiles(
-                  type: FileType.custom,
-                  allowedExtensions: ['pdf'],
-                );
-                if (result != null && result.files.single.path != null) {
-                  setState(() {
-                    _idFile = File(result.files.single.path!);
-                    _isPdf = true;
-                    _idError = false;
-                  });
-                }
-              },
-            ),
-          ],
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: Space.vs),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(
+                  Icons.photo_library_rounded,
+                  color: ColorManager.brand,
+                ),
+                title: Text('اختر من المعرض', style: AppText.bodyStrong()),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final picked = await ImagePicker().pickImage(
+                    source: ImageSource.gallery,
+                    imageQuality: 85,
+                  );
+                  if (picked != null && mounted) {
+                    setState(() {
+                      _idFile = File(picked.path);
+                      _isPdf = false;
+                      _idError = false;
+                    });
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(AppIcons.pdf, color: ColorManager.brand),
+                title: Text('اختر ملف PDF', style: AppText.bodyStrong()),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final result = await FilePicker.platform.pickFiles(
+                    type: FileType.custom,
+                    allowedExtensions: ['pdf'],
+                  );
+                  if (result != null &&
+                      result.files.single.path != null &&
+                      mounted) {
+                    setState(() {
+                      _idFile = File(result.files.single.path!);
+                      _isPdf = true;
+                      _idError = false;
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -111,7 +120,7 @@ class _RegisterViewState extends State<RegisterView> {
 
   void _register() {
     if (_sending) return;
-    HapticFeedback.mediumImpact();
+    FocusScope.of(context).unfocus();
     final cubit = context.read<AuthCubit>();
     final isVolunteer = cubit.isVolunteer;
 
@@ -122,6 +131,8 @@ class _RegisterViewState extends State<RegisterView> {
     if (_formKey.currentState?.validate() ?? false) {
       if (isVolunteer && _idFile == null) return;
       setState(() => _sending = true);
+      // Gender is validated but not sent: register() / the datasource have no
+      // gender field yet.
       cubit.register(
         email: _emailController.text.trim(),
         name: _nameController.text.trim(),
@@ -136,43 +147,65 @@ class _RegisterViewState extends State<RegisterView> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => Directionality(
-        textDirection: TextDirection.rtl,
+      builder: (ctx) => PopScope(
+        canPop: false,
         child: AlertDialog(
-          backgroundColor: ColorManager.natural50,
+          backgroundColor: ColorManager.surface,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.s20),
+            borderRadius: BorderRadius.circular(Radii.card),
           ),
-          title: Text(
-            'تم إنشاء الحساب',
-            style: getSemiBoldStyle(
-              color: ColorManager.natural900,
-              fontSize: FontSize.s18,
-            ),
+          contentPadding: EdgeInsets.fromLTRB(
+            Space.xl,
+            Space.vxl,
+            Space.xl,
+            Space.vl,
           ),
-          content: Text(
-            'تم إنشاء حسابك بنجاح!\nحسابك قيد المراجعة من قبل الإدارة.\nسيتم إبلاغك عند الموافقة.',
-            style: getRegularStyle(
-              color: ColorManager.natural900.withValues(alpha: 0.7),
-              fontSize: FontSize.s14,
-            ),
+          actionsPadding: EdgeInsets.fromLTRB(
+            Space.xl,
+            0,
+            Space.xl,
+            Space.vxl,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: AppSizes.touch + Space.l,
+                height: AppSizes.touch + Space.l,
+                decoration: const BoxDecoration(
+                  color: ColorManager.sproutSoft,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  AppIcons.done2,
+                  color: ColorManager.sproutText,
+                  size: AppSizes.iconL + Space.xs,
+                ),
+              ),
+              SizedBox(height: Space.vl),
+              Text(
+                'تم إنشاء الحساب',
+                textAlign: TextAlign.center,
+                style: AppText.headline(),
+              ),
+              SizedBox(height: Space.vs),
+              Text(
+                'حسابك الآن قيد المراجعة من الإدارة، وسنبلغك فور الموافقة عليه.',
+                textAlign: TextAlign.center,
+                style: AppText.body(color: ColorManager.inkMuted),
+              ),
+            ],
           ),
           actions: [
-            TextButton(
-              onPressed: () {
+            PrimaryElevatedButton(
+              width: double.infinity,
+              title: 'العودة لتسجيل الدخول',
+              onPress: () {
                 Navigator.of(ctx).pop();
                 context.go(Routes.login);
               },
-              child: Text(
-                'العودة لتسجيل الدخول',
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: ColorManager.primary500,
-                ),
-              ),
             ),
           ],
         ),
@@ -193,349 +226,282 @@ class _RegisterViewState extends State<RegisterView> {
         );
       },
       child: PrimaryScaffold(
-        body: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: EdgeInsetsDirectional.only(
-              start: AppWidth.s18,
-              end: AppWidth.s18,
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(height: AppHeight.s47),
-                Text(
-                  "انشاء حساب جديد",
-                  style: getBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.natural900,
-                    fontSize: FontSize.s24,
-                  ),
-                ),
-                SizedBox(height: AppHeight.s4),
-                BlocBuilder<AuthCubit, AuthState>(
-                  buildWhen: (previous, current) => current.maybeWhen(
-                    orElse: () => false,
-                    roleChanged: (_) => true,
-                  ),
-                  builder: (context, state) {
-                    final isVolunteer = context.read<AuthCubit>().isVolunteer;
-                    return RoleSwitcher(isVolunteer);
-                  },
-                ),
-                SizedBox(height: AppHeight.s8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "الاسم كامل",
-                    style: getSemiBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.natural900,
-                      fontSize: FontSize.s18,
+        backgroundColor: ColorManager.canvas,
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.symmetric(horizontal: Space.gutter),
+              child: AutofillGroup(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: Space.vxl),
+                    Text(
+                      'إنشاء حساب جديد',
+                      textAlign: TextAlign.center,
+                      style: getDisplayStyle(fontSize: FontSize.s24),
                     ),
-                  ),
-                ),
-                SizedBox(height: AppHeight.s8),
-                PrimaryTextFF(
-                  textAlign: TextAlign.right,
-                  prefixIcon: IconAssets.person,
-                  hint: "مثال.. يوسف احمد شعراوي",
-                  controller: _nameController,
-                  keyboardType: TextInputType.name,
-                  validator: (value) =>
-                      value?.isEmpty ?? true ? 'ادخل الاسم' : null,
-                ),
-                SizedBox(height: AppHeight.s8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "البريد الإلكتروني",
-                    style: getSemiBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.natural900,
-                      fontSize: FontSize.s18,
+                    SizedBox(height: Space.vs),
+                    Text(
+                      'اختر نوع الحساب ثم أكمل بياناتك',
+                      textAlign: TextAlign.center,
+                      style: AppText.body(color: ColorManager.inkMuted),
                     ),
-                  ),
-                ),
-                SizedBox(height: AppHeight.s8),
-                PrimaryTextFF(
-                  icon: IconAssets.email,
-                  hint: "name@gmail.com",
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) =>
-                      value?.isEmpty ?? true ? 'ادخل البريد الإلكتروني' : null,
-                ),
-                SizedBox(height: AppHeight.s8),
-                // Gender label
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "النوع",
-                    style: getSemiBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.natural900,
-                      fontSize: FontSize.s18,
+                    SizedBox(height: Space.vxl),
+                    BlocBuilder<AuthCubit, AuthState>(
+                      buildWhen: (previous, current) => current.maybeWhen(
+                        orElse: () => false,
+                        roleChanged: (_) => true,
+                      ),
+                      builder: (context, state) =>
+                          RoleSwitcher(context.read<AuthCubit>().isVolunteer),
                     ),
-                  ),
-                ),
-                SizedBox(height: AppHeight.s8),
-                BlocBuilder<AuthCubit, AuthState>(
-                  buildWhen: (previous, current) => current.maybeWhen(
-                    orElse: () => false,
-                    genderChanged: (_) => true,
-                  ),
-                  builder: (context, state) {
-                    final gender = context.read<AuthCubit>().gender;
-                    return GenderDropDown(gender);
-                  },
-                ),
-                SizedBox(height: AppHeight.s8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "كلمة المرور",
-                    style: getSemiBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.natural900,
-                      fontSize: FontSize.s18,
+                    SizedBox(height: Space.vs),
+                    const AuthFieldLabel('الاسم بالكامل'),
+                    PrimaryTextFF(
+                      iconData: AppIcons.person,
+                      hint: 'مثال: يوسف أحمد شعراوي',
+                      controller: _nameController,
+                      keyboardType: TextInputType.name,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.name],
+                      validator: (value) =>
+                          value?.trim().isEmpty ?? true ? 'أدخل الاسم' : null,
                     ),
-                  ),
-                ),
-                PrimaryTextFF(
-                  icon: IconAssets.password,
-                  isPassword: true,
-                  hint: "***********",
-                  controller: _passwordController,
-                  validator: (value) =>
-                      value?.isEmpty ?? true ? 'ادخل كلمة المرور' : null,
-                ),
-                SizedBox(height: AppHeight.s8),
-                // Confirm Password label
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "تأكيد كلمة المرور",
-                    style: getSemiBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      color: ColorManager.blueOne700,
-                      fontSize: FontSize.s18,
+                    const AuthFieldLabel('البريد الإلكتروني'),
+                    PrimaryTextFF(
+                      iconData: AppIcons.email,
+                      hint: 'name@gmail.com',
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.email],
+                      validator: (value) {
+                        final v = value?.trim() ?? '';
+                        if (v.isEmpty) return 'أدخل البريد الإلكتروني';
+                        if (!v.isValidEmail()) {
+                          return 'صيغة البريد الإلكتروني غير صحيحة';
+                        }
+                        return null;
+                      },
                     ),
-                  ),
-                ),
-                PrimaryTextFF(
-                  icon: IconAssets.password,
-                  isPassword: true,
-                  hint: "***********",
-                  controller: _confirmPasswordController,
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'ادخل تأكيد كلمة المرور';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'كلمة المرور غير متطابقة';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: AppHeight.s16),
-                // ── ID upload (volunteers only) ──
-                BlocBuilder<AuthCubit, AuthState>(
-                  buildWhen: (_, cur) => cur.maybeWhen(
-                    orElse: () => false,
-                    roleChanged: (_) => true,
-                  ),
-                  builder: (context, state) {
-                    final isVolunteer = context.read<AuthCubit>().isVolunteer;
-                    if (!isVolunteer) return const SizedBox.shrink();
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const AuthFieldLabel('النوع'),
+                    GenderDropDown(context.read<AuthCubit>().gender),
+                    const AuthFieldLabel('كلمة المرور'),
+                    PrimaryTextFF(
+                      iconData: AppIcons.password,
+                      isPassword: true,
+                      hint: '••••••••',
+                      controller: _passwordController,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.newPassword],
+                      validator: (value) =>
+                          value?.isEmpty ?? true ? 'أدخل كلمة المرور' : null,
+                    ),
+                    const AuthFieldLabel('تأكيد كلمة المرور'),
+                    PrimaryTextFF(
+                      iconData: AppIcons.password,
+                      isPassword: true,
+                      hint: '••••••••',
+                      controller: _confirmPasswordController,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const [AutofillHints.newPassword],
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'أدخل تأكيد كلمة المرور';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'كلمة المرور غير متطابقة';
+                        }
+                        return null;
+                      },
+                    ),
+                    // ── ID upload (volunteers only) ──
+                    BlocBuilder<AuthCubit, AuthState>(
+                      buildWhen: (_, cur) => cur.maybeWhen(
+                        orElse: () => false,
+                        roleChanged: (_) => true,
+                      ),
+                      builder: (context, state) {
+                        if (!context.read<AuthCubit>().isVolunteer) {
+                          return const SizedBox.shrink();
+                        }
+                        return _buildIdUpload();
+                      },
+                    ),
+                    SizedBox(height: Space.vxl),
+                    PrimaryElevatedButton(
+                      width: double.infinity,
+                      title: 'إنشاء حساب',
+                      onPress: _register,
+                      isLoading: _sending,
+                    ),
+                    SizedBox(height: Space.vs),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'صورة الهوية',
-                          style: getSemiBoldStyle(
-                            fontFamily: FontConstants.fontFamily,
-                            color: ColorManager.natural900,
-                            fontSize: FontSize.s14,
+                          'لديك حساب بالفعل؟',
+                          style: getMediumStyle(
+                            fontSize: FontSize.s13,
+                            color: ColorManager.inkMuted,
                           ),
                         ),
-                        SizedBox(height: AppHeight.s8),
-                        if (_idFile == null)
-                          GestureDetector(
-                            onTap: _pickFile,
-                            child: DottedBorder(
-                              options: RoundedRectDottedBorderOptions(
-                                radius: Radius.circular(12.r),
-                                color: _idError
-                                    ? ColorManager.error
-                                    : ColorManager.natural300,
-                                strokeWidth: 1.5,
-                                dashPattern: const [6, 4],
-                              ),
-                              child: Container(
-                                width: double.infinity,
-                                height: 120.h,
-                                decoration: BoxDecoration(
-                                  color: ColorManager.natural100,
-                                  borderRadius: BorderRadius.circular(12.r),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.cloud_upload_outlined,
-                                      size: 32.r,
-                                      color: ColorManager.natural500,
-                                    ),
-                                    SizedBox(height: AppHeight.s8),
-                                    Text(
-                                      'اضغط لرفع صورة الهوية',
-                                      style: getSemiBoldStyle(
-                                        fontFamily: FontConstants.fontFamily,
-                                        color: ColorManager.natural700,
-                                        fontSize: FontSize.s13,
-                                      ),
-                                    ),
-                                    SizedBox(height: AppHeight.s4),
-                                    Text(
-                                      'JPG, PNG أو PDF — حد أقصى 5 ميجا',
-                                      style: getRegularStyle(
-                                        fontFamily: FontConstants.fontFamily,
-                                        color: ColorManager.natural400,
-                                        fontSize: FontSize.s12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          )
-                        else
-                          Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12.r),
-                                child: _isPdf
-                                    ? Container(
-                                        width: double.infinity,
-                                        height: 120.h,
-                                        color: ColorManager.natural100,
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.picture_as_pdf_outlined,
-                                              size: 36.r,
-                                              color: ColorManager.error,
-                                            ),
-                                            SizedBox(height: AppHeight.s8),
-                                            Text(
-                                              _idFile!.path.split('/').last,
-                                              style: getRegularStyle(
-                                                fontFamily:
-                                                    FontConstants.fontFamily,
-                                                color: ColorManager.natural700,
-                                                fontSize: FontSize.s12,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : Image.file(
-                                        _idFile!,
-                                        width: double.infinity,
-                                        height: 120.h,
-                                        fit: BoxFit.cover,
-                                      ),
-                              ),
-                              PositionedDirectional(
-                                top: 8,
-                                end: 8,
-                                child: GestureDetector(
-                                  onTap: _removeFile,
-                                  child: Container(
-                                    width: 24.r,
-                                    height: 24.r,
-                                    decoration: BoxDecoration(
-                                      color: ColorManager.error,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.close,
-                                      color: ColorManager.white,
-                                      size: 14.r,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                        TextButton(
+                          onPressed: () => context.go(Routes.login),
+                          style: TextButton.styleFrom(
+                            minimumSize: Size(0, AppSizes.touch),
+                            padding: EdgeInsets.symmetric(horizontal: Space.xs),
                           ),
-                        if (_idError)
-                          Padding(
-                            padding: EdgeInsetsDirectional.only(
-                              start: 4,
-                              top: AppHeight.s4,
-                            ),
-                            child: Text(
-                              'يجب رفع صورة الهوية',
-                              style: getRegularStyle(
-                                fontFamily: FontConstants.fontFamily,
-                                color: ColorManager.error,
-                                fontSize: FontSize.s12,
-                              ),
+                          child: Text(
+                            'تسجيل الدخول',
+                            style: getBoldStyle(
+                              fontSize: FontSize.s13,
+                              color: ColorManager.brand,
                             ),
                           ),
+                        ),
                       ],
-                    );
-                  },
-                ),
-                SizedBox(height: AppHeight.s24),
-                PrimaryElevatedButton(
-                  width: AppWidth.s339,
-                  height: AppHeight.s46,
-                  title: 'إنشاء حساب',
-                  onPress: _sending ? () {} : _register,
-                  isLoading: _sending,
-                  textStyle: getBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s16,
-                    color: ColorManager.white,
-                  ),
-                ),
-                SizedBox(height: AppHeight.s24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      " لديك حساب بالفعل؟",
-                      style: getMediumStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.natural700,
-                        fontSize: FontSize.s12,
-                      ),
                     ),
-                    SizedBox(width: AppWidth.s4),
-                    GestureDetector(
-                      onTap: () => context.go(Routes.login),
-                      child: Text(
-                        "تسجيل الدخول",
-                        style: getBoldStyle(
-                          fontFamily: FontConstants.fontFamily,
-                          color: ColorManager.primary500,
-                          fontSize: FontSize.s12,
-                        ),
-                      ),
-                    ),
+                    SizedBox(height: Space.vl),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildIdUpload() {
+    final boxHeight = AppHeight.s120;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const AuthFieldLabel('صورة الهوية'),
+        if (_idFile == null)
+          Semantics(
+            button: true,
+            label: 'رفع صورة الهوية',
+            child: Material(
+              color: _idError ? ColorManager.errorLight : ColorManager.brandSoft,
+              borderRadius: BorderRadius.circular(Radii.input),
+              child: InkWell(
+                onTap: _pickFile,
+                borderRadius: BorderRadius.circular(Radii.input),
+                child: DottedBorder(
+                  options: RoundedRectDottedBorderOptions(
+                    radius: Radius.circular(Radii.input),
+                    color: _idError ? ColorManager.error : ColorManager.brand,
+                    strokeWidth: 1.5,
+                    dashPattern: const [6, 4],
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: boxHeight,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.cloud_upload_rounded,
+                          size: AppSizes.iconL + Space.s,
+                          color: _idError
+                              ? ColorManager.error
+                              : ColorManager.brand,
+                        ),
+                        SizedBox(height: Space.vs),
+                        Text(
+                          'اضغط لرفع صورة الهوية',
+                          style: getSemiBoldStyle(
+                            fontSize: FontSize.s14,
+                            color: ColorManager.ink,
+                          ),
+                        ),
+                        SizedBox(height: Space.vxs),
+                        Text(
+                          'JPG أو PNG أو PDF — حد أقصى 5 ميجا',
+                          style: AppText.caption(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          )
+        else
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(Radii.input),
+                child: _isPdf
+                    ? Container(
+                        width: double.infinity,
+                        height: boxHeight,
+                        color: ColorManager.surfaceSunken,
+                        padding: EdgeInsets.symmetric(horizontal: Space.l),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              AppIcons.pdf,
+                              size: AppSizes.iconL + Space.s,
+                              color: ColorManager.error,
+                            ),
+                            SizedBox(height: Space.vs),
+                            Text(
+                              _idFile!.path.split('/').last,
+                              style: AppText.label(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      )
+                    : Image.file(
+                        _idFile!,
+                        width: double.infinity,
+                        height: boxHeight,
+                        fit: BoxFit.cover,
+                        cacheWidth:
+                            (MediaQuery.sizeOf(context).width *
+                                    MediaQuery.devicePixelRatioOf(context))
+                                .round(),
+                      ),
+              ),
+              PositionedDirectional(
+                top: Space.xs,
+                end: Space.xs,
+                child: IconButton(
+                  tooltip: 'إزالة الملف',
+                  onPressed: _removeFile,
+                  style: IconButton.styleFrom(
+                    backgroundColor: ColorManager.surface,
+                    foregroundColor: ColorManager.error,
+                  ),
+                  icon: Icon(AppIcons.x, size: AppSizes.iconM),
+                ),
+              ),
+            ],
+          ),
+        if (_idError)
+          Padding(
+            padding: EdgeInsetsDirectional.only(
+              start: Space.xs,
+              top: Space.vxs,
+            ),
+            child: Text(
+              'يجب رفع صورة الهوية',
+              style: getRegularStyle(
+                fontSize: FontSize.s12,
+                color: ColorManager.error,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/core/data/safe_emit.dart';
 
 class OnlineStatusState {}
 
 class OnlineStatusCubit extends Cubit<OnlineStatusState>
-    with WidgetsBindingObserver {
+    with SafeEmit<OnlineStatusState>, WidgetsBindingObserver {
   final SupabaseClient _client;
   Timer? _heartbeat;
   bool _observerAdded = false;
@@ -18,39 +18,49 @@ class OnlineStatusCubit extends Cubit<OnlineStatusState>
     _initOnline();
   }
 
-  Future<void> _initOnline() async {
-    final role = LocalAppStorage.getUserRole();
-    final userId = LocalAppStorage.getUserId();
-    if (kDebugMode) debugPrint('🔍 OnlineStatus init — role: $role');
-    if (role == null || role == 'admin') return;
-    if (!_observerAdded) {
-      WidgetsBinding.instance.addObserver(this);
-      _observerAdded = true;
-    }
-    if (userId != null) {
-      await _setOnline(true);
-      _startHeartbeat();
-    }
+  static bool _tracksPresence(String? role) => role != null && role != 'admin';
+
+  void _addObserver() {
+    if (_observerAdded) return;
+    WidgetsBinding.instance.addObserver(this);
+    _observerAdded = true;
   }
 
-  Future<void> reinitOnline() async {
-    final role = LocalAppStorage.getUserRole();
-    if (kDebugMode) debugPrint('🔍 OnlineStatus reinit — role: $role');
-    if (role == null || role == 'admin') return;
-    if (!_observerAdded) {
-      WidgetsBinding.instance.addObserver(this);
-      _observerAdded = true;
-    }
-    _heartbeat?.cancel();
+  void _removeObserver() {
+    if (!_observerAdded) return;
+    WidgetsBinding.instance.removeObserver(this);
+    _observerAdded = false;
+  }
+
+  Future<void> _initOnline() async {
+    if (!_tracksPresence(LocalAppStorage.getUserRole())) return;
+    if (LocalAppStorage.getUserId() == null) return;
+    _addObserver();
     await _setOnline(true);
     _startHeartbeat();
   }
 
+  Future<void> reinitOnline() async {
+    if (isClosed || !_tracksPresence(LocalAppStorage.getUserRole())) return;
+    _addObserver();
+    await _setOnline(true);
+    _startHeartbeat();
+  }
+
+  /// Logout: mark the user offline and stop all presence work. Must run
+  /// before the session is cleared (it needs the stored user id/role).
+  Future<void> goOffline() async {
+    _heartbeat?.cancel();
+    _heartbeat = null;
+    _removeObserver();
+    await _setOnline(false);
+  }
+
   void _startHeartbeat() {
-    _heartbeat = Timer.periodic(const Duration(minutes: 1), (_) {
-      final currentRole = LocalAppStorage.getUserRole();
-      if (currentRole == 'admin' || currentRole == null) {
-        _heartbeat?.cancel();
+    _heartbeat?.cancel();
+    _heartbeat = Timer.periodic(const Duration(minutes: 1), (timer) {
+      if (isClosed || !_tracksPresence(LocalAppStorage.getUserRole())) {
+        timer.cancel();
         return;
       }
       _setOnline(true);
@@ -59,6 +69,7 @@ class OnlineStatusCubit extends Cubit<OnlineStatusState>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (isClosed) return;
     if (state == AppLifecycleState.resumed) {
       _setOnline(true);
     } else if (state == AppLifecycleState.paused ||
@@ -68,8 +79,7 @@ class OnlineStatusCubit extends Cubit<OnlineStatusState>
   }
 
   Future<void> _setOnline(bool isOnline) async {
-    final role = LocalAppStorage.getUserRole();
-    if (role == null || role == 'admin') return;
+    if (!_tracksPresence(LocalAppStorage.getUserRole())) return;
     final userId = LocalAppStorage.getUserId();
     if (userId == null) return;
     try {
@@ -87,9 +97,7 @@ class OnlineStatusCubit extends Cubit<OnlineStatusState>
   Future<void> close() {
     _heartbeat?.cancel();
     _setOnline(false);
-    if (_observerAdded) {
-      WidgetsBinding.instance.removeObserver(this);
-    }
+    _removeObserver();
     return super.close();
   }
 }

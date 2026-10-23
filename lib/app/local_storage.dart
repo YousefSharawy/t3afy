@@ -38,16 +38,6 @@ class LocalAppStorage {
     }
   }
 
-  static Future<void> _reopenBoxWithNewType<T>(String boxName) async {
-    try {
-      if (Hive.isBoxOpen(boxName)) await Hive.box(boxName).close();
-      await Hive.deleteBoxFromDisk(boxName);
-      await Hive.openBox<T>(boxName);
-    } catch (e) {
-      await Hive.openBox<T>(boxName);
-    }
-  }
-
   static Future<void> saveUserSession(String role, String userId) async {
     await _appSettingsBoxInstance.put(_isLoggedInKey, true);
     await _appSettingsBoxInstance.put(_userRoleKey, role);
@@ -192,6 +182,51 @@ class LocalAppStorage {
   static Future<void> invalidateCache(String key) async {
     try {
       await _appSettingsBoxInstance.delete('$_cachePrefix$key');
+    } catch (_) {}
+  }
+
+  /// Drops every cache entry (used on logout so the next account never sees
+  /// the previous user's data).
+  static Future<void> clearAllCache() async {
+    try {
+      final keys = _appSettingsBoxInstance.keys
+          .where((k) => k is String && k.startsWith(_cachePrefix))
+          .toList();
+      if (keys.isNotEmpty) await _appSettingsBoxInstance.deleteAll(keys);
+    } catch (_) {}
+  }
+
+  static final _expiryTail = RegExp(r'"e":(\d+)\}$');
+  static final _dateSuffix = RegExp(r'_(\d{4}-\d{2}-\d{2})$');
+
+  /// Startup sweep: removes expired entries and date-keyed entries
+  /// (e.g. `today_tasks_<user>_<date>`) from previous days, which are never
+  /// read again and would otherwise pile up forever. Reads the expiry from the
+  /// encoded tail instead of decoding every payload, so it stays cheap.
+  static Future<void> purgeExpiredCache() async {
+    try {
+      final now = DateTime.now();
+      final nowMs = now.millisecondsSinceEpoch;
+      final today = now.toIso8601String().split('T').first;
+      final stale = <dynamic>[];
+      for (final k in _appSettingsBoxInstance.keys) {
+        if (k is! String || !k.startsWith(_cachePrefix)) continue;
+        final date = _dateSuffix.firstMatch(k)?.group(1);
+        if (date != null && date != today) {
+          stale.add(k);
+          continue;
+        }
+        final raw = _appSettingsBoxInstance.get(k);
+        if (raw is! String) {
+          stale.add(k);
+          continue;
+        }
+        final expiry = int.tryParse(
+          _expiryTail.firstMatch(raw)?.group(1) ?? '',
+        );
+        if (expiry != null && nowMs > expiry) stale.add(k);
+      }
+      if (stale.isNotEmpty) await _appSettingsBoxInstance.deleteAll(stale);
     } catch (_) {}
   }
 

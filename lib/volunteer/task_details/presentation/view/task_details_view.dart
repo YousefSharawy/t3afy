@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
-
+import 'package:t3afy/app/di.dart';
+import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/app/services/tutorial_service.dart';
+import 'package:t3afy/base/widgets/app_page_header.dart';
+import 'package:t3afy/base/widgets/app_segmented_tabs.dart';
+import 'package:t3afy/base/widgets/error_state.dart';
 import 'package:t3afy/volunteer/task_details/data/sources/check_in_impl_data_source.dart';
 import 'package:t3afy/volunteer/task_details/domain/entities/task_details_entity.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/location_cubit.dart';
-import 'package:t3afy/app/local_storage.dart';
-import 'package:t3afy/app/services/tutorial_service.dart';
+import 'package:t3afy/volunteer/task_details/presentation/cubit/report_cubit.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../cubit/task_details_cubit.dart';
 import 'widgets/check_in_out_card.dart';
 import 'widgets/task_details_header_card.dart';
+import 'widgets/task_details_skeleton.dart';
 import 'widgets/task_details_tab.dart';
-import 'widgets/task_details_tab_switcher.dart';
 import 'widgets/task_supplies_tab.dart';
-import 'widgets/task_error_body.dart';
 
 class TaskDetailsView extends StatefulWidget {
   const TaskDetailsView({super.key, required this.taskId});
@@ -70,137 +70,180 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
     }
   }
 
+  Future<void> _refresh() async {
+    final error = await context.read<TaskDetailsCubit>().refresh();
+    if (error != null && mounted) Toast.error.show(context, title: error);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: ColorManager.background,
-      appBar: AppBar(
-        backgroundColor: ColorManager.background,
-        elevation: 0,
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        title: Text(
-          'تفاصيل المهمة',
-          style: getBoldStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s16,
-            color: ColorManager.blueOne900,
-          ),
-        ),
-        leading: GestureDetector(
-          onTap: () => context.pop(),
-          child: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: ColorManager.blueOne900,
-            size: 20.sp,
-          ),
-        ),
-      ),
-      body: BlocBuilder<TaskDetailsCubit, TaskDetailsState>(
-        builder: (context, state) {
-          return state.when(
-            initial: () => const SizedBox.shrink(),
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: Color(0xFF00ABD2)),
-            ),
-            error: (message) => TaskErrorBody(
-              message: message,
-              onRetry: () => context.read<TaskDetailsCubit>().loadTaskDetails(
-                widget.taskId,
-              ),
-            ),
-            loaded: (task) {
-              final showCheckIn = _shouldShowCheckIn(task);
-              if (!_tutorialShown &&
-                  !LocalAppStorage.isTaskDetailsTutorialCompleted()) {
-                _tutorialShown = true;
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (mounted) {
-                    _showTutorial(context);
-                  }
-                });
-              }
-
-              return SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-                child: Column(
-                  children: [
-                    SizedBox(height: AppHeight.s10),
-                    TaskDetailsHeaderCard(
-                      key: AppTutorialKeys.taskDetailsHeaderKey,
-                      task: task,
-                    ),
-                    if (showCheckIn) ...[
-                      SizedBox(height: AppHeight.s16),
-                      BlocProvider<LocationCubit>(
-                        create: (_) => LocationCubit(
-                          taskId: task.id,
-                          taskLat: task.locationLat!,
-                          taskLng: task.locationLng!,
-                          dataSource: CheckInImplDataSource(),
-                        )..init(),
-                        child: CheckInOutCard(
-                          timeEnd: task.timeEnd,
-                          date: task.date,
+    // Created once for the screen (not inside the tab switcher) so switching
+    // tabs doesn't refetch the report or open a new realtime channel.
+    return BlocProvider<ReportCubit>(
+      create: (_) => getIt<ReportCubit>(),
+      child: Scaffold(
+        backgroundColor: ColorManager.canvas,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              const AppPageHeader(title: 'تفاصيل المهمة', showBack: true),
+              Expanded(
+                child: BlocBuilder<TaskDetailsCubit, TaskDetailsState>(
+                  builder: (context, state) {
+                    return AnimatedSwitcher(
+                      duration: AppMotion.of(context),
+                      child: state.when(
+                        initial: () => const TaskDetailsSkeleton(),
+                        loading: () => const TaskDetailsSkeleton(),
+                        error: (message) => ErrorState(
+                          message: message,
+                          onRetry: () => context
+                              .read<TaskDetailsCubit>()
+                              .loadTaskDetails(widget.taskId),
                         ),
+                        loaded: (task) => _buildLoaded(context, task),
                       ),
-                    ],
-                    SizedBox(height: AppHeight.s16),
-                    TaskDetailsTabSwitcher(
-                      key: AppTutorialKeys.taskDetailsTabSwitcherKey,
-                      selectedIndex: _selectedTab,
-                      onTabChanged: (i) => setState(() => _selectedTab = i),
-                    ),
-                    SizedBox(height: AppHeight.s24),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 280),
-                      child: _selectedTab == 0
-                          ? TaskDetailsTab(key: const ValueKey(0), task: task)
-                          : TaskSuppliesTab(key: const ValueKey(1), task: task),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              );
-            },
-          );
-        },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  void _showTutorial(BuildContext context) {
+  Widget _buildLoaded(BuildContext context, TaskDetailsEntity task) {
+    if (!_tutorialShown && !LocalAppStorage.isTaskDetailsTutorialCompleted()) {
+      _tutorialShown = true;
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) _showTutorial();
+      });
+    }
+
+    return RefreshIndicator(
+      key: const ValueKey('task-details-loaded'),
+      color: ColorManager.brand,
+      onRefresh: _refresh,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsetsDirectional.fromSTEB(
+          Space.gutter,
+          Space.vs,
+          Space.gutter,
+          Space.vxl + MediaQuery.paddingOf(context).bottom,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TaskDetailsHeaderCard(
+              key: AppTutorialKeys.taskDetailsHeaderKey,
+              task: task,
+            ),
+            if (_shouldShowCheckIn(task)) ...[
+              SizedBox(height: Space.vl),
+              BlocProvider<LocationCubit>(
+                create: (_) => LocationCubit(
+                  taskId: task.id,
+                  taskLat: task.locationLat!,
+                  taskLng: task.locationLng!,
+                  dataSource: CheckInImplDataSource(),
+                  checkedInAt: task.checkedInAt,
+                  checkedOutAt: task.checkedOutAt,
+                  verifiedHours: task.verifiedHours,
+                )..init(),
+                child: BlocListener<LocationCubit, LocationState>(
+                  listener: (context, s) {
+                    final cubit = context.read<TaskDetailsCubit>();
+                    if (s is LocationCheckedIn) cubit.applyCheckIn(s.checkedInAt);
+                    if (s is LocationCheckedOut) {
+                      cubit.applyCheckOut(
+                        s.checkedInAt,
+                        s.checkedOutAt,
+                        s.verifiedHours,
+                      );
+                    }
+                  },
+                  child: CheckInOutCard(timeEnd: task.timeEnd, date: task.date),
+                ),
+              ),
+            ],
+            SizedBox(height: Space.vl),
+            AppSegmentedTabs(
+              key: AppTutorialKeys.taskDetailsTabSwitcherKey,
+              labels: const ['التفاصيل', 'المستلزمات'],
+              counts: [null, task.supplies.length],
+              selectedIndex: _selectedTab,
+              onChanged: (i) => setState(() => _selectedTab = i),
+            ),
+            SizedBox(height: Space.vl),
+            AnimatedSwitcher(
+              duration: AppMotion.of(context),
+              child: _selectedTab == 0
+                  ? TaskDetailsTab(key: const ValueKey(0), task: task)
+                  : TaskSuppliesTab(key: const ValueKey(1), task: task),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTutorial() {
     TutorialService.createTutorial(
       targets: _createTargets(),
-      onFinish: () {
-        LocalAppStorage.setTaskDetailsTutorialCompleted(true);
-      },
-      onSkip: () {
-        LocalAppStorage.setTaskDetailsTutorialCompleted(true);
-      },
+      onFinish: () => LocalAppStorage.setTaskDetailsTutorialCompleted(true),
+      onSkip: () => LocalAppStorage.setTaskDetailsTutorialCompleted(true),
     ).show(context: context);
   }
 
   List<TargetFocus> _createTargets() {
+    // Location / report steps only when those widgets are on screen.
+    final steps =
+        <({GlobalKey key, String id, String title, String body, ContentAlign align})>[
+          (
+            key: AppTutorialKeys.taskDetailsHeaderKey,
+            id: 'task_header',
+            title: 'تفاصيل المهمة الأساسية',
+            body: 'استعرض نوع المهمة وحالتها وموعدها والنقاط التي تحصل عليها',
+            align: ContentAlign.bottom,
+          ),
+          (
+            key: AppTutorialKeys.taskDetailsTabSwitcherKey,
+            id: 'tab_switcher',
+            title: 'التنقل السريع',
+            body: 'انتقل بين تفاصيل المهمة وقائمة المستلزمات المطلوبة',
+            align: ContentAlign.bottom,
+          ),
+          (
+            key: AppTutorialKeys.taskDetailsLocationKey,
+            id: 'task_location',
+            title: 'موقع المهمة',
+            body: 'اضغط على الخريطة أو زر الاتجاهات للوصول إلى موقع المهمة',
+            align: ContentAlign.top,
+          ),
+          (
+            key: AppTutorialKeys.taskDetailsReportKey,
+            id: 'task_report',
+            title: 'رفع التقرير',
+            body: 'بعد انتهاء المهمة ارفع تقريرك لاحتساب ساعاتك ونقاطك',
+            align: ContentAlign.top,
+          ),
+        ].where((s) => s.key.currentContext != null).toList();
+
     return [
-      TutorialService.createTarget(
-        identify: "task_header",
-        keyTarget: AppTutorialKeys.taskDetailsHeaderKey,
-        title: "تفاصيل المهمة الأساسية",
-        description: "استعرض مكان المهمة ومعلومات المستفيد والوقت المتوقع",
-        contentPosition: 1,
-        stepIndex: 1,
-        totalSteps: 2,
-      ),
-      TutorialService.createTarget(
-        identify: "tab_switcher",
-        keyTarget: AppTutorialKeys.taskDetailsTabSwitcherKey,
-        title: "التنقل السريع",
-        description:
-            "انتقل هنا بين تفاصيل الغرفة وقائمة المستلزمات الطبية المطلوبة (إن وجدت)",
-        contentPosition: 1,
-        stepIndex: 2,
-        totalSteps: 2,
-      ),
+      for (var i = 0; i < steps.length; i++)
+        TutorialService.buildTarget(
+          identify: steps[i].id,
+          keyTarget: steps[i].key,
+          title: steps[i].title,
+          description: steps[i].body,
+          contentAlign: steps[i].align,
+          stepIndex: i + 1,
+          totalSteps: steps.length,
+        ),
     ];
   }
 }

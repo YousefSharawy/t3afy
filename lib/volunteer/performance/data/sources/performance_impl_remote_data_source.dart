@@ -23,26 +23,30 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
         return (stats, commitment);
       }
 
-      final response = await _client
-          .from('users')
-          .select(
-            'name, avatar_url, rating, level, level_title, total_hours, places_visited, total_points',
-          )
-          .eq('id', userId)
-          .single();
-
-      final assignments = await _client
-          .from('task_assignments')
-          .select('status')
-          .eq('user_id', userId);
-
-      double commitmentPct = 0;
-      if ((assignments as List).isNotEmpty) {
-        final completed = assignments
-            .where((a) => a['status'] == 'completed')
-            .toList();
-        commitmentPct = (completed.length * 100.0) / assignments.length;
-      }
+      final results = await Future.wait<dynamic>([
+        _client
+            .from('users')
+            .select(
+              'name, avatar_url, rating, level, level_title, total_hours, places_visited, total_points',
+            )
+            .eq('id', userId)
+            .single(),
+        _client
+            .from('task_assignments')
+            .select('id')
+            .eq('user_id', userId)
+            .count(CountOption.exact),
+        _client
+            .from('task_assignments')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('status', 'completed')
+            .count(CountOption.exact),
+      ]);
+      final response = results[0] as Map<String, dynamic>;
+      final total = (results[1] as PostgrestResponse).count;
+      final completed = (results[2] as PostgrestResponse).count;
+      final commitmentPct = total > 0 ? (completed * 100.0) / total : 0.0;
 
       final stats = PerformanceStatsModel.fromJson(response);
 
@@ -72,13 +76,19 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
             .toList();
       }
 
+      // Only the last 3 calendar months are charted, so don't download older rows.
+      final now = DateTime.now();
+      final from = DateTime(now.year, now.month - 2, 1);
+      final fromStr =
+          '${from.year}-${from.month.toString().padLeft(2, '0')}-01';
       final response = await _client
           .from('task_assignments')
           .select(
-            'verified_hours, tasks(date, duration_hours, time_start, time_end)',
+            'verified_hours, tasks!inner(date, duration_hours, time_start, time_end)',
           )
           .eq('user_id', userId)
-          .eq('status', 'completed');
+          .eq('status', 'completed')
+          .gte('tasks.date', fromStr);
 
       final Map<String, double> monthlyMap = {};
       for (final row in (response as List)) {
@@ -86,11 +96,10 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
         if (task == null) continue;
         final dateStr = task['date'] as String?;
         if (dateStr == null) continue;
-        final verifiedHours =
-            (row['verified_hours'] as num?)?.toDouble();
-        final durationHours =
-            (task['duration_hours'] as num?)?.toDouble();
-        final duration = verifiedHours ??
+        final verifiedHours = (row['verified_hours'] as num?)?.toDouble();
+        final durationHours = (task['duration_hours'] as num?)?.toDouble();
+        final duration =
+            verifiedHours ??
             (durationHours != null && durationHours > 0
                 ? durationHours
                 : _hoursFromTime(
@@ -99,7 +108,8 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
                   ));
         final date = DateTime.tryParse(dateStr);
         if (date == null) continue;
-        final key = '${date.year}-${date.month}';
+        // Zero-padded so string sort is chronological ("2025-9" sorted after "2025-10").
+        final key = '${date.year}-${date.month.toString().padLeft(2, '0')}';
         monthlyMap[key] = (monthlyMap[key] ?? 0) + duration;
       }
 

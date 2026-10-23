@@ -9,67 +9,40 @@ import 'package:t3afy/admin/home/data/datasources/admin_home_remote_datasource.d
 class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
   final _client = Supabase.instance.client;
 
+  static const _volunteerRoles = ['volunteer', 'user'];
+
+  static List<Map<String, dynamic>> _rows(Object? v) =>
+      (v as List).cast<Map<String, dynamic>>();
+
+  /// Sum of `duration_hours` over tasks that have a completed assignment.
+  static double _sumHours(List<Map<String, dynamic>> rows) {
+    double total = 0;
+    for (final row in rows) {
+      final h = row['duration_hours'] as num?;
+      if (h != null) total += h.toDouble();
+    }
+    return total;
+  }
+
   @override
   Future<AdminHomeDataEntity> getDashboardData(String adminId) async {
     try {
-      final today = DateTime.now().toIso8601String().split('T')[0];
-
-      final userRow = await _client
-          .from('users')
-          .select('name, avatar_url')
-          .eq('id', adminId)
-          .maybeSingle();
-
-      final adminName = (userRow?['name'] as String?) ?? 'مشرف';
-      final adminAvatar = userRow?['avatar_url'] as String?;
-
-      final twoMinutesAgo = DateTime.now()
+      final now = DateTime.now();
+      final today = now.toIso8601String().split('T')[0];
+      final twoMinutesAgo = now
           .toUtc()
           .subtract(const Duration(minutes: 2))
           .toIso8601String();
-      final activeCountRes = await _client
-          .from('users')
-          .select('id')
-          .eq('is_online', true)
-          .gt('last_seen_at', twoMinutesAgo)
-          .inFilter('role', ['volunteer', 'user']);
-      final activeTodayCount = (activeCountRes as List).length;
-
-      final volunteersRes = await _client.from('users').select('id').inFilter(
-        'role',
-        ['volunteer', 'user'],
-      );
-      final totalVolunteers = (volunteersRes as List).length;
-
-      final completedRes = await _client.from('tasks').select('id').inFilter(
-        'status',
-        ['completed', 'done'],
-      );
-      final completedCampaigns = (completedRes as List).length;
-
-      final hoursRes = await _client
-          .from('tasks')
-          .select('duration_hours, task_assignments!inner(status)')
-          .eq('task_assignments.status', 'completed');
-      double totalHours = 0;
-      for (final row in hoursRes as List) {
-        final h = row['duration_hours'] as num?;
-        if (h != null) totalHours += h.toDouble();
-      }
-
-      final now = DateTime.now();
       final firstDayOfMonth = DateTime(
         now.year,
         now.month,
         1,
       ).toIso8601String().split('T')[0];
-      final volunteersThisMonthRes = await _client
-          .from('users')
-          .select('id')
-          .inFilter('role', ['volunteer', 'user'])
-          .gte('joined_at', firstDayOfMonth);
-      final volunteersThisMonth = (volunteersThisMonthRes as List).length;
-
+      final firstDayOfLastMonth = DateTime(
+        now.year,
+        now.month - 1,
+        1,
+      ).toIso8601String().split('T')[0];
       final yesterdayStart = DateTime(
         now.year,
         now.month,
@@ -80,62 +53,100 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
         now.month,
         now.day,
       ).toUtc().toIso8601String();
-      final activeYesterdayRes = await _client
-          .from('users')
-          .select('id')
-          .inFilter('role', ['volunteer', 'user'])
-          .gte('last_seen_at', yesterdayStart)
-          .lt('last_seen_at', yesterdayEnd);
-      final activeYesterdayCount = (activeYesterdayRes as List).length;
+      final twelveMonthsAgo = now
+          .subtract(const Duration(days: 365))
+          .toIso8601String()
+          .split('T')[0];
+
+      // All queries are independent → one round of parallel requests.
+      // Counts use HEAD + exact count instead of downloading rows.
+      final results = await Future.wait<Object?>([
+        _client
+            .from('users')
+            .select('name, avatar_url')
+            .eq('id', adminId)
+            .maybeSingle(),
+        _client
+            .from('users')
+            .count(CountOption.exact)
+            .eq('is_online', true)
+            .gt('last_seen_at', twoMinutesAgo)
+            .inFilter('role', _volunteerRoles),
+        _client
+            .from('users')
+            .count(CountOption.exact)
+            .inFilter('role', _volunteerRoles),
+        _client
+            .from('tasks')
+            .count(CountOption.exact)
+            .inFilter('status', ['completed', 'done']),
+        _client
+            .from('tasks')
+            .select('duration_hours, task_assignments!inner(status)')
+            .eq('task_assignments.status', 'completed'),
+        _client
+            .from('users')
+            .count(CountOption.exact)
+            .inFilter('role', _volunteerRoles)
+            .gte('joined_at', firstDayOfMonth),
+        _client
+            .from('users')
+            .count(CountOption.exact)
+            .inFilter('role', _volunteerRoles)
+            .gte('last_seen_at', yesterdayStart)
+            .lt('last_seen_at', yesterdayEnd),
+        _client
+            .from('tasks')
+            .select('duration_hours, task_assignments!inner(status)')
+            .eq('task_assignments.status', 'completed')
+            .gte('date', firstDayOfMonth),
+        _client
+            .from('tasks')
+            .select('duration_hours, task_assignments!inner(status)')
+            .eq('task_assignments.status', 'completed')
+            .gte('date', firstDayOfLastMonth)
+            .lt('date', firstDayOfMonth),
+        // Assignments embedded → no per-task query (was N+1).
+        _client
+            .from('tasks')
+            .select(
+              'id, title, type, status, date, time_start, time_end, '
+              'location_name, supervisor_name, target_beneficiaries, '
+              'reached_beneficiaries, task_assignments(id, status)',
+            )
+            .eq('date', today)
+            .order('time_start'),
+        _client
+            .from('tasks')
+            .select('date')
+            .inFilter('status', ['completed', 'done'])
+            .gte('date', twelveMonthsAgo),
+      ]);
+
+      final userRow = results[0] as Map<String, dynamic>?;
+      final adminName = (userRow?['name'] as String?) ?? 'مشرف';
+      final adminAvatar = userRow?['avatar_url'] as String?;
+
+      final activeTodayCount = results[1] as int;
+      final totalVolunteers = results[2] as int;
+      final completedCampaigns = results[3] as int;
+      final totalHours = _sumHours(_rows(results[4]));
+      final volunteersThisMonth = results[5] as int;
+      final activeYesterdayCount = results[6] as int;
       final activeDiffFromYesterday = activeTodayCount - activeYesterdayCount;
 
-      final firstDayOfLastMonth = DateTime(
-        now.year,
-        now.month - 1,
-        1,
-      ).toIso8601String().split('T')[0];
-      final hoursThisMonthRes = await _client
-          .from('tasks')
-          .select('duration_hours, task_assignments!inner(status)')
-          .eq('task_assignments.status', 'completed')
-          .gte('date', firstDayOfMonth);
-      double hoursThisMonth = 0;
-      for (final row in hoursThisMonthRes as List) {
-        final h = row['duration_hours'] as num?;
-        if (h != null) hoursThisMonth += h.toDouble();
-      }
-      final hoursLastMonthRes = await _client
-          .from('tasks')
-          .select('duration_hours, task_assignments!inner(status)')
-          .eq('task_assignments.status', 'completed')
-          .gte('date', firstDayOfLastMonth)
-          .lt('date', firstDayOfMonth);
-      double hoursLastMonth = 0;
-      for (final row in hoursLastMonthRes as List) {
-        final h = row['duration_hours'] as num?;
-        if (h != null) hoursLastMonth += h.toDouble();
-      }
+      final hoursThisMonth = _sumHours(
+        _rows(results[7]),
+      );
+      final hoursLastMonth = _sumHours(
+        _rows(results[8]),
+      );
       final hoursPercentChange = hoursLastMonth == 0
           ? 0
           : ((hoursThisMonth - hoursLastMonth) / hoursLastMonth * 100).round();
 
-      final todayTasksRaw = await _client
-          .from('tasks')
-          .select()
-          .eq('date', today)
-          .order('time_start');
-
-      final twelveMonthsAgo = DateTime.now()
-          .subtract(const Duration(days: 365))
-          .toIso8601String()
-          .split('T')[0];
-      final monthlyRaw = await _client
-          .from('tasks')
-          .select('date')
-          .inFilter('status', ['completed', 'done'])
-          .gte('date', twelveMonthsAgo);
       final monthMap = <String, int>{};
-      for (final row in monthlyRaw as List) {
+      for (final row in _rows(results[10])) {
         final dateStr = row['date'] as String?;
         if (dateStr == null) continue;
         final date = DateTime.tryParse(dateStr);
@@ -152,18 +163,15 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
       }).toList()..sort((a, b) => a.month.compareTo(b.month));
 
       final todayCampaigns = <TodayCampaignEntity>[];
-      for (final t in todayTasksRaw as List) {
-        final taskMap = t as Map<String, dynamic>;
-        final taskId = taskMap['id'] as String;
-        final assignRes = await _client
-            .from('task_assignments')
-            .select('id')
-            .eq('task_id', taskId);
-        final volunteerCount = (assignRes as List).length;
+      for (final taskMap in _rows(results[9])) {
+        final assignments = (taskMap['task_assignments'] as List?) ?? const [];
+        final completedCount = assignments
+            .where((a) => (a as Map)['status'] == 'completed')
+            .length;
 
         todayCampaigns.add(
           TodayCampaignEntity(
-            id: taskId,
+            id: taskMap['id'] as String,
             title: taskMap['title'] as String? ?? '',
             type: taskMap['type'] as String? ?? '',
             status: resolveCampaignStatus(
@@ -175,7 +183,8 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
             timeEnd: taskMap['time_end'] as String? ?? '',
             locationName: taskMap['location_name'] as String?,
             supervisorName: taskMap['supervisor_name'] as String?,
-            volunteerCount: volunteerCount,
+            volunteerCount: assignments.length,
+            completedCount: completedCount,
             targetBeneficiaries: taskMap['target_beneficiaries'] as int?,
             reachedBeneficiaries: taskMap['reached_beneficiaries'] as int?,
           ),

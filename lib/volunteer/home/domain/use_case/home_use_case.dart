@@ -8,8 +8,11 @@ class GetVolunteerStats {
 
   GetVolunteerStats(this._repository);
 
-  Future<Either<Failture, VolunteerStatsEntity>> call(String userId) {
-    return _repository.getVolunteerStats(userId);
+  Future<Either<Failture, VolunteerStatsEntity>> call(
+    String userId, {
+    bool skipCache = false,
+  }) {
+    return _repository.getVolunteerStats(userId, skipCache: skipCache);
   }
 }
 
@@ -18,11 +21,16 @@ class GetHomeTodayTasks {
 
   GetHomeTodayTasks(this._repository);
 
-  Future<Either<Failture, List<TaskEntity>>> call(String userId) {
-    return _repository.getTodayTasks(userId);
+  Future<Either<Failture, List<TaskEntity>>> call(
+    String userId, {
+    bool skipCache = false,
+  }) {
+    return _repository.getTodayTasks(userId, skipCache: skipCache);
   }
 }
 
+/// No longer used by Home (the nav shell's bell owns the live unread badge).
+/// Kept only because di.dart still registers it.
 class GetUnreadNotificationsCount {
   final VolunteerHomeRepository _repository;
 

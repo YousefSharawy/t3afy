@@ -34,6 +34,6 @@ abstract class CampaignsRemoteDatasource {
     required List<String> volunteerIds,
   });
   Future<List<VolunteerEntity>> getUnassignedVolunteers(String taskId);
-  Future<List<VolunteerEntity>> getAllVolunteers();
+  Future<List<VolunteerEntity>> getAllVolunteers({bool skipCache = false});
   RealtimeChannel subscribeCampaignsChanges(void Function() onChanged);
 }

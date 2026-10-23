@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
 import 'package:t3afy/app/resources/routes.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
-import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/app/services/tutorial_service.dart';
-import 'package:t3afy/base/components.dart';
-import 'package:t3afy/base/widgets/error_state.dart';
-import 'package:t3afy/base/widgets/loading_indicator.dart';
+import 'package:t3afy/base/shimmers.dart';
+import 'package:t3afy/base/widgets/app_async_body.dart';
+import 'package:t3afy/base/widgets/app_nav_shell.dart';
+import 'package:t3afy/base/widgets/app_page_header.dart';
+import 'package:t3afy/base/widgets/app_segmented_tabs.dart';
+import 'package:t3afy/base/widgets/empty_state_text.dart';
+import 'package:t3afy/base/widgets/stat_tile.dart';
+import 'package:t3afy/volunteer/tasks/domain/entities/home_enities.dart';
 import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_cubit.dart';
 import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_state.dart';
-import 'package:t3afy/volunteer/tasks/presentation/view/widgets/tasks_card.dart';
-import 'package:t3afy/volunteer/tasks/presentation/view/widgets/tasks_header_states.dart';
-import 'package:t3afy/volunteer/tasks/presentation/view/widgets/tasks_tab_switcher.dart';
+import 'package:t3afy/volunteer/tasks/presentation/view/widgets/volunteer_task_card.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class VolunteerTasksView extends StatefulWidget {
@@ -71,7 +72,6 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
 
     state.maybeWhen(
       loaded: (_, _, _, _) {
-        debugPrint('📘 TUTORIAL: Tasks state is LOADED, marking _lastCheckedPhase=2 and showing tutorial');
         _lastCheckedPhase = 2; // Mark as processed ONLY when state is loaded
         Future.delayed(const Duration(milliseconds: 300), () {
           if (!mounted) return;
@@ -79,7 +79,6 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
         });
       },
       orElse: () {
-        debugPrint('📘 TUTORIAL: Tasks state still LOADING, will retry when loaded');
         // Don't set _lastCheckedPhase yet - wait for state to load
       },
     );
@@ -88,19 +87,6 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
   void _showTasksTutorial() {
     final targets = <TargetFocus>[];
 
-    debugPrint('📘 TUTORIAL: Starting _showTasksTutorial for phase 2');
-    debugPrint(
-      '📘 TUTORIAL: _tasksHeaderKey: ${_tasksHeaderKey.currentContext != null}',
-    );
-    debugPrint(
-      '📘 TUTORIAL: _tabSwitcherKey: ${_tabSwitcherKey.currentContext != null}',
-    );
-    debugPrint(
-      '📘 TUTORIAL: _taskCardKey: ${_taskCardKey.currentContext != null}',
-    );
-    debugPrint(
-      '📘 TUTORIAL: performanceTabKey: ${AppTutorialKeys.volunteerPerformanceTabKey.currentContext != null}',
-    );
 
     // Build targets — only add if key has context
     if (_tasksHeaderKey.currentContext != null) {
@@ -108,9 +94,8 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
         TutorialService.buildTarget(
           identify: 'tasks_header_stats',
           keyTarget: _tasksHeaderKey,
-          title: 'إحصائيات المهام 📈',
-          description:
-              'عدد مهام اليوم والمهام المنجزة وإجمالي النقاط المكتسبة',
+          title: 'إحصائيات المهام',
+          description: 'عدد مهام اليوم والمهام المنجزة وإجمالي النقاط المكتسبة',
           contentAlign: ContentAlign.bottom,
           stepIndex: 1,
           totalSteps: 2,
@@ -134,173 +119,220 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
     }
 
     if (targets.isEmpty) {
-      debugPrint('📘 TUTORIAL: Phase 2 NO TARGETS — auto-advancing');
       TutorialPhaseService.instance.advanceToNextPhase();
       return;
     }
 
-    debugPrint('📘 TUTORIAL: Phase 2 showing ${targets.length} targets');
 
     void onTutorialComplete() {
-      debugPrint('📘 TUTORIAL: Phase 2 tutorial complete - advancing');
       _currentTutorial = null;
       TutorialPhaseService.instance.advanceToNextPhase();
     }
 
-    _currentTutorial = TutorialCoachMark(
+    _currentTutorial = TutorialService.buildPhaseContinuing(
       targets: targets,
-      colorShadow: Colors.black,
-      opacityShadow: 0.8,
-      hideSkip: false,
-      textSkip: "تخطي",
-      textStyleSkip: TextStyle(
-        color: Colors.white,
-        fontSize: 14.sp,
-        fontFamily: FontConstants.fontFamily,
-      ),
-      paddingFocus: 10,
-      focusAnimationDuration: const Duration(milliseconds: 300),
-      unFocusAnimationDuration: const Duration(milliseconds: 300),
-      pulseAnimationDuration: const Duration(milliseconds: 600),
       onFinish: onTutorialComplete,
-      onSkip: () {
-        debugPrint('📘 TUTORIAL: Phase 2 skipped');
-        onTutorialComplete();
-        return true;
-      },
+      onSkip: onTutorialComplete,
     );
 
-    debugPrint('📘 TUTORIAL: Calling .show() for phase 2');
     _currentTutorial?.show(context: context, rootOverlay: true);
+  }
+
+  Future<void> _refresh() async {
+    final ok = await context.read<TasksCubit>().refresh();
+    if (!ok && mounted) {
+      Toast.error.show(context, title: 'تعذر تحديث المهام، حاول مرة أخرى');
+    }
+  }
+
+  Future<void> _openTask(TaskEntity task) async {
+    final cubit = context.read<TasksCubit>();
+    final changed = await context.push<bool>(
+      Routes.taskDetails,
+      extra: task.id,
+    );
+    if (changed == true && mounted) cubit.refresh();
   }
 
   @override
   Widget build(BuildContext context) {
-    return PrimaryScaffold(
-      body: SafeArea(
-        child: BlocConsumer<TasksCubit, TasksState>(
-          listener: (context, state) {
-            state.maybeWhen(
-              loaded: (_, _, _, _) {
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          const AppPageHeader(title: 'المهام اليومية', reserveBellSpace: true),
+          Expanded(
+            child: BlocConsumer<TasksCubit, TasksState>(
+              listenWhen: (prev, curr) =>
+                  curr is TasksStateLoaded && prev is! TasksStateLoaded,
+              listener: (context, state) {
                 // GlobalKeys are valid now — trigger tutorial if it was waiting.
                 WidgetsBinding.instance.addPostFrameCallback(
                   (_) => _checkTutorial(),
                 );
               },
-              orElse: () {},
-            );
-          },
-          builder: (context, state) {
-            return state.when(
-              initial: () => const SizedBox.shrink(),
-              loading: () => const LoadingIndicator(),
-              error: (message) => ErrorState(
-                message: message,
-                onRetry: () => context.read<TasksCubit>().loadTasks(),
-              ),
-              loaded: (todayTasks, completedTasks, stats, selectedTab) {
-                final tasks = selectedTab == 0 ? todayTasks : completedTasks;
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: Column(
-                    children: [
-                      SizedBox(height: AppHeight.s10),
-                      Text(
-                        'المهام اليومية',
-                        style: getExtraBoldStyle(
-                          fontSize: FontSize.s16,
-                          fontFamily: FontConstants.fontFamily,
-                          color: ColorManager.natural900,
-                        ),
-                      ),
-                      SizedBox(height: AppHeight.s24),
-                      TasksHeaderStats(key: _tasksHeaderKey, stats: stats),
-                      SizedBox(height: AppHeight.s16),
-                      TasksTabSwitcher(
-                        key: _tabSwitcherKey,
-                        selectedIndex: selectedTab,
-                        todayCount: todayTasks.length,
-                        completedCount: completedTasks.length,
-                        onTabChanged: (index) {
-                          context.read<TasksCubit>().switchTab(index);
-                        },
-                      ),
-                      SizedBox(height: AppHeight.s24),
-                      Expanded(
-                        child: RefreshIndicator(
-                          onRefresh: () =>
-                              context.read<TasksCubit>().loadTasks(),
-                          color: const Color(0xFF00ABD2),
-                          child: tasks.isEmpty
-                              ? ListView(
-                                  physics:
-                                      const AlwaysScrollableScrollPhysics(),
-                                  children: [
-                                    SizedBox(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                          0.5,
-                                      child: Center(
-                                        child: Text(
-                                          selectedTab == 0
-                                              ? 'لا توجد مهام اليوم'
-                                              : 'لا توجد مهام منجزة',
-                                          style: getRegularStyle(
-                                            fontSize: FontSize.s14,
-                                            fontFamily:
-                                                FontConstants.fontFamily,
-                                            color: Colors.white54,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : ListView.builder(
-                                  physics:
-                                      const AlwaysScrollableScrollPhysics(),
-                                  itemCount: tasks.length,
-                                  itemBuilder: (context, index) {
-                                    final taskItem = tasks[index];
-                                    final cubit = context.read<TasksCubit>();
-                                    return TaskCard(
-                                      key: index == 0 ? _taskCardKey : null,
-                                      task: taskItem,
-                                      onTap: () async {
-                                        final changed = await context
-                                            .push<bool>(
-                                              Routes.taskDetails,
-                                              extra: taskItem.id,
-                                            );
-                                        if (changed == true) {
-                                          final userId =
-                                              LocalAppStorage.getUserId();
-                                          if (userId != null) {
-                                            await LocalAppStorage.invalidateCacheByPrefix(
-                                              'today_tasks_${userId}_',
-                                            );
-                                            await LocalAppStorage.invalidateCache(
-                                              'completed_tasks_$userId',
-                                            );
-                                            await LocalAppStorage.invalidateCache(
-                                              'tasks_stats_$userId',
-                                            );
-                                          }
-                                          cubit.loadTasks();
-                                        }
-                                      },
-                                    );
-                                  },
-                                ),
-                        ),
-                      ),
-                    ],
-                  ),
+              builder: (context, state) {
+                return AppAsyncBody(
+                  hasData: state is TasksStateLoaded,
+                  errorMessage: state is TasksStateError ? state.message : null,
+                  onRetry: () => context.read<TasksCubit>().loadTasks(),
+                  skeleton: const _TasksSkeleton(),
+                  builder: (context) => _content(state as TasksStateLoaded),
                 );
               },
-            );
-          },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _content(TasksStateLoaded state) {
+    final tab = state.selectedTab;
+    final tasks = tab == 0 ? state.todayTasks : state.completedTasks;
+    final stats = state.stats;
+
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsetsDirectional.only(
+              start: Space.gutter,
+              end: Space.gutter,
+              top: Space.vxs,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  IntrinsicHeight(
+                    key: _tasksHeaderKey,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: StatTile(
+                            value: '${stats.todayCount}',
+                            label: 'اليوم',
+                            icon: AppIcons.calendar,
+                          ),
+                        ),
+                        SizedBox(width: Space.m),
+                        Expanded(
+                          child: StatTile(
+                            value: '${stats.completedCount}',
+                            label: 'مكتملة',
+                            icon: AppIcons.done,
+                            tint: ColorManager.sprout,
+                          ),
+                        ),
+                        SizedBox(width: Space.m),
+                        Expanded(
+                          child: StatTile(
+                            value: '${stats.earnedPoints}',
+                            label: 'النقاط المكتسبة',
+                            icon: AppIcons.medal,
+                            tint: ColorManager.brandStrong,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: Space.vl),
+                  AppSegmentedTabs(
+                    key: _tabSwitcherKey,
+                    labels: const ['مهام اليوم', 'المنجزة'],
+                    counts: [
+                      state.todayTasks.length,
+                      state.completedTasks.length,
+                    ],
+                    selectedIndex: tab,
+                    onChanged: context.read<TasksCubit>().switchTab,
+                  ),
+                  SizedBox(height: Space.vm),
+                ],
+              ),
+            ),
+          ),
+          if (tasks.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: AppNavShell.bottomInset(context),
+                ),
+                child: tab == 0
+                    ? const AppEmptyState(
+                        icon: AppIcons.tasks,
+                        title: 'لا توجد مهام اليوم',
+                        message: 'عندما تُسند إليك مهمة لهذا اليوم ستظهر هنا',
+                      )
+                    : const AppEmptyState(
+                        icon: AppIcons.done,
+                        title: 'لا توجد مهام منجزة بعد',
+                        message: 'المهام التي تنجزها ستظهر هنا مع نقاطها',
+                      ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: EdgeInsetsDirectional.only(
+                start: Space.gutter,
+                end: Space.gutter,
+                bottom: AppNavShell.bottomInset(context),
+              ),
+              sliver: SliverList.separated(
+                itemCount: tasks.length,
+                separatorBuilder: (_, _) => SizedBox(height: Space.vm),
+                itemBuilder: (context, index) {
+                  final task = tasks[index];
+                  return VolunteerTaskCard(
+                    key: index == 0 ? _taskCardKey : ValueKey(task.id),
+                    task: task,
+                    showDate: tab == 1,
+                    onTap: () => _openTask(task),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TasksSkeleton extends StatelessWidget {
+  const _TasksSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Skeleton(
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsetsDirectional.only(
+          start: Space.gutter,
+          end: Space.gutter,
+          top: Space.vxs,
         ),
+        children: [
+          Row(
+            children: [
+              for (var i = 0; i < 3; i++) ...[
+                if (i > 0) SizedBox(width: Space.m),
+                Expanded(child: SkeletonBox(height: 104, radius: Radii.card)),
+              ],
+            ],
+          ),
+          SizedBox(height: Space.vl),
+          SkeletonBox(height: 44, radius: Radii.input),
+          SizedBox(height: Space.vm),
+          for (var i = 0; i < 3; i++) ...[
+            if (i > 0) SizedBox(height: Space.vm),
+            const SkeletonCard(height: 132),
+          ],
+        ],
       ),
     );
   }

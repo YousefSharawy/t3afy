@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/app_card.dart';
+import 'package:t3afy/base/widgets/empty_state_text.dart';
 import 'package:t3afy/volunteer/task_details/domain/entities/task_supply_entity.dart';
+
 import 'supply_row.dart';
 
 class SuppliesCard extends StatelessWidget {
@@ -13,44 +14,24 @@ class SuppliesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppWidth.s20,
-        vertical: AppHeight.s16,
-      ),
-      decoration: BoxDecoration(
-        color: ColorManager.white,
-        borderRadius: BorderRadius.circular(AppRadius.s16),
-      ),
-      child: Column(
-        crossAxisAlignment: .start,
-        children: [
-          Text(
-            'المواد و المستلزمات المطلوبة لهذه المهمة',
-            style: getSemiBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color: ColorManager.natural600,
-            ),
-          ),
-          SizedBox(height: AppHeight.s12),
-          if (supplies.isEmpty)
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: AppHeight.s16),
-              child: Text(
-                'لا توجد مستلزمات لهذه المهمة',
-                textAlign: TextAlign.center,
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s13,
-                  color: ColorManager.natural500,
-                ),
-              ),
-            )
-          else
-            ...supplies.map((s) => SupplyRow(supply: s)),
+    if (supplies.isEmpty) {
+      return const AppCard(
+        child: AppEmptyState(
+          compact: true,
+          icon: AppIcons.requirements,
+          title: 'لا توجد مستلزمات لهذه المهمة',
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader(title: 'المواد والمستلزمات المطلوبة'),
+        for (var i = 0; i < supplies.length; i++) ...[
+          if (i > 0) SizedBox(height: Space.vs),
+          SupplyRow(key: ValueKey(supplies[i].id), supply: supplies[i]),
         ],
-      ),
+      ],
     );
   }
 }

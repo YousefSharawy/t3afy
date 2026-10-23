@@ -1,15 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:t3afy/admin/campaigns/domain/entities/volunteer_entity.dart';
 import 'package:t3afy/admin/campaigns/presentation/cubit/create_campaign_cubit.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/primary_widgets.dart';
+import 'package:t3afy/base/shimmers.dart';
+import 'package:t3afy/base/widgets/app_async_body.dart';
+import 'package:t3afy/base/widgets/app_page_header.dart';
 import 'package:t3afy/app/resources/extenstions.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/services/tutorial_service.dart';
@@ -35,7 +35,7 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
   final _locationAddressCtrl = TextEditingController();
   final _supervisorNameCtrl = TextEditingController();
   final _supervisorPhoneCtrl = TextEditingController();
-  final _pointsCtrl = TextEditingController(text: '0');
+  final _pointsCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
   final _targetCtrl = TextEditingController(text: '0');
 
@@ -123,9 +123,7 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
 
   Future<void> _pickDate() async {
     final cubit = context.read<CreateCampaignCubit>();
-    final current = (cubit.state is CreateCampaignReady)
-        ? (cubit.state as CreateCampaignReady).selectedDate
-        : null;
+    final current = cubit.form?.selectedDate;
     final date = await showDatePicker(
       context: context,
       initialDate: current ?? DateTime.now(),
@@ -137,9 +135,7 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
 
   Future<void> _pickCombinedTime() async {
     final cubit = context.read<CreateCampaignCubit>();
-    final ready = cubit.state is CreateCampaignReady
-        ? cubit.state as CreateCampaignReady
-        : null;
+    final ready = cubit.form;
     final start = await showTimePicker(
       context: context,
       initialTime: ready?.timeStart ?? TimeOfDay.now(),
@@ -169,9 +165,12 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
   // ── Save (assembles text from controllers → delegates to cubit) ───────────
 
   void _save() {
-    HapticFeedback.mediumImpact();
-    if (!_formKey.currentState!.validate()) return;
-    context.read<CreateCampaignCubit>().save(
+    if (!_formKey.currentState!.validate()) {
+      Toast.error.show(context, title: 'أكمل الحقول المطلوبة');
+      return;
+    }
+    final cubit = context.read<CreateCampaignCubit>();
+    cubit.save(
       title: _titleCtrl.text.trim(),
       description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
       locationName: _locationNameCtrl.text.trim().isEmpty
@@ -202,24 +201,24 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
       ).where((s) => (s['name'] as String).isNotEmpty).toList(),
       paperFiles: List.from(_selectedPapers),
       taskId: widget.taskId,
-      locationLat:
-          (context.read<CreateCampaignCubit>().state is CreateCampaignReady)
-          ? (context.read<CreateCampaignCubit>().state as CreateCampaignReady)
-                .locationLat
-          : null,
-      locationLng:
-          (context.read<CreateCampaignCubit>().state is CreateCampaignReady)
-          ? (context.read<CreateCampaignCubit>().state as CreateCampaignReady)
-                .locationLng
-          : null,
+      locationLat: cubit.form?.locationLat,
+      locationLng: cubit.form?.locationLng,
     );
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
+  /// Which body to show; the form survives saving/error states.
+  static int _phase(CreateCampaignState s) => switch (s) {
+    CreateCampaignInitial() || CreateCampaignLoading() => 0,
+    CreateCampaignError() => 1,
+    _ => 2,
+  };
+
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<CreateCampaignCubit, CreateCampaignState>(
+    final cubit = context.read<CreateCampaignCubit>();
+    return BlocListener<CreateCampaignCubit, CreateCampaignState>(
       listener: (context, state) {
         if (state is CreateCampaignReady &&
             !_tutorialShown &&
@@ -227,7 +226,7 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
           if (!LocalAppStorage.isCreateCampaignTutorialCompleted()) {
             _tutorialShown = true;
             Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted) _showTutorial(context);
+              if (mounted) _showTutorial(this.context);
             });
           }
         }
@@ -244,135 +243,105 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
                 ? 'تم تحديث الحملة بنجاح'
                 : 'تم إنشاء الحملة بنجاح',
           );
-          if (mounted) Navigator.of(context).pop(true);
-        } else if (state is CreateCampaignActionError ||
-            state is CreateCampaignValidationError ||
-            state is CreateCampaignError) {
-          final msg = state is CreateCampaignActionError
-              ? state.message
-              : state is CreateCampaignValidationError
-              ? state.message
-              : (state as CreateCampaignError).message;
-          Toast.error.show(context, title: msg);
+          Navigator.of(context).pop(true);
+        } else if (state is CreateCampaignActionError) {
+          Toast.error.show(context, title: state.message);
+        } else if (state is CreateCampaignValidationError) {
+          Toast.error.show(context, title: state.message);
         }
       },
-      builder: (context, state) {
-        final isLoading = state is CreateCampaignLoading;
-        final isSaving = state is CreateCampaignSaving;
-        final ready = state is CreateCampaignReady ? state : null;
-
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Scaffold(
-            backgroundColor: ColorManager.background,
-            appBar: AppBar(
-              backgroundColor: ColorManager.background,
-              elevation: 0,
-              leading: IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: ColorManager.black,
-                  size: 24.sp,
-                ),
-                onPressed: () => Navigator.of(context).pop(),
+      child: Scaffold(
+        backgroundColor: ColorManager.canvas,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              AppPageHeader(
+                title: widget.isEditing ? 'تعديل الحملة' : 'حملة جديدة',
+                showBack: true,
+                onBack: () => Navigator.of(context).pop(),
               ),
-              centerTitle: true,
-              title: Text(
-                widget.isEditing ? 'تعديل الحملة' : 'حملة جديدة',
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s16,
-                  color: ColorManager.natural900,
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isSaving ? null : _save,
-                  child: Text(
-                    'حفظ',
-                    style: getBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s14,
-                      color: ColorManager.primary500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            body: Stack(
-              children: [
-                if (isLoading)
-                  const Center(
-                    child: CircularProgressIndicator(
-                      color: ColorManager.primary500,
-                    ),
-                  )
-                else
-                  Form(
-                    key: _formKey,
-                    child: CampaignFormBody(
-                      titleCtrl: _titleCtrl,
-                      descCtrl: _descCtrl,
-                      locationNameCtrl: _locationNameCtrl,
-                      locationAddressCtrl: _locationAddressCtrl,
-                      supervisorNameCtrl: _supervisorNameCtrl,
-                      supervisorPhoneCtrl: _supervisorPhoneCtrl,
-                      pointsCtrl: _pointsCtrl,
-                      notesCtrl: _notesCtrl,
-                      targetCtrl: _targetCtrl,
-                      objectiveCtrls: _objectiveCtrls,
-                      supplyNameCtrls: _supplyNameCtrls,
-                      supplyQtyCtrls: _supplyQtyCtrls,
-                      selectedType: ready?.selectedType ?? campaignTypes.first,
-                      isForceCompleted: ready?.isForceCompleted ?? false,
-                      selectedDate: ready?.selectedDate,
-                      timeStart: ready?.timeStart,
-                      timeEnd: ready?.timeEnd,
-                      volunteers: ready?.volunteers ?? <VolunteerEntity>[],
-                      selectedIds: ready?.selectedIds ?? const <String>{},
-                      selectedLat: ready?.locationLat,
-                      selectedLng: ready?.locationLng,
-                      onPickDate: _pickDate,
-                      onPickCombinedTime: _pickCombinedTime,
-                      onAddObjective: () => setState(
-                        () => _objectiveCtrls.add(TextEditingController()),
-                      ),
-                      onRemoveObjective: (i) => setState(() {
-                        _objectiveCtrls[i].dispose();
-                        _objectiveCtrls.removeAt(i);
-                      }),
-                      onAddSupply: () => setState(() {
-                        _supplyNameCtrls.add(TextEditingController());
-                        _supplyQtyCtrls.add(TextEditingController(text: '1'));
-                      }),
-                      onRemoveSupply: (i) => setState(() {
-                        _supplyNameCtrls[i].dispose();
-                        _supplyQtyCtrls[i].dispose();
-                        _supplyNameCtrls.removeAt(i);
-                        _supplyQtyCtrls.removeAt(i);
-                      }),
-                      selectedPapers: _selectedPapers,
-                      onAddPaper: _pickPapers,
-                      onRemovePaper: (i) =>
-                          setState(() => _selectedPapers.removeAt(i)),
-                    ),
-                  ),
-                if (isSaving)
-                  IgnorePointer(
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.45),
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          color: ColorManager.primary500,
+              Expanded(
+                child: BlocBuilder<CreateCampaignCubit, CreateCampaignState>(
+                  buildWhen: (prev, curr) => _phase(prev) != _phase(curr),
+                  builder: (context, state) {
+                    return AppAsyncBody(
+                      hasData: _phase(state) == 2,
+                      errorMessage: state is CreateCampaignError
+                          ? state.message
+                          : null,
+                      onRetry: () => widget.isEditing
+                          ? cubit.loadForEdit(widget.taskId!)
+                          : cubit.loadVolunteers(),
+                      skeleton: const SkeletonList(count: 3, itemHeight: 220),
+                      builder: (context) => Form(
+                        key: _formKey,
+                        child: CampaignFormBody(
+                          titleCtrl: _titleCtrl,
+                          descCtrl: _descCtrl,
+                          locationNameCtrl: _locationNameCtrl,
+                          locationAddressCtrl: _locationAddressCtrl,
+                          supervisorNameCtrl: _supervisorNameCtrl,
+                          supervisorPhoneCtrl: _supervisorPhoneCtrl,
+                          pointsCtrl: _pointsCtrl,
+                          notesCtrl: _notesCtrl,
+                          targetCtrl: _targetCtrl,
+                          objectiveCtrls: _objectiveCtrls,
+                          supplyNameCtrls: _supplyNameCtrls,
+                          supplyQtyCtrls: _supplyQtyCtrls,
+                          onPickDate: _pickDate,
+                          onPickCombinedTime: _pickCombinedTime,
+                          onAddObjective: () => setState(
+                            () => _objectiveCtrls.add(TextEditingController()),
+                          ),
+                          onRemoveObjective: (i) => setState(() {
+                            _objectiveCtrls.removeAt(i).dispose();
+                          }),
+                          onAddSupply: () => setState(() {
+                            _supplyNameCtrls.add(TextEditingController());
+                            _supplyQtyCtrls.add(TextEditingController(text: '1'));
+                          }),
+                          onRemoveSupply: (i) => setState(() {
+                            _supplyNameCtrls.removeAt(i).dispose();
+                            _supplyQtyCtrls.removeAt(i).dispose();
+                          }),
+                          selectedPapers: _selectedPapers,
+                          onAddPaper: _pickPapers,
+                          onRemovePaper: (i) =>
+                              setState(() => _selectedPapers.removeAt(i)),
                         ),
                       ),
+                    );
+                  },
+                ),
+              ),
+              BlocSelector<CreateCampaignCubit, CreateCampaignState, (bool, bool)>(
+                selector: (s) => (_phase(s) == 2, s is CreateCampaignSaving),
+                builder: (context, v) {
+                  if (!v.$1) return const SizedBox.shrink();
+                  return Container(
+                    padding: EdgeInsets.fromLTRB(
+                      Space.gutter,
+                      Space.vm,
+                      Space.gutter,
+                      Space.vm + MediaQuery.paddingOf(context).bottom,
                     ),
-                  ),
-              ],
-            ),
+                    decoration: BoxDecoration(
+                      color: ColorManager.surface,
+                      boxShadow: AppShadows.card,
+                    ),
+                    child: PrimaryElevatedButton(
+                      title: widget.isEditing ? 'حفظ التغييرات' : 'حفظ الحملة',
+                      isLoading: v.$2,
+                      onPress: _save,
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 

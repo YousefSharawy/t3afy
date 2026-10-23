@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/app/local_storage.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/app/services/tutorial_service.dart';
 import 'package:t3afy/volunteer/bot/presentation/cubit/chatbot_cubit.dart';
-import 'package:t3afy/volunteer/bot/presentation/view/widgets/bot_info_row.dart';
+import 'package:t3afy/base/widgets/app_nav_shell.dart';
 import 'package:t3afy/volunteer/bot/presentation/view/widgets/chat_message_list.dart';
 import 'package:t3afy/volunteer/bot/presentation/view/widgets/chatbot_header.dart';
 import 'package:t3afy/volunteer/bot/presentation/view/widgets/chat_input_bar.dart';
@@ -55,7 +53,6 @@ class _VolunteerChatbotViewState extends State<VolunteerChatbotView> {
     if (svc.currentPhase != 5 || svc.isAdmin) return;
 
     _tutorialShown = true;
-    debugPrint('📘 TUTORIAL: Bot screen starting phase 5');
 
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) _showBotTutorial();
@@ -97,28 +94,14 @@ class _VolunteerChatbotViewState extends State<VolunteerChatbotView> {
     }
 
     if (targets.isEmpty) {
-      debugPrint(
-        '📘 TUTORIAL: VolunteerBot screen has no targets, completing tutorial',
-      );
       _finishPhase5(shell);
       return;
     }
 
-    TutorialCoachMark(
+    TutorialService.buildPhaseContinuing(
       targets: targets,
-      colorShadow: Colors.black,
-      opacityShadow: 0.8,
-      textSkip: "تخطي",
-      paddingFocus: 10,
-      focusAnimationDuration: const Duration(milliseconds: 300),
-      unFocusAnimationDuration: const Duration(milliseconds: 300),
-      pulseAnimationDuration: const Duration(milliseconds: 600),
-      textStyleSkip: TextStyle(color: Colors.white, fontSize: 14.sp, fontFamily: FontConstants.fontFamily),
       onFinish: () => _finishPhase5(shell),
-      onSkip: () {
-        _finishPhase5(shell); // Finish tutorial since it's the last phase
-        return true;
-      },
+      onSkip: () => _finishPhase5(shell),
     ).show(context: context, rootOverlay: true);
   }
 
@@ -142,43 +125,40 @@ class _VolunteerChatbotViewState extends State<VolunteerChatbotView> {
     if (text.isEmpty) return;
     _textController.clear();
     context.read<ChatbotCubit>().sendMessage(text);
-    _scrollToBottom();
   }
 
   void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: AppMotion.of(context, AppMotion.slow),
+        curve: AppMotion.enter,
+      );
     });
   }
+
+  static int _count(ChatbotState s) =>
+      s.maybeWhen(loaded: (m) => m.length, orElse: () => 0);
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      bottom: false,
       child: Column(
         children: [
-          SizedBox(height: AppHeight.s10),
           ChatbotHeader(key: _headerKey),
-          SizedBox(height: AppHeight.s8),
-          const BotInfoRow(),
-          SizedBox(height: AppHeight.s8),
           Expanded(
             child: BlocConsumer<ChatbotCubit, ChatbotState>(
+              listenWhen: (prev, next) => _count(next) > _count(prev),
               listener: (context, state) => _scrollToBottom(),
               builder: (context, state) {
                 return state.maybeWhen(
                   loaded: (messages) => ChatMessageList(
                     messages: messages,
                     scrollController: _scrollController,
-                    onChipTap: (action) {
-                      context.read<ChatbotCubit>().sendMessage(action);
-                      _scrollToBottom();
-                    },
+                    onChipTap: (action) =>
+                        context.read<ChatbotCubit>().sendMessage(action),
                   ),
                   orElse: () => const SizedBox.shrink(),
                 );
@@ -186,7 +166,10 @@ class _VolunteerChatbotViewState extends State<VolunteerChatbotView> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(bottom: AppHeight.s80),
+            padding: EdgeInsets.only(
+              top: Space.vs,
+              bottom: AppNavShell.bottomInset(context),
+            ),
             child: Builder(
               builder: (ctx) => ChatInputBar(
                 key: _inputBarKey,

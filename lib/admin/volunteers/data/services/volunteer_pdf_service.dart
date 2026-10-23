@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:isolate';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
@@ -6,49 +8,94 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:t3afy/core/utils/pdf_utils.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
 
+/// Builds the volunteer report PDF.
+///
+/// Perf: font bytes are loaded from the bundle once and cached in static
+/// fields; the ID photo is downloaded on the main isolate (async I/O, no jank);
+/// the CPU-heavy part — font parsing, layout and `save()` — runs in a
+/// background isolate via [Isolate.run], falling back to the main isolate if
+/// spawning fails.
 class VolunteerPdfService {
-  static const PdfColor _primary = PdfColor.fromInt(0xFF007599);
-  static const PdfColor _primaryLight = PdfColor.fromInt(0xFFE6F2F5);
-  static const PdfColor _natural900 = PdfColor.fromInt(0xFF111827);
-  static const PdfColor _natural600 = PdfColor.fromInt(0xFF4B5563);
-  static const PdfColor _natural200 = PdfColor.fromInt(0xFFD8DCE3);
+  // Brand palette (mirrors ColorManager tokens).
+  static const PdfColor _brand = PdfColor.fromInt(0xFF00728F);
+  static const PdfColor _brandSoft = PdfColor.fromInt(0xFFE3F1F4);
+  static const PdfColor _ink = PdfColor.fromInt(0xFF0B2A33);
+  static const PdfColor _inkMuted = PdfColor.fromInt(0xFF4A6169);
+  static const PdfColor _line = PdfColor.fromInt(0xFFD7E3E6);
+  static const PdfColor _canvas = PdfColor.fromInt(0xFFEEF5F6);
+  static const PdfColor _sprout = PdfColor.fromInt(0xFF2FA37A);
+  static const PdfColor _star = PdfColor.fromInt(0xFFF2B230);
   static const PdfColor _white = PdfColor.fromInt(0xFFFFFFFF);
-  static const PdfColor _bgColor = PdfColor.fromInt(0xFFF7F8FA);
-  static const PdfColor _successGreen = PdfColor.fromInt(0xFF166534);
-  static const PdfColor _warningOrange = PdfColor.fromInt(0xFFD97706);
+
+  static const _fontDir = 'assets/fonts/IBMPlexSansArabic';
+  static ByteData? _regularData;
+  static ByteData? _boldData;
+  static ByteData? _semiBoldData;
+
+  static Future<void> _ensureFonts() async {
+    _regularData ??= await rootBundle.load('$_fontDir-Regular.ttf');
+    _boldData ??= await rootBundle.load('$_fontDir-Bold.ttf');
+    _semiBoldData ??= await rootBundle.load('$_fontDir-SemiBold.ttf');
+  }
 
   static Future<Uint8List> generate({
     required VolunteerDetailsEntity details,
     required List<Map<String, dynamic>> assessments,
     required List<Map<String, dynamic>> tasks,
   }) async {
+    await _ensureFonts();
+    final regular = _regularData!;
+    final bold = _boldData!;
+    final semiBold = _semiBoldData!;
+
+    Uint8List? idImage;
+    if (details.idFileUrl != null && details.idFileUrl!.isNotEmpty) {
+      idImage = await _fetchImage(details.idFileUrl!);
+    }
+
+    Future<Uint8List> render() => _render(
+      details: details,
+      assessments: assessments,
+      tasks: tasks,
+      regularData: regular,
+      boldData: bold,
+      semiBoldData: semiBold,
+      idImageBytes: idImage,
+    );
+
+    try {
+      return await Isolate.run(render);
+    } catch (e) {
+      debugPrint('PDF isolate failed, rendering on main isolate: $e');
+      return render();
+    }
+  }
+
+  static Future<Uint8List> _render({
+    required VolunteerDetailsEntity details,
+    required List<Map<String, dynamic>> assessments,
+    required List<Map<String, dynamic>> tasks,
+    required ByteData regularData,
+    required ByteData boldData,
+    required ByteData semiBoldData,
+    required Uint8List? idImageBytes,
+  }) async {
+    final regular = pw.Font.ttf(regularData);
+    final bold = pw.Font.ttf(boldData);
+    final semiBold = pw.Font.ttf(semiBoldData);
     final pdf = pw.Document();
     try {
-      // Load Arabic fonts
-      final regular = pw.Font.ttf(
-        await rootBundle.load('assets/fonts/Cairo-Regular.ttf'),
-      );
-      final bold = pw.Font.ttf(
-        await rootBundle.load('assets/fonts/Cairo-Bold.ttf'),
-      );
-      final semiBold = pw.Font.ttf(
-        await rootBundle.load('assets/fonts/Cairo-SemiBold.ttf'),
-      );
-
       final baseTheme = pw.ThemeData(
         defaultTextStyle: pw.TextStyle(
           font: regular,
           fontSize: 10,
-          color: _natural900,
+          color: _ink,
         ),
       );
 
-      // Try to download ID photo if available
-      pw.ImageProvider? idImage;
-      if (details.idFileUrl != null && details.idFileUrl!.isNotEmpty) {
-        idImage = await _fetchImage(details.idFileUrl!);
-      }
-
+      final pw.ImageProvider? idImage = idImageBytes == null
+          ? null
+          : pw.MemoryImage(idImageBytes);
       final now = DateTime.now();
       final generatedDate = _formatDate(now);
 
@@ -57,7 +104,7 @@ class VolunteerPdfService {
         child: pw.Container(
           decoration: const pw.BoxDecoration(
             border: pw.Border(
-              top: pw.BorderSide(color: _natural200, width: 0.5),
+              top: pw.BorderSide(color: _line, width: 0.5),
             ),
           ),
           padding: const pw.EdgeInsets.only(top: 6),
@@ -69,7 +116,7 @@ class VolunteerPdfService {
                 style: pw.TextStyle(
                   font: regular,
                   fontSize: 8,
-                  color: _natural600,
+                  color: _inkMuted,
                 ),
               ),
               pw.Text(
@@ -79,7 +126,7 @@ class VolunteerPdfService {
                 style: pw.TextStyle(
                   font: regular,
                   fontSize: 8,
-                  color: _natural600,
+                  color: _inkMuted,
                 ),
               ),
             ],
@@ -169,12 +216,6 @@ class VolunteerPdfService {
       debugPrint('Generating fallback PDF...');
 
       final fallbackPdf = pw.Document();
-      final regular = pw.Font.ttf(
-        await rootBundle.load('assets/fonts/Cairo-Regular.ttf'),
-      );
-      final bold = pw.Font.ttf(
-        await rootBundle.load('assets/fonts/Cairo-Bold.ttf'),
-      );
       fallbackPdf.addPage(
         pw.Page(
           textDirection: pw.TextDirection.rtl,
@@ -218,7 +259,7 @@ class VolunteerPdfService {
       child: pw.Container(
         padding: const pw.EdgeInsets.all(16),
         decoration: pw.BoxDecoration(
-          color: _primary,
+          color: _brand,
           borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
         ),
         child: pw.Row(
@@ -272,7 +313,7 @@ class VolunteerPdfService {
       child: pw.Container(
         padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: pw.BoxDecoration(
-          color: _primary,
+          color: _brand,
           borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
         ),
         child: pw.Text(
@@ -289,14 +330,14 @@ class VolunteerPdfService {
       child: pw.Container(
         padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: pw.BoxDecoration(
-          color: _primaryLight,
+          color: _brandSoft,
           border: const pw.Border(
-            right: pw.BorderSide(color: _primary, width: 3),
+            right: pw.BorderSide(color: _brand, width: 3),
           ),
         ),
         child: pw.Text(
           sanitizeForPdf(title),
-          style: pw.TextStyle(font: bold, fontSize: 11, color: _primary),
+          style: pw.TextStyle(font: bold, fontSize: 11, color: _brand),
         ),
       ),
     );
@@ -340,14 +381,14 @@ class VolunteerPdfService {
           pw.SizedBox(height: 8),
           pw.Container(
             decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: _natural200, width: 0.5),
+              border: pw.Border.all(color: _line, width: 0.5),
               borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
             ),
             child: pw.Column(
               children: rows.asMap().entries.map((entry) {
                 final isEven = entry.key.isEven;
                 return pw.Container(
-                  color: isEven ? _bgColor : _white,
+                  color: isEven ? _canvas : _white,
                   padding: const pw.EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 7,
@@ -361,7 +402,7 @@ class VolunteerPdfService {
                           style: pw.TextStyle(
                             font: semiBold,
                             fontSize: 10,
-                            color: _natural600,
+                            color: _inkMuted,
                           ),
                         ),
                       ),
@@ -417,11 +458,11 @@ class VolunteerPdfService {
                   vertical: 10,
                 ),
                 decoration: pw.BoxDecoration(
-                  color: _primaryLight,
+                  color: _brandSoft,
                   borderRadius: const pw.BorderRadius.all(
                     pw.Radius.circular(8),
                   ),
-                  border: pw.Border.all(color: _primary, width: 0.5),
+                  border: pw.Border.all(color: _brand, width: 0.5),
                 ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -431,7 +472,7 @@ class VolunteerPdfService {
                       style: pw.TextStyle(
                         font: semiBold,
                         fontSize: 9,
-                        color: _primary,
+                        color: _brand,
                       ),
                     ),
                     pw.SizedBox(height: 3),
@@ -512,7 +553,7 @@ class VolunteerPdfService {
           ].map((e) => pdfSafe(e)).toList();
         }).toList(),
         headerStyle: pw.TextStyle(font: bold, fontSize: 8, color: _white),
-        headerDecoration: const pw.BoxDecoration(color: _primary),
+        headerDecoration: const pw.BoxDecoration(color: _brand),
         cellStyle: pw.TextStyle(font: regular, fontSize: 7.5),
         cellAlignments: {
           for (int i = 0; i < headers.length; i++) i: pw.Alignment.centerRight,
@@ -521,8 +562,8 @@ class VolunteerPdfService {
           for (int i = 0; i < colWidths.length; i++) i: colWidths[i],
         },
         rowDecoration: const pw.BoxDecoration(color: _white),
-        oddRowDecoration: const pw.BoxDecoration(color: _bgColor),
-        border: pw.TableBorder.all(color: _natural200, width: 0.4),
+        oddRowDecoration: const pw.BoxDecoration(color: _canvas),
+        border: pw.TableBorder.all(color: _line, width: 0.4),
         cellPadding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       ),
     );
@@ -563,7 +604,7 @@ class VolunteerPdfService {
                 semiBold,
                 'إجمالي المهام المسجلة',
                 '$total',
-                _primary,
+                _brand,
               ),
               pw.SizedBox(width: 8),
               _statCard(
@@ -571,7 +612,7 @@ class VolunteerPdfService {
                 semiBold,
                 'المهام الموثقة',
                 '$verified',
-                _successGreen,
+                _sprout,
               ),
               pw.SizedBox(width: 8),
               _statCard(
@@ -579,7 +620,7 @@ class VolunteerPdfService {
                 semiBold,
                 'نسبة الحضور',
                 '$rate%',
-                _warningOrange,
+                _star,
               ),
               pw.SizedBox(width: 8),
               _statCard(
@@ -587,7 +628,7 @@ class VolunteerPdfService {
                 semiBold,
                 'متوسط الساعات/مهمة',
                 '$avgHours س',
-                _primary,
+                _brand,
               ),
             ],
           ),
@@ -618,7 +659,7 @@ class VolunteerPdfService {
               style: pw.TextStyle(
                 font: semiBold,
                 fontSize: 8,
-                color: _natural600,
+                color: _inkMuted,
               ),
             ),
             pw.SizedBox(height: 4),
@@ -644,13 +685,13 @@ class VolunteerPdfService {
           return pw.Container(
             padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: pw.BoxDecoration(
-              color: _primaryLight,
+              color: _brandSoft,
               borderRadius: const pw.BorderRadius.all(pw.Radius.circular(20)),
-              border: pw.Border.all(color: _primary, width: 0.5),
+              border: pw.Border.all(color: _brand, width: 0.5),
             ),
             child: pw.Text(
               sanitizeForPdf(area),
-              style: pw.TextStyle(font: regular, fontSize: 9, color: _primary),
+              style: pw.TextStyle(font: regular, fontSize: 9, color: _brand),
             ),
           );
         }).toList(),
@@ -686,7 +727,7 @@ class VolunteerPdfService {
           ].map((e) => pdfSafe(e)).toList();
         }).toList(),
         headerStyle: pw.TextStyle(font: bold, fontSize: 9, color: _white),
-        headerDecoration: const pw.BoxDecoration(color: _primary),
+        headerDecoration: const pw.BoxDecoration(color: _brand),
         cellStyle: pw.TextStyle(font: regular, fontSize: 9),
         cellAlignments: {
           0: pw.Alignment.centerRight,
@@ -701,8 +742,8 @@ class VolunteerPdfService {
           3: const pw.FlexColumnWidth(1.2),
         },
         rowDecoration: const pw.BoxDecoration(color: _white),
-        oddRowDecoration: const pw.BoxDecoration(color: _bgColor),
-        border: pw.TableBorder.all(color: _natural200, width: 0.4),
+        oddRowDecoration: const pw.BoxDecoration(color: _canvas),
+        border: pw.TableBorder.all(color: _line, width: 0.4),
         cellPadding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 5),
       ),
     );
@@ -717,9 +758,9 @@ class VolunteerPdfService {
         width: double.infinity,
         padding: const pw.EdgeInsets.symmetric(vertical: 24),
         decoration: pw.BoxDecoration(
-          color: _bgColor,
+          color: _canvas,
           borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
-          border: pw.Border.all(color: _natural200, width: 0.5),
+          border: pw.Border.all(color: _line, width: 0.5),
         ),
         child: pw.Center(
           child: pw.Text(
@@ -727,7 +768,7 @@ class VolunteerPdfService {
             style: pw.TextStyle(
               font: regular,
               fontSize: 10,
-              color: _natural600,
+              color: _inkMuted,
             ),
           ),
         ),
@@ -737,7 +778,7 @@ class VolunteerPdfService {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  static Future<pw.ImageProvider?> _fetchImage(String url) async {
+  static Future<Uint8List?> _fetchImage(String url) async {
     try {
       final client = HttpClient();
       final request = await client.getUrl(Uri.parse(url));
@@ -748,7 +789,7 @@ class VolunteerPdfService {
           (acc, chunk) => acc..addAll(chunk),
         );
         client.close();
-        return pw.MemoryImage(Uint8List.fromList(bytes));
+        return Uint8List.fromList(bytes);
       }
       client.close();
     } catch (_) {}

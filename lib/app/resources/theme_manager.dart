@@ -4,7 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'color_manager.dart';
 import 'font_manager.dart';
+import 'app_transitions.dart';
 import 'style_manager.dart';
+import 'tokens.dart';
 import 'values_manager.dart';
 
 ThemeData getApplicationTheme() {
@@ -20,10 +22,11 @@ ThemeData getApplicationTheme() {
     fontFamily: FontConstants.fontFamily,
     textTheme: _textTheme(),
     dialogTheme: DialogThemeData(
-      backgroundColor: ColorManager.natural50,
+      backgroundColor: ColorManager.surface,
       surfaceTintColor: Colors.transparent,
+      barrierColor: ColorManager.scrim,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.s20),
+        borderRadius: BorderRadius.circular(Radii.sheet),
       ),
       titleTextStyle: getSemiBoldStyle(
         color: ColorManager.natural900,
@@ -37,11 +40,55 @@ ThemeData getApplicationTheme() {
     ),
 
     colorScheme: const ColorScheme.light(
-      primary: ColorManager.primary500,
-      surface: ColorManager.primary500,
+      primary: ColorManager.brand,
+      onPrimary: ColorManager.white,
+      secondary: ColorManager.sprout,
+      surface: ColorManager.surface,
+      onSurface: ColorManager.ink,
       surfaceTint: Colors.transparent,
-      secondary: ColorManager.secondary,
+      error: ColorManager.error,
+      outline: ColorManager.line,
     ),
+    canvasColor: ColorManager.canvas,
+    cardColor: ColorManager.surface,
+    splashFactory: InkRipple.splashFactory,
+    highlightColor: ColorManager.brand.withValues(alpha: 0.06),
+    splashColor: ColorManager.brand.withValues(alpha: 0.10),
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: ColorManager.brand,
+      linearTrackColor: ColorManager.brandSoft,
+      circularTrackColor: Colors.transparent,
+    ),
+    cardTheme: CardThemeData(
+      color: ColorManager.surface,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Radii.card),
+      ),
+    ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: ColorManager.surface,
+      surfaceTintColor: Colors.transparent,
+      modalBarrierColor: ColorManager.scrim,
+      showDragHandle: false,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.sheet)),
+      ),
+    ),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: ColorManager.ink,
+      contentTextStyle: getMediumStyle(
+        color: ColorManager.onInk,
+        fontSize: FontSize.s14,
+      ),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Radii.input),
+      ),
+    ),
+    iconTheme: const IconThemeData(color: ColorManager.inkMuted),
+    pageTransitionsTheme: appPageTransitionsTheme,
 
     // appBarTheme: _appBarTheme(),
     elevatedButtonTheme: _elevatedButtonTheme(),
@@ -52,10 +99,22 @@ ThemeData getApplicationTheme() {
       color: ColorManager.divider,
       thickness: 1.3.h,
     ),
-    switchTheme: const SwitchThemeData(
-      thumbColor: WidgetStatePropertyAll(ColorManager.primary500),
-      trackOutlineColor: WidgetStatePropertyAll(Colors.grey),
-      trackColor: WidgetStatePropertyAll(Colors.white),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.selected)
+            ? ColorManager.white
+            : ColorManager.natural300,
+      ),
+      trackOutlineColor: WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.selected)
+            ? ColorManager.brand
+            : ColorManager.line,
+      ),
+      trackColor: WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.selected)
+            ? ColorManager.brand
+            : ColorManager.surfaceSunken,
+      ),
     ),
     checkboxTheme: CheckboxThemeData(
       shape: RoundedRectangleBorder(
@@ -144,23 +203,29 @@ ThemeData getApplicationTheme() {
 
 InputDecorationTheme _inputDecorationTheme() {
   return InputDecorationTheme(
-    hintStyle: getLightStyle(color: ColorManager.grey, fontSize: FontSize.s14),
+    hintStyle: getRegularStyle(
+      color: ColorManager.inkFaint,
+      fontSize: FontSize.s14,
+    ),
     labelStyle: getRegularStyle(
       color: ColorManager.grey,
       fontSize: FontSize.s12,
     ),
     contentPadding: EdgeInsets.fromLTRB(
       AppWidth.s16,
-      AppHeight.s9,
+      AppHeight.s12,
       AppWidth.s16,
-      AppHeight.s9,
+      AppHeight.s12,
     ),
     filled: true,
-    fillColor: Color(0xffF1F1F1),
-    constraints: BoxConstraints(
-      maxHeight: AppHeight.s44,
-      minHeight: AppHeight.s44,
+    fillColor: ColorManager.surfaceSunken,
+    errorStyle: getRegularStyle(
+      color: ColorManager.error,
+      fontSize: FontSize.s12,
     ),
+    errorMaxLines: 2,
+    prefixIconColor: ColorManager.inkFaint,
+    suffixIconColor: ColorManager.inkFaint,
     focusedBorder: getOutlineInputBorder(
       color: ColorManager.primary500,
       width: 1,
@@ -168,26 +233,28 @@ InputDecorationTheme _inputDecorationTheme() {
     disabledBorder: getOutlineInputBorder(),
     enabledBorder: getOutlineInputBorder(),
     errorBorder: getOutlineInputBorder(color: ColorManager.error, width: 1),
-    focusedErrorBorder: getOutlineInputBorder(),
+    focusedErrorBorder: getOutlineInputBorder(
+      color: ColorManager.error,
+      width: 1.2,
+    ),
   );
 }
 
 OutlineInputBorder getOutlineInputBorder({Color? color, double? width}) {
   return OutlineInputBorder(
     borderSide: BorderSide(
-      width: width ?? 0,
-      color: color ?? Color(0xff1B1D21).withValues(alpha: 0.1),
+      width: width ?? 1,
+      color: color ?? ColorManager.line,
     ),
-    borderRadius: BorderRadius.circular(AppRadius.s30),
+    borderRadius: BorderRadius.circular(Radii.input),
   );
 }
 
 BoxShadow getPrimayBoxShadow() {
   return BoxShadow(
-    color: ColorManager.black.withValues(alpha: 0.07),
-    blurRadius: AppRadius.s10,
-    spreadRadius: AppRadius.s1,
-    offset: const Offset(0, 0),
+    color: ColorManager.shadow,
+    blurRadius: AppRadius.s16,
+    offset: Offset(0, AppHeight.s4),
   );
 }
 
@@ -215,11 +282,14 @@ ElevatedButtonThemeData _elevatedButtonTheme() {
         color: ColorManager.white,
         fontSize: FontSize.s14,
       ),
-      backgroundColor: ColorManager.primary500,
+      backgroundColor: ColorManager.brand,
       foregroundColor: ColorManager.white,
+      disabledBackgroundColor: ColorManager.natural100,
+      disabledForegroundColor: ColorManager.inkFaint,
       elevation: 0,
+      minimumSize: Size(AppSizes.touch, AppSizes.touch),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.s30),
+        borderRadius: BorderRadius.circular(Radii.input),
       ),
     ),
   );
@@ -228,16 +298,17 @@ ElevatedButtonThemeData _elevatedButtonTheme() {
 OutlinedButtonThemeData _outlineButtonTheme() {
   return OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
-      textStyle: getRegularStyle(
-        color: ColorManager.primary500,
+      textStyle: getSemiBoldStyle(
+        color: ColorManager.brand,
         fontSize: FontSize.s14,
       ),
-      foregroundColor: ColorManager.primary500,
-      backgroundColor: ColorManager.white,
+      foregroundColor: ColorManager.brand,
+      backgroundColor: ColorManager.surface,
       elevation: 0,
-      side: BorderSide(width: 1, color: Color(0xffE6E6E6)),
+      minimumSize: Size(AppSizes.touch, AppSizes.touch),
+      side: const BorderSide(width: 1, color: ColorManager.line),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.s30),
+        borderRadius: BorderRadius.circular(Radii.input),
       ),
     ),
   );
@@ -246,17 +317,19 @@ OutlinedButtonThemeData _outlineButtonTheme() {
 AppBarTheme _appBarTheme() {
   return AppBarTheme(
     systemOverlayStyle: const SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
+      statusBarColor: Colors.transparent,
       statusBarBrightness: Brightness.dark,
       statusBarIconBrightness: Brightness.dark,
     ),
-    iconTheme: const IconThemeData(color: ColorManager.black),
+    iconTheme: const IconThemeData(color: ColorManager.ink),
+    surfaceTintColor: Colors.transparent,
     backgroundColor: Colors.transparent,
 
     centerTitle: true,
-    titleTextStyle: getBoldStyle(
-      color: ColorManager.darkPrimary,
-      fontSize: FontSize.s16,
+    titleTextStyle: getDisplayStyle(
+      color: ColorManager.ink,
+      fontSize: FontSize.s17,
+      fontWeight: FontWeightManager.semiBold,
     ),
     elevation: 0.0,
   );

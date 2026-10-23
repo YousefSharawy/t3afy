@@ -11,7 +11,12 @@ class AdminReportsRemoteDatasourceImpl implements AdminReportsRemoteDatasource {
     try {
       final data = await _client
           .from('task_reports')
-          .select('*, tasks(title), users!task_reports_user_id_fkey(name)')
+          .select(
+            'id, task_id, user_id, summary, challenges, attendees_count, '
+            'materials_distributed, additional_notes, rating, status, '
+            'admin_feedback, reviewed_by, reviewed_at, created_at, '
+            'tasks(title), users!task_reports_user_id_fkey(name, avatar_url)',
+          )
           .order('created_at', ascending: false);
       return (data as List)
           .map((e) => AdminReportEntity.fromJson(e as Map<String, dynamic>))
@@ -46,33 +51,27 @@ class AdminReportsRemoteDatasourceImpl implements AdminReportsRemoteDatasource {
       final volunteerId = updated['user_id'] as String;
 
       if (status == 'approved') {
-        // Guard: Check if assignment is already completed to prevent double-crediting
-        final assignmentCheckRes = await _client
-            .from('task_assignments')
-            .select('status')
-            .eq('task_id', taskId)
-            .eq('user_id', volunteerId)
-            .maybeSingle();
+        // Independent reads in parallel: the assignment row (double-credit
+        // guard + GPS-verified hours) and the task's stats fields.
+        final reads = await Future.wait<Map<String, dynamic>?>([
+          _client
+              .from('task_assignments')
+              .select('status, verified_hours, is_verified')
+              .eq('task_id', taskId)
+              .eq('user_id', volunteerId)
+              .maybeSingle(),
+          _client
+              .from('tasks')
+              .select('duration_hours, location_name, points')
+              .eq('id', taskId)
+              .single(),
+        ]);
+        final assignmentRow = reads[0];
+        final task = reads[1]!;
 
-        if (assignmentCheckRes != null && (assignmentCheckRes['status'] as String?) == 'completed') {
-          // Assignment already completed, do not credit again
-          return;
-        }
+        // Guard: already completed → already credited.
+        if ((assignmentRow?['status'] as String?) == 'completed') return;
 
-        // Fetch task details needed for stats
-        final task = await _client
-            .from('tasks')
-            .select('duration_hours, location_name, points')
-            .eq('id', taskId)
-            .single();
-
-        // Prefer verified_hours from assignment if the task was GPS-verified
-        final assignmentRow = await _client
-            .from('task_assignments')
-            .select('verified_hours, is_verified')
-            .eq('task_id', taskId)
-            .eq('user_id', volunteerId)
-            .maybeSingle();
         final isVerifiedAssignment =
             (assignmentRow?['is_verified'] as bool?) ?? false;
         final assignmentVerifiedHours =
@@ -85,38 +84,42 @@ class AdminReportsRemoteDatasourceImpl implements AdminReportsRemoteDatasource {
 
         final taskPoints = (task['points'] as int?) ?? 0;
         final locationName = task['location_name'] as String?;
+        final hasLocation = locationName != null && locationName.isNotEmpty;
 
-        // Update volunteer stats
-        final userRow = await _client
-            .from('users')
-            .select('total_tasks, total_hours, places_visited, total_points')
-            .eq('id', volunteerId)
-            .single();
+        // Current totals + "has the volunteer completed a task here before?"
+        final userAndPlace = await Future.wait<Object?>([
+          _client
+              .from('users')
+              .select('total_tasks, total_hours, places_visited, total_points')
+              .eq('id', volunteerId)
+              .single(),
+          if (hasLocation)
+            _client
+                .from('task_assignments')
+                .select('id, tasks!inner(location_name)')
+                .eq('user_id', volunteerId)
+                .eq('status', 'completed')
+                .eq('tasks.location_name', locationName)
+                .limit(1),
+        ]);
+        final userRow = userAndPlace[0] as Map<String, dynamic>;
         final currentTasks = (userRow['total_tasks'] as int?) ?? 0;
         final currentHours = (userRow['total_hours'] as int?) ?? 0;
         final currentPlaces = (userRow['places_visited'] as int?) ?? 0;
         final currentPoints = (userRow['total_points'] as int?) ?? 0;
+        final isNewPlace =
+            hasLocation && (userAndPlace[1] as List).isEmpty;
 
-        // Check if this is a new location for the volunteer
-        int newPlaces = currentPlaces;
-        if (locationName != null && locationName.isNotEmpty) {
-          final locRes = await _client
-              .from('task_assignments')
-              .select('tasks!inner(location_name)')
-              .eq('user_id', volunteerId)
-              .eq('status', 'completed')
-              .eq('tasks.location_name', locationName);
-          if ((locRes as List).isEmpty) {
-            newPlaces = currentPlaces + 1;
-          }
-        }
-
+        // Writes stay sequential: if crediting fails the assignment is not
+        // marked completed, so a retry can still credit the volunteer.
+        // Note: totals are read-modify-write (not atomic) — two managers
+        // approving for the same volunteer at once can lose one increment.
         await _client
             .from('users')
             .update({
               'total_tasks': currentTasks + 1,
               'total_hours': currentHours + durationHours.round(),
-              'places_visited': newPlaces,
+              'places_visited': isNewPlace ? currentPlaces + 1 : currentPlaces,
               'total_points': currentPoints + taskPoints,
             })
             .eq('id', volunteerId);
@@ -133,8 +136,9 @@ class AdminReportsRemoteDatasourceImpl implements AdminReportsRemoteDatasource {
             .from('task_assignments')
             .select('id')
             .eq('task_id', taskId)
-            .not('status', 'in', '("completed")');
-        if ((nonCompleted as List).isEmpty) {
+            .not('status', 'in', '("completed")')
+            .count(CountOption.exact);
+        if (nonCompleted.count == 0) {
           await _client
               .from('tasks')
               .update({'status': 'done'})
@@ -162,18 +166,5 @@ class AdminReportsRemoteDatasourceImpl implements AdminReportsRemoteDatasource {
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
-  }
-
-  @override
-  RealtimeChannel subscribeRealtime(void Function() onChanged) {
-    return _client
-        .channel('task_reports_admin')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'task_reports',
-          callback: (_) => onChanged(),
-        )
-        .subscribe();
   }
 }

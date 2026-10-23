@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:t3afy/admin/performance/presentation/cubit/admin_performance_cubit.dart';
 import 'package:t3afy/admin/performance/presentation/cubit/admin_performance_state.dart';
@@ -11,12 +10,13 @@ import 'package:t3afy/admin/performance/presentation/view/widgets/performance_ti
 import 'package:t3afy/admin/performance/presentation/view/widgets/region_ranking_section.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/app/services/tutorial_service.dart';
-import 'package:t3afy/base/widgets/error_state.dart';
-import 'package:t3afy/base/widgets/loading_indicator.dart';
+import 'package:t3afy/base/shimmers.dart';
+import 'package:t3afy/base/widgets/app_async_body.dart';
+import 'package:t3afy/base/widgets/app_nav_shell.dart';
+import 'package:t3afy/base/widgets/app_page_header.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class AdminPerformanceView extends StatefulWidget {
@@ -54,7 +54,6 @@ class _AdminPerformanceViewState extends State<AdminPerformanceView> {
     if (svc.currentPhase != 5 || !svc.isAdmin) return;
     if (_lastCheckedPhase == 5) return; // Already showed phase 5
 
-    debugPrint('📘 TUTORIAL: AdminPerformance screen starting phase 5, marking _lastCheckedPhase=5');
     _lastCheckedPhase = 5; // Mark immediately since admin performance renders synchronously
     Future.delayed(const Duration(milliseconds: 600), () {
       if (mounted) _showPerformanceTutorial();
@@ -62,108 +61,105 @@ class _AdminPerformanceViewState extends State<AdminPerformanceView> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // go_router's StatefulShellRoute disables tickers on hidden branches, so
+    // TickerMode tells us whether this tab is the one on screen.
+    context.read<AdminPerformanceCubit>().setVisible(TickerMode.valuesOf(context).enabled);
+  }
+
+  Future<void> _refresh(BuildContext context) async {
+    final error = await context.read<AdminPerformanceCubit>().refresh();
+    if (error != null && context.mounted) {
+      Toast.error.show(context, title: error);
+    }
+  }
+
+  static String _chartTitle(String period) => switch (period) {
+    'week' => 'المهام المنجزة يوميًا',
+    'months' => 'المهام المنجزة أسبوعيًا',
+    _ => 'المهام المنجزة شهريًا',
+  };
+
+  @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: ColorManager.background,
-        appBar: AppBar(
-          backgroundColor: ColorManager.background,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          centerTitle: true,
-          title: Text(
-            'التقارير والاحصاء',
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s16,
-              color: ColorManager.natural900,
-            ),
-          ),
-        ),
-        body: BlocConsumer<AdminPerformanceCubit, AdminPerformanceState>(
-          listener: (context, state) {
-            if (state is AdminPerformanceLoaded) {
-              WidgetsBinding.instance.addPostFrameCallback(
-                (_) => _checkTutorial(),
-              );
-            }
-          },
-          builder: (context, state) {
-            if (state is AdminPerformanceInitial) {
-              return const LoadingIndicator();
-            }
-            if (state is AdminPerformanceError) {
-              return ErrorState(
-                message: state.message,
-                onRetry: () => context
-                    .read<AdminPerformanceCubit>()
-                    .loadPerformance(state.selectedPeriod, forceRefresh: true),
-              );
-            }
-
-            final isLoading = state is AdminPerformanceLoading;
-            final data = state is AdminPerformanceLoaded ? state.data : null;
-
-            return Stack(
-              children: [
-                if (data != null)
-                  RefreshIndicator(
-                    onRefresh: () =>
-                        context.read<AdminPerformanceCubit>().loadPerformance(
-                          (state as AdminPerformanceLoaded).selectedPeriod,
+    return Scaffold(
+      backgroundColor: ColorManager.canvas,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const AppPageHeader(title: 'الإحصاء', reserveBellSpace: true),
+            Expanded(
+              child: BlocConsumer<AdminPerformanceCubit, AdminPerformanceState>(
+                listenWhen: (prev, curr) =>
+                    curr is AdminPerformanceLoaded &&
+                    prev is! AdminPerformanceLoaded,
+                listener: (context, state) {
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => _checkTutorial(),
+                  );
+                },
+                builder: (context, state) {
+                  final loaded = state is AdminPerformanceLoaded ? state : null;
+                  return AppAsyncBody(
+                    hasData: loaded != null,
+                    isRefreshing: loaded?.isRefreshing ?? false,
+                    errorMessage: state is AdminPerformanceError
+                        ? state.message
+                        : null,
+                    onRetry: () => context
+                        .read<AdminPerformanceCubit>()
+                        .loadPerformance(
+                          context.read<AdminPerformanceCubit>().currentPeriod,
                           forceRefresh: true,
                         ),
-                    color: ColorManager.primary500,
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: AppHeight.s24),
-                          const PerformanceTimeFilter(),
-                          SizedBox(height: AppHeight.s16),
-                          PerformanceStatsRow(key: _statsRowKey, data: data),
-                          SizedBox(height: AppHeight.s8),
-                          PerformanceBarChart(
-                            bars: data.chartBars,
-                            title: switch (state is AdminPerformanceLoaded
-                                ? state.selectedPeriod
-                                : 'year') {
-                              'week' => 'المهام المنجزة أسبوعياً',
-                              'months' => 'المهام المنجزة شهرياً',
-                              _ => 'المهام المنجزة سنوياً',
-                            },
-                          ),
-                          SizedBox(height: AppHeight.s8),
-                          RegionRankingSection(regions: data.topRegions),
-                          SizedBox(height: AppHeight.s8),
-                          CampaignCompletionCard(
-                            data: data,
-                            selectedPeriod: state is AdminPerformanceLoaded
-                                ? state.selectedPeriod
-                                : 'year',
-                          ),
-                          SizedBox(height: AppHeight.s120),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  const LoadingIndicator(),
-                if (isLoading && data != null)
-                  const Positioned.fill(
-                    child: IgnorePointer(
-                      child: ColoredBox(
-                        color: Colors.white54,
-                        child: LoadingIndicator(),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
+                    skeleton: const _PerformanceSkeleton(),
+                    builder: (context) => _buildLoaded(context, loaded!),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoaded(BuildContext context, AdminPerformanceLoaded state) {
+    final data = state.data;
+    return RefreshIndicator(
+      onRefresh: () => _refresh(context),
+      color: ColorManager.brand,
+      backgroundColor: ColorManager.surface,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsetsDirectional.fromSTEB(
+          Space.gutter,
+          Space.vxs,
+          Space.gutter,
+          AppNavShell.bottomInset(context),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const PerformanceTimeFilter(),
+            SizedBox(height: Space.vl),
+            PerformanceStatsRow(key: _statsRowKey, data: data),
+            SizedBox(height: Space.vl),
+            PerformanceBarChart(
+              bars: data.chartBars,
+              title: _chartTitle(state.selectedPeriod),
+            ),
+            SizedBox(height: Space.vl),
+            RegionRankingSection(regions: data.topRegions),
+            SizedBox(height: Space.vl),
+            CampaignCompletionCard(
+              data: data,
+              selectedPeriod: state.selectedPeriod,
+            ),
+          ],
         ),
       ),
     );
@@ -188,28 +184,15 @@ class _AdminPerformanceViewState extends State<AdminPerformanceView> {
     }
 
     if (targets.isEmpty) {
-      debugPrint(
-        '📘 TUTORIAL: AdminPerformance screen has no targets, completing tutorial',
-      );
       _finishPhase5(shell);
       return;
     }
 
-    TutorialCoachMark(
+    TutorialService.buildPhaseContinuing(
       targets: targets,
-      colorShadow: Colors.black,
-      opacityShadow: 0.8,
-      textSkip: "تخطي",
-      paddingFocus: 10,
-      focusAnimationDuration: const Duration(milliseconds: 300),
-      unFocusAnimationDuration: const Duration(milliseconds: 300),
-      pulseAnimationDuration: const Duration(milliseconds: 600),
-      textStyleSkip: TextStyle(color: Colors.white, fontSize: 14.sp, fontFamily: FontConstants.fontFamily),
       onFinish: () => _finishPhase5(shell),
-      onSkip: () {
-        _finishPhase5(shell); // Finish tutorial since it's the last phase
-        return true;
-      },
+      // Last phase: skipping finishes the tutorial.
+      onSkip: () => _finishPhase5(shell),
     ).show(context: context, rootOverlay: true);
   }
 
@@ -226,5 +209,29 @@ class _AdminPerformanceViewState extends State<AdminPerformanceView> {
         );
       }
     });
+  }
+}
+
+class _PerformanceSkeleton extends StatelessWidget {
+  const _PerformanceSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsetsDirectional.symmetric(
+        horizontal: Space.gutter,
+        vertical: Space.vxs,
+      ),
+      children: [
+        Skeleton(child: SkeletonBox(height: 44, radius: Radii.input)),
+        SizedBox(height: Space.vl),
+        const SkeletonStats(count: 4, columns: 2),
+        SizedBox(height: Space.vl),
+        const SkeletonCard(height: 220),
+        SizedBox(height: Space.vl),
+        const SkeletonCard(height: 160),
+      ],
+    );
   }
 }

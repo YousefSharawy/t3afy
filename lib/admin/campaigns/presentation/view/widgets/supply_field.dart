@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/base/primary_widgets.dart';
+import 'objective_field.dart';
 
 class SupplyField extends StatelessWidget {
   const SupplyField({
@@ -20,44 +20,22 @@ class SupplyField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: AppHeight.s8),
+      padding: EdgeInsets.only(bottom: Space.vs),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             flex: 3,
-            child: PrimaryTextFF(
-              textAlign: .right,
-              controller: nameController,
-              hint: 'اسم المستلزم',
-            ),
+            child: PrimaryTextFF(controller: nameController, hint: 'اسم المستلزم'),
           ),
-          SizedBox(width: AppWidth.s8),
+          SizedBox(width: Space.s),
           Expanded(
-            flex: 1,
             child: PrimaryTextFF(
-              textAlign: .right,
               controller: quantityController,
               hint: 'الكمية',
               keyboardType: TextInputType.number,
             ),
           ),
-          SizedBox(width: AppWidth.s8),
-          GestureDetector(
-            onTap: onRemove,
-            child: Container(
-              padding: EdgeInsets.all(AppSize.s8),
-              decoration: BoxDecoration(
-                color: ColorManager.errorLight,
-                borderRadius: BorderRadius.circular(AppRadius.s8),
-              ),
-              child: Icon(
-                Icons.remove_circle_outline,
-                color: ColorManager.error,
-                size: AppSize.s18,
-              ),
-            ),
-          ),
+          RemoveFieldButton(onPressed: onRemove),
         ],
       ),
     );

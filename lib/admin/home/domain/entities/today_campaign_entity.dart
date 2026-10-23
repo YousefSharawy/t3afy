@@ -8,6 +8,9 @@ class TodayCampaignEntity {
   final String? locationName;
   final String? supervisorName;
   final int volunteerCount;
+
+  /// Assignments already marked completed (drives the team progress bar).
+  final int completedCount;
   final int? targetBeneficiaries;
   final int? reachedBeneficiaries;
 
@@ -21,6 +24,7 @@ class TodayCampaignEntity {
     this.locationName,
     this.supervisorName,
     required this.volunteerCount,
+    this.completedCount = 0,
     this.targetBeneficiaries,
     this.reachedBeneficiaries,
   });

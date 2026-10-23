@@ -10,9 +10,15 @@ class AdminProfileRepoImpl implements AdminProfileRepo {
   AdminProfileRepoImpl(this._datasource);
 
   @override
-  Future<Either<Failture, AdminProfileEntity>> getProfile(String userId) async {
+  Future<Either<Failture, AdminProfileEntity>> getProfile(
+    String userId, {
+    bool forceRefresh = false,
+  }) async {
     try {
-      final result = await _datasource.getProfile(userId);
+      final result = await _datasource.getProfile(
+        userId,
+        forceRefresh: forceRefresh,
+      );
       return Right(result);
     } on Failture catch (f) {
       return Left(f);

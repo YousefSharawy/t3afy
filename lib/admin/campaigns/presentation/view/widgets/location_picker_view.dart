@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/base/primary_widgets.dart';
+import 'package:t3afy/base/widgets/app_map_preview.dart';
+import 'package:t3afy/base/widgets/app_page_header.dart';
+import 'package:t3afy/base/widgets/after_transition.dart';
 
 class LocationPickerView extends StatefulWidget {
   const LocationPickerView({super.key, this.initialLocation});
@@ -21,128 +22,70 @@ class LocationPickerView extends StatefulWidget {
 class _LocationPickerViewState extends State<LocationPickerView> {
   static const _cairoCenter = LatLng(30.0444, 31.2357);
 
-  late LatLng _selected;
-
-  @override
-  void initState() {
-    super.initState();
-    _selected = widget.initialLocation ?? _cairoCenter;
-  }
-
-  void _onTap(TapPosition _, LatLng point) {
-    setState(() => _selected = point);
-  }
+  late LatLng _selected = widget.initialLocation ?? _cairoCenter;
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: ColorManager.background,
-        appBar: AppBar(
-          backgroundColor: ColorManager.background,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: ColorManager.natural900,
-              size: 22.sp,
-            ),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          centerTitle: true,
-          title: Text(
-            'تحديد الموقع',
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s16,
-              color: ColorManager.natural900,
-            ),
-          ),
-        ),
-        body: Column(
+    return Scaffold(
+      backgroundColor: ColorManager.canvas,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
           children: [
-            // ── Map ─────────────────────────────────────────────────────────
+            AppPageHeader(
+              title: 'تحديد الموقع',
+              showBack: true,
+              onBack: () => Navigator.of(context).pop(),
+            ),
             Expanded(
-              child: FlutterMap(
-                options: MapOptions(
-                  initialCenter: _selected,
-                  initialZoom: 13,
-                  onTap: _onTap,
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.t3afy.app',
+              child: AfterTransition(
+                child: FlutterMap(
+                  options: MapOptions(
+                    initialCenter: _selected,
+                    initialZoom: 13,
+                    onTap: (_, point) => setState(() => _selected = point),
                   ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: _selected,
-                        width: 40.r,
-                        height: 40.r,
-                        child: Icon(
-                          Icons.location_pin,
-                          color: ColorManager.primary500,
-                          size: 40.r,
+                  children: [
+                    AppMapTiles.layer(),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: _selected,
+                          width: 36,
+                          height: 36,
+                          child: const AppMapPin(),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                    AppMapTiles.attribution(),
+                  ],
+                ),
               ),
             ),
-
-            // ── Bottom panel ─────────────────────────────────────────────────
             Container(
-              padding: EdgeInsetsDirectional.fromSTEB(
-                AppWidth.s18,
-                AppHeight.s16,
-                AppWidth.s18,
-                AppHeight.s24,
+              padding: EdgeInsets.fromLTRB(
+                Space.gutter,
+                Space.vl,
+                Space.gutter,
+                Space.vl + MediaQuery.paddingOf(context).bottom,
               ),
               decoration: BoxDecoration(
-                color: ColorManager.white,
+                color: ColorManager.surface,
                 borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.s16),
+                  top: Radius.circular(Radii.sheet),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
+                boxShadow: AppShadows.card,
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Coordinates display
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: AppWidth.s14,
-                      vertical: AppHeight.s10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: ColorManager.natural100,
-                      borderRadius: BorderRadius.circular(AppRadius.s12),
-                    ),
-                    child: Text(
-                      'خط العرض: ${_selected.latitude.toStringAsFixed(4)} — خط الطول: ${_selected.longitude.toStringAsFixed(4)}',
-                      style: getRegularStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        fontSize: FontSize.s12,
-                        color: ColorManager.natural500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                  Text(
+                    'اضغط على الخريطة لوضع العلامة في مكان الحملة',
+                    style: AppText.label(),
+                    textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: AppHeight.s12),
-
-                  // Confirm button
+                  SizedBox(height: Space.vm),
                   PrimaryElevatedButton(
                     title: 'تأكيد الموقع',
                     onPress: () => Navigator.of(context).pop(_selected),

@@ -12,10 +12,15 @@ class AdminPerformanceRepoImpl implements AdminPerformanceRepo {
   @override
   Future<Either<Failture, AdminPerformanceEntity>> getPerformanceData(
     DateTime startDate,
-    String period,
-  ) async {
+    String period, {
+    bool forceRefresh = false,
+  }) async {
     try {
-      final data = await _datasource.getPerformanceData(startDate, period);
+      final data = await _datasource.getPerformanceData(
+        startDate,
+        period,
+        forceRefresh: forceRefresh,
+      );
       return Right(data);
     } on Failture catch (f) {
       return Left(f);

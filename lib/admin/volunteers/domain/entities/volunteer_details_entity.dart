@@ -142,7 +142,7 @@ class VolunteerDetailsEntity {
   bool get isActiveNow =>
       isOnline &&
       lastSeenAt != null &&
-      DateTime.now().toUtc().difference(lastSeenAt!.toUtc()).inSeconds < 90;
+      DateTime.now().toUtc().difference(lastSeenAt!.toUtc()).inSeconds < 120;
 
   String get status {
     if (role != 'volunteer') return 'قيد المراجعة';

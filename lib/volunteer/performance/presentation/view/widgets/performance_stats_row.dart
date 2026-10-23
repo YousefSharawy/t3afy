@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/stat_tile.dart';
 import 'package:t3afy/volunteer/performance/domain/entities/performance_entities.dart';
-import 'package:t3afy/base/widgets/perf_stat_box.dart';
 
 class PerformanceStatsRow extends StatelessWidget {
   const PerformanceStatsRow({super.key, required this.stats});
@@ -14,26 +15,28 @@ class PerformanceStatsRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: PerfStatBox(
-            iconAsset: IconAssets.alarm,
-            value: stats.totalHours.toString(),
+          child: StatTile(
+            icon: AppIcons.hours,
+            value: '${stats.totalHours}',
             label: 'الساعات',
           ),
         ),
-        SizedBox(width: AppWidth.s10),
+        SizedBox(width: Space.s),
         Expanded(
-          child: PerfStatBox(
-            iconAsset: IconAssets.location,
-            value: stats.placesVisited.toString(),
+          child: StatTile(
+            icon: AppIcons.location,
+            tint: ColorManager.sproutText,
+            value: '${stats.placesVisited}',
             label: 'الزيارات',
           ),
         ),
-        SizedBox(width: AppWidth.s10),
+        SizedBox(width: Space.s),
         Expanded(
-          child: PerfStatBox(
-            iconAsset: IconAssets.commit,
-            value: '${stats.commitmentPct.round()}%',
-            label: 'الالتزام',
+          child: StatTile(
+            icon: AppIcons.trophy,
+            tint: ColorManager.info,
+            value: '${stats.totalPoints}',
+            label: 'النقاط',
           ),
         ),
       ],

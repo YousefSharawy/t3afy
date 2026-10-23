@@ -11,8 +11,17 @@ class AdminPerformanceLoading extends AdminPerformanceState {
 
 class AdminPerformanceLoaded extends AdminPerformanceState {
   final AdminPerformanceEntity data;
+
+  /// The period [data] belongs to (the chip may already show the next one).
   final String selectedPeriod;
-  AdminPerformanceLoaded(this.data, {this.selectedPeriod = 'year'});
+
+  /// True while another period is being fetched; [data] stays on screen.
+  final bool isRefreshing;
+  AdminPerformanceLoaded(
+    this.data, {
+    this.selectedPeriod = 'year',
+    this.isRefreshing = false,
+  });
 }
 
 class AdminPerformanceError extends AdminPerformanceState {

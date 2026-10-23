@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/app_card.dart';
 
 class ActionCard extends StatelessWidget {
   const ActionCard({
@@ -11,52 +12,36 @@ class ActionCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
-    this.titleColor,
+    this.color = ColorManager.brand,
   });
 
-  final String icon;
+  final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
-  final Color? titleColor;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return AppCard(
       onTap: onTap,
-      child: Container(
-        height: AppHeight.s50,
-        padding: EdgeInsets.symmetric(
-          horizontal: AppWidth.s12,
-          vertical: AppHeight.s8,
-        ),
-        decoration: BoxDecoration(
-          color: ColorManager.white,
-          borderRadius: BorderRadius.circular(AppRadius.s16),
-        ),
-        child: Row(
-          children: [
-            Image.asset(icon),
-            SizedBox(width: AppWidth.s8),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: .center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: getBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s13,
-                      color: titleColor ?? ColorManager.natural900,
-                    ),
-                  ),
-                  SizedBox(height: AppHeight.s3),
-                ],
-              ),
+      semanticLabel: title,
+      padding: EdgeInsets.symmetric(horizontal: Space.l, vertical: Space.vm),
+      child: Row(
+        children: [
+          AppIconBadge(icon: icon, color: color, size: 40),
+          SizedBox(width: Space.m),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: AppText.bodyStrong()),
+                Text(subtitle, style: AppText.label()),
+              ],
             ),
-          ],
-        ),
+          ),
+          const Icon(AppIcons.chevron, color: ColorManager.inkFaint),
+        ],
       ),
     );
   }

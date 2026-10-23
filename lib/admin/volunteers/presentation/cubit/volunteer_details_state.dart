@@ -47,3 +47,35 @@ class VolunteerDetailsAvailableTasks extends VolunteerDetailsState {
   final List<Map<String, dynamic>> tasks;
   VolunteerDetailsAvailableTasks(this.details, this.tasks);
 }
+
+/// Progress for one specific action, so only that control shows a spinner.
+class VolunteerDetailsExporting extends VolunteerDetailsActionLoading {
+  VolunteerDetailsExporting(super.details);
+}
+
+class VolunteerDetailsApproving extends VolunteerDetailsActionLoading {
+  VolunteerDetailsApproving(super.details);
+}
+
+class VolunteerDetailsRejecting extends VolunteerDetailsActionLoading {
+  VolunteerDetailsRejecting(super.details);
+}
+
+/// Pending request accepted or rejected — the screen closes.
+class VolunteerDetailsDecided extends VolunteerDetailsActionSuccess {
+  VolunteerDetailsDecided(super.details, super.message);
+}
+
+extension VolunteerDetailsStateX on VolunteerDetailsState {
+  /// The details carried by any data-bearing state.
+  VolunteerDetailsEntity? get detailsOrNull {
+    final s = this;
+    if (s is VolunteerDetailsLoaded) return s.details;
+    if (s is VolunteerDetailsDeleting) return s.details;
+    if (s is VolunteerDetailsActionError) return s.details;
+    if (s is VolunteerDetailsActionLoading) return s.details;
+    if (s is VolunteerDetailsActionSuccess) return s.details;
+    if (s is VolunteerDetailsAvailableTasks) return s.details;
+    return null;
+  }
+}

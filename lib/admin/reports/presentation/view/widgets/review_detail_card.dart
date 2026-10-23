@@ -1,51 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 
+/// One reading section of a report (summary, challenges, notes…).
 class ReviewDetailCard extends StatelessWidget {
   const ReviewDetailCard({
     super.key,
     required this.title,
     required this.content,
-    this.titleColor,
+    this.highlighted = false,
   });
 
   final String title;
   final String content;
-  final Color? titleColor;
+
+  /// Manager feedback is tinted so it reads as a reply, not report content.
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(AppSize.s14),
+      padding: EdgeInsetsDirectional.all(Space.l),
       decoration: BoxDecoration(
-        color: ColorManager.natural50,
-        borderRadius: BorderRadius.circular(AppRadius.s12),
+        color: highlighted ? ColorManager.brandSoft : ColorManager.surface,
+        borderRadius: BorderRadius.circular(Radii.card),
+        border: Border.all(
+          color: highlighted ? ColorManager.brandSoft : ColorManager.line,
+        ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s12,
-              color: titleColor ?? ColorManager.cyanPrimary,
+            style: AppText.label(
+              color: highlighted ? ColorManager.brandStrong : ColorManager.inkMuted,
             ),
           ),
-          SizedBox(height: AppHeight.s6),
-          Text(
-            content,
-            textAlign: TextAlign.right,
-            style: getRegularStyle(
-              fontFamily: FontConstants.fontFamily,
-              fontSize: FontSize.s13,
-              color: ColorManager.natural500,
-            ),
-          ),
+          SizedBox(height: Space.vs),
+          Text(content, style: AppText.body()),
         ],
       ),
     );

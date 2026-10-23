@@ -3,17 +3,26 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/core/data/safe_emit.dart';
 import 'package:t3afy/volunteer/task_details/data/sources/check_in_data_source.dart';
 
 part 'location_state.dart';
 
-class LocationCubit extends Cubit<LocationState> {
+class LocationCubit extends Cubit<LocationState> with SafeEmit<LocationState> {
+  /// [checkedInAt] / [checkedOutAt] / [verifiedHours] come from the task the
+  /// screen already loaded, so init doesn't re-query the assignment row.
   LocationCubit({
     required this.taskId,
     required this.taskLat,
     required this.taskLng,
     required this.dataSource,
-  }) : super(LocationInitial());
+    DateTime? checkedInAt,
+    DateTime? checkedOutAt,
+    double? verifiedHours,
+  }) : _checkedInAt = checkedInAt,
+       _checkedOutAt = checkedOutAt,
+       _verifiedHours = verifiedHours,
+       super(LocationInitial());
 
   final String taskId;
   final double taskLat;
@@ -25,40 +34,31 @@ class LocationCubit extends Cubit<LocationState> {
   StreamSubscription<Position>? _positionStream;
   Timer? _gpsPingTimer;
   DateTime? _checkedInAt;
+  DateTime? _checkedOutAt;
+  double? _verifiedHours;
 
   /// Call on screen init — restores existing check-in state, then starts GPS.
   Future<void> init() async {
-    emit(LocationLoading());
-
-    // 1. Restore existing check-in/out state from DB
-    final userId = LocalAppStorage.getUserId() ?? '';
-    try {
-      final status = await dataSource.getCheckInStatus(taskId, userId);
-      if (status != null) {
-        final checkedOutStr = status['checked_out_at'] as String?;
-        final checkedInStr = status['checked_in_at'] as String?;
-
-        if (checkedOutStr != null) {
-          final checkedInAt = DateTime.parse(checkedInStr!);
-          final checkedOutAt = DateTime.parse(checkedOutStr);
-          final verifiedHours = ((status['verified_hours'] as num?) ?? 0)
-              .toDouble();
-          emit(LocationCheckedOut(checkedInAt, checkedOutAt, verifiedHours));
-          return;
-        }
-
-        if (checkedInStr != null) {
-          _checkedInAt = DateTime.parse(checkedInStr);
-          final lat = ((status['check_in_lat'] as num?) ?? taskLat).toDouble();
-          final lng = ((status['check_in_lng'] as num?) ?? taskLng).toDouble();
-          emit(LocationCheckedIn(_checkedInAt!, lat, lng));
-          _startGpsPings();
-          return;
-        }
-      }
-    } catch (_) {
-      // DB errors are non-fatal — fall through to GPS
+    // 1. Restore existing check-in/out state (known from the task fetch,
+    // or from this session's own check-in).
+    final checkedInAt = _checkedInAt;
+    if (_checkedOutAt != null) {
+      emit(
+        LocationCheckedOut(
+          checkedInAt ?? _checkedOutAt!,
+          _checkedOutAt!,
+          _verifiedHours ?? 0,
+        ),
+      );
+      return;
     }
+    if (checkedInAt != null) {
+      emit(LocationCheckedIn(checkedInAt, taskLat, taskLng));
+      _startGpsPings();
+      return;
+    }
+
+    emit(LocationLoading());
 
     // 2. Start GPS tracking
     await _initGps();
@@ -70,7 +70,9 @@ class LocationCubit extends Cubit<LocationState> {
       // Step 1: location service enabled?
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        emit(LocationError('خدمة الموقع غير مفعلة. يرجى تفعيلها من الإعدادات'));
+        safeEmit(
+          LocationError('خدمة الموقع غير مفعلة. يرجى تفعيلها من الإعدادات'),
+        );
         return;
       }
 
@@ -79,12 +81,9 @@ class LocationCubit extends Cubit<LocationState> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
-      if (permission == LocationPermission.denied) {
-        emit(LocationPermissionDenied());
-        return;
-      }
-      if (permission == LocationPermission.deniedForever) {
-        emit(LocationPermissionDenied());
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        safeEmit(LocationPermissionDenied());
         return;
       }
 
@@ -141,6 +140,7 @@ class LocationCubit extends Cubit<LocationState> {
   }
 
   void _emitDistanceState(Position pos) {
+    if (isClosed) return;
     final dist = Geolocator.distanceBetween(
       pos.latitude,
       pos.longitude,
@@ -169,14 +169,14 @@ class LocationCubit extends Cubit<LocationState> {
         taskLng,
       );
       if (dist > _checkInRadiusMeters) {
-        emit(LocationFarFromTask(dist, pos.latitude, pos.longitude));
+        safeEmit(LocationFarFromTask(dist, pos.latitude, pos.longitude));
         return;
       }
 
       final userId = LocalAppStorage.getUserId() ?? '';
       await dataSource.checkIn(taskId, userId, pos.latitude, pos.longitude);
       _checkedInAt = DateTime.now();
-      emit(LocationCheckedIn(_checkedInAt!, pos.latitude, pos.longitude));
+      safeEmit(LocationCheckedIn(_checkedInAt!, pos.latitude, pos.longitude));
 
       // Stop proximity stream — no longer needed while checked in
       _positionStream?.cancel();
@@ -215,7 +215,9 @@ class LocationCubit extends Cubit<LocationState> {
       );
 
       _gpsPingTimer?.cancel();
-      emit(LocationCheckedOut(checkedInAt, now, verifiedHours));
+      _checkedOutAt = now;
+      _verifiedHours = verifiedHours;
+      safeEmit(LocationCheckedOut(checkedInAt, now, verifiedHours));
     } on TimeoutException {
       if (!isClosed) {
         emit(LocationError('تعذر تحديد موقعك. حاول مرة أخرى'));

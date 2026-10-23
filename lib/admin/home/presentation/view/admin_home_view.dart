@@ -1,14 +1,17 @@
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/extenstions.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/routes.dart';
-import 'package:t3afy/base/components.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/shimmers.dart';
+import 'package:t3afy/base/widgets/app_nav_shell.dart';
 import 'package:t3afy/base/widgets/confirm_dialog.dart';
 import 'package:t3afy/base/widgets/error_state.dart';
-import 'package:t3afy/base/widgets/loading_indicator.dart';
+import 'package:t3afy/admin/home/domain/entities/admin_home_data_entity.dart';
 import 'package:t3afy/admin/home/presentation/cubit/admin_home_cubit.dart';
 import 'package:t3afy/admin/home/presentation/view/widgets/admin_app_bar.dart';
 import 'package:t3afy/admin/home/presentation/view/widgets/quick_actions_section.dart';
@@ -16,7 +19,6 @@ import 'package:t3afy/admin/home/presentation/view/widgets/send_announcement_she
 import 'package:t3afy/admin/home/presentation/view/widgets/stats_grid.dart';
 import 'package:t3afy/admin/home/presentation/view/widgets/status_banner.dart';
 import 'package:t3afy/admin/home/presentation/view/widgets/today_campaigns_section.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/app/services/tutorial_service.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:t3afy/app/local_storage.dart';
@@ -36,6 +38,28 @@ class _AdminHomeViewState extends State<AdminHomeView> {
 
   late final VoidCallback _tutorialListener;
   int _lastCheckedPhase = 0;
+  bool _welcomeShown = false;
+
+  /// TickerMode is off when this tab is not the active shell branch or a
+  /// pushed screen covers it; the cubit pauses its 60 s refresh meanwhile.
+  ValueListenable<TickerModeData>? _tickerMode;
+
+  void _onTickerModeChanged() {
+    final notifier = _tickerMode;
+    if (notifier == null || !mounted) return;
+    context.read<AdminHomeCubit>().setVisible(notifier.value.enabled);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final notifier = TickerMode.getValuesNotifier(context);
+    if (notifier != _tickerMode) {
+      _tickerMode?.removeListener(_onTickerModeChanged);
+      _tickerMode = notifier..addListener(_onTickerModeChanged);
+      _onTickerModeChanged();
+    }
+  }
 
   void _showAnnouncementSheet(BuildContext context) {
     final cubit = context.read<AdminHomeCubit>();
@@ -62,6 +86,19 @@ class _AdminHomeViewState extends State<AdminHomeView> {
     }
   }
 
+  Future<void> _newCampaign(BuildContext context) async {
+    final cubit = context.read<AdminHomeCubit>();
+    final changed = await context.push<bool>(Routes.createCampaign);
+    if (changed == true && context.mounted) cubit.refresh();
+  }
+
+  Future<void> _refresh(BuildContext context) async {
+    final error = await context.read<AdminHomeCubit>().refresh();
+    if (error != null && context.mounted) {
+      Toast.error.show(context, title: error);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +109,7 @@ class _AdminHomeViewState extends State<AdminHomeView> {
 
   @override
   void dispose() {
+    _tickerMode?.removeListener(_onTickerModeChanged);
     TutorialPhaseService.instance.phaseNotifier.removeListener(
       _tutorialListener,
     );
@@ -84,19 +122,47 @@ class _AdminHomeViewState extends State<AdminHomeView> {
     if (!svc.isRunning) return;
     if (svc.currentPhase != 1 || !svc.isAdmin) return;
     if (_lastCheckedPhase == 1) return; // Already showed phase 1
-
-    debugPrint('📘 TUTORIAL: AdminHome screen starting phase 1, marking _lastCheckedPhase=1');
-    _lastCheckedPhase = 1; // Mark immediately since admin home renders synchronously
+    _lastCheckedPhase = 1;
 
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) _showHomeTutorial();
     });
   }
 
+  void _maybeShowWelcome(BuildContext context) {
+    if (_welcomeShown ||
+        _lastCheckedPhase != 0 ||
+        LocalAppStorage.isAdminTutorialCompleted() ||
+        TutorialPhaseService.instance.isRunning) {
+      return;
+    }
+    _welcomeShown = true;
+    TutorialService.showWelcomeOverlay(context, isAdmin: true).then((start) {
+      if (!mounted) return;
+      if (start == true) {
+        TutorialPhaseService.instance.start(isAdmin: true);
+        _checkTutorial();
+      } else {
+        LocalAppStorage.setAdminTutorialCompleted(true);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return PrimaryScaffold(
-      body: BlocConsumer<AdminHomeCubit, AdminHomeState>(
+    // Light status-bar icons over the Deep Root command band.
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
+      child: _buildBody(context),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    return ColoredBox(
+      color: ColorManager.canvas,
+      child: BlocConsumer<AdminHomeCubit, AdminHomeState>(
         listenWhen: (_, curr) => curr.maybeWhen(
           loaded: (_) => true,
           exportSuccess: () => true,
@@ -105,63 +171,52 @@ class _AdminHomeViewState extends State<AdminHomeView> {
         ),
         listener: (context, state) {
           state.maybeWhen(
-            loaded: (_) {
-              if (_lastCheckedPhase == 0 &&
-                  !LocalAppStorage.isAdminTutorialCompleted() &&
-                  !TutorialPhaseService.instance.isRunning) {
-                TutorialService.showWelcomeOverlay(context, isAdmin: true).then(
-                  (start) {
-                    if (!mounted) return;
-                    if (start == true) {
-                      TutorialPhaseService.instance.start(isAdmin: true);
-                      _checkTutorial();
-                    } else {
-                      LocalAppStorage.setAdminTutorialCompleted(true);
-                    }
-                  },
-                );
-              }
-            },
+            loaded: (_) => _maybeShowWelcome(context),
             exportSuccess: () =>
                 Toast.success.show(context, title: 'تم تصدير التقرير بنجاح'),
             exportError: (msg) => Toast.error.show(context, title: msg),
             orElse: () {},
           );
         },
-        buildWhen: (prev, curr) => curr.maybeWhen(
-          initial: () => true,
-          loading: () => true,
-          loaded: (_) => true,
-          error: (_) => true,
-          exportingPdf: () => true,
-          exportSuccess: () => true,
-          exportError: (_) => true,
-          orElse: () => false,
+        // Announcement states belong to the sheet; never rebuild the
+        // dashboard for them.
+        buildWhen: (_, curr) => curr.maybeWhen(
+          announcementSending: () => false,
+          announcementSent: () => false,
+          announcementError: (_) => false,
+          orElse: () => true,
         ),
         builder: (context, state) {
-          final isExportingPdf = state.maybeWhen(
-            exportingPdf: () => true,
-            orElse: () => false,
-          );
-
-          return state.maybeWhen(
-            loading: () => const LoadingIndicator(),
-            error: (message) => ErrorState(
-              message: message,
-              onRetry: () => context.read<AdminHomeCubit>().loadDashboard(),
-            ),
-            loaded: (data) => _buildLoaded(
+          final cubit = context.read<AdminHomeCubit>();
+          final data = cubit.data;
+          final Widget child;
+          if (data != null) {
+            child = _buildLoaded(
               context,
               data: data,
-              isExportingPdf: isExportingPdf,
+              lastUpdated: cubit.lastUpdated,
+              isExportingPdf: state.maybeWhen(
+                exportingPdf: () => true,
+                orElse: () => false,
+              ),
+            );
+          } else {
+            child = state.maybeWhen(
+              error: (message) => SafeArea(
+                child: ErrorState(
+                  message: message,
+                  onRetry: cubit.loadDashboard,
+                ),
+              ),
+              orElse: () => const _HomeSkeleton(),
+            );
+          }
+          return AnimatedSwitcher(
+            duration: AppMotion.of(context),
+            child: KeyedSubtree(
+              key: ValueKey(data != null ? 'data' : 'empty'),
+              child: child,
             ),
-            exportingPdf: () =>
-                _buildLoaded(context, data: null, isExportingPdf: true),
-            exportSuccess: () =>
-                _buildLoaded(context, data: null, isExportingPdf: false),
-            exportError: (_) =>
-                _buildLoaded(context, data: null, isExportingPdf: false),
-            orElse: () => const SizedBox.shrink(),
           );
         },
       ),
@@ -170,95 +225,77 @@ class _AdminHomeViewState extends State<AdminHomeView> {
 
   Widget _buildLoaded(
     BuildContext context, {
-    required dynamic data,
+    required AdminHomeDataEntity data,
+    required DateTime? lastUpdated,
     required bool isExportingPdf,
   }) {
-    final cubitState = context.read<AdminHomeCubit>().state;
-    final loadedData =
-        data ?? cubitState.maybeWhen(loaded: (d) => d, orElse: () => null);
-
-    if (loadedData == null) return const LoadingIndicator();
-
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Column(
-        children: [
-          SizedBox(height: AppHeight.s71),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-            child: AdminAppBar(
-              adminName: loadedData.adminName,
-              avatarUrl: loadedData.adminAvatar,
-            ),
-          ),
-          SizedBox(height: AppHeight.s16),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () => context.read<AdminHomeCubit>().loadDashboard(),
-              color: const Color(0xFF00ABD2),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppWidth.s18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      StatusBanner(
-                        key: _statusBannerKey,
-                        activeVolunteersCount: loadedData.activeTodayCount,
-                      ),
-                      SizedBox(height: AppHeight.s16),
-                      StatsGrid(
-                        key: _statsGridKey,
-                        activeTodayCount: loadedData.activeTodayCount,
-                        totalVolunteers: loadedData.totalVolunteers,
-                        completedCampaigns: loadedData.completedCampaigns,
-                        totalHours: loadedData.totalHours,
-                        volunteersThisMonth: loadedData.volunteersThisMonth,
-                        activeDiffFromYesterday:
-                            loadedData.activeDiffFromYesterday,
-                        hoursPercentChange: loadedData.hoursPercentChange,
-                      ),
-                      SizedBox(height: AppHeight.s16),
-                      TodayCampaignsSection(
-                        key: _todayCampaignsKey,
-                        campaigns: loadedData.todayCampaigns,
-                        onViewAll: () => context.go(Routes.campaigns),
-                        onCampaignTap: (campaign) async {
-                          final cubit = context.read<AdminHomeCubit>();
-                          final changed = await context.push<bool>(
-                            '/campaignDetails/${campaign.id}',
-                          );
-                          if (changed == true && context.mounted) {
-                            cubit.loadDashboard();
-                          }
-                        },
-                      ),
-                      SizedBox(height: AppHeight.s16),
-                      QuickActionsSection(
-                        key: _quickActionsKey,
-                        isExportingPdf: isExportingPdf,
-                        onNewCampaign: () async {
-                          final cubit = context.read<AdminHomeCubit>();
-                          final changed = await context.push<bool>(
-                            Routes.createCampaign,
-                          );
-                          if (changed == true && context.mounted) {
-                            cubit.loadDashboard();
-                          }
-                        },
-                        onFullReport: () => _confirmExport(context),
-                        onSendAnnouncement: () =>
-                            _showAnnouncementSheet(context),
-                      ),
-                      SizedBox(height: AppHeight.s120),
-                    ],
-                  ),
+    return RefreshIndicator(
+      onRefresh: () => _refresh(context),
+      color: ColorManager.brand,
+      edgeOffset: MediaQuery.paddingOf(context).top,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(bottom: AppNavShell.bottomInset(context)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _CommandBand(
+              children: [
+                AdminAppBar(
+                  adminName: data.adminName,
+                  avatarUrl: data.adminAvatar,
                 ),
+                SizedBox(height: Space.vl),
+                StatusBanner(
+                  key: _statusBannerKey,
+                  activeVolunteersCount: data.activeTodayCount,
+                  lastUpdated: lastUpdated,
+                ),
+                SizedBox(height: Space.vl),
+                StatsGrid(
+                  key: _statsGridKey,
+                  activeTodayCount: data.activeTodayCount,
+                  totalVolunteers: data.totalVolunteers,
+                  completedCampaigns: data.completedCampaigns,
+                  totalHours: data.totalHours,
+                  volunteersThisMonth: data.volunteersThisMonth,
+                  activeDiffFromYesterday: data.activeDiffFromYesterday,
+                  hoursPercentChange: data.hoursPercentChange,
+                ),
+              ],
+            ),
+            SizedBox(height: Space.vxl),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: Space.gutter),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TodayCampaignsSection(
+                    key: _todayCampaignsKey,
+                    campaigns: data.todayCampaigns,
+                    onViewAll: () => context.go(Routes.campaigns),
+                    onNewCampaign: () => _newCampaign(context),
+                    onCampaignTap: (campaign) async {
+                      final cubit = context.read<AdminHomeCubit>();
+                      final changed = await context.push<bool>(
+                        '/campaignDetails/${campaign.id}',
+                      );
+                      if (changed == true && context.mounted) cubit.refresh();
+                    },
+                  ),
+                  SizedBox(height: Space.vl),
+                  QuickActionsSection(
+                    key: _quickActionsKey,
+                    isExportingPdf: isExportingPdf,
+                    onNewCampaign: () => _newCampaign(context),
+                    onFullReport: () => _confirmExport(context),
+                    onSendAnnouncement: () => _showAnnouncementSheet(context),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -327,28 +364,111 @@ class _AdminHomeViewState extends State<AdminHomeView> {
     }
 
     if (targets.isEmpty) {
-      debugPrint(
-        '📘 TUTORIAL: AdminHome screen has no targets, advancing to next phase',
-      );
       TutorialPhaseService.instance.advanceToNextPhase();
       return;
     }
 
-    TutorialCoachMark(
+    TutorialService.buildPhaseContinuing(
       targets: targets,
-      colorShadow: Colors.black,
-      opacityShadow: 0.8,
-      textSkip: "تخطي",
-      paddingFocus: 10,
-      focusAnimationDuration: const Duration(milliseconds: 300),
-      unFocusAnimationDuration: const Duration(milliseconds: 300),
-      pulseAnimationDuration: const Duration(milliseconds: 600),
-      textStyleSkip: TextStyle(color: Colors.white, fontSize: 14.sp, fontFamily: FontConstants.fontFamily),
-      onFinish: () => TutorialPhaseService.instance.advanceToNextPhase(),
-      onSkip: () {
-        TutorialPhaseService.instance.advanceToNextPhase(); // Continue chain, don't kill it
-        return true;
-      },
+      onFinish: TutorialPhaseService.instance.advanceToNextPhase,
     ).show(context: context, rootOverlay: true);
+  }
+}
+
+/// Deep Root band at the top of the Manager home (behind the status bar).
+class _CommandBand extends StatelessWidget {
+  const _CommandBand({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsetsDirectional.fromSTEB(
+        Space.gutter,
+        MediaQuery.paddingOf(context).top + Space.vs,
+        Space.gutter,
+        Space.vxl,
+      ),
+      decoration: BoxDecoration(
+        color: ColorManager.ink,
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(Radii.sheet),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+}
+
+/// First-load placeholder shaped like the dashboard.
+class _HomeSkeleton extends StatelessWidget {
+  const _HomeSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    Widget tile() => Container(
+      height: 104,
+      decoration: BoxDecoration(
+        color: ColorManager.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(Radii.card),
+      ),
+    );
+    Widget tileRow() => Row(
+      children: [
+        Expanded(child: tile()),
+        SizedBox(width: Space.m),
+        Expanded(child: tile()),
+      ],
+    );
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _CommandBand(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: ColorManager.white.withValues(alpha: 0.10),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: Space.vl),
+              Container(
+                width: 180,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: ColorManager.white.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(Radii.small),
+                ),
+              ),
+              SizedBox(height: Space.vxl),
+              tileRow(),
+              SizedBox(height: Space.vm),
+              tileRow(),
+            ],
+          ),
+          SkeletonList(
+            count: 2,
+            shrinkWrap: true,
+            padding: EdgeInsets.symmetric(
+              horizontal: Space.gutter,
+              vertical: Space.vxl,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

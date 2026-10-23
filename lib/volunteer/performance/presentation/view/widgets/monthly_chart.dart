@@ -1,109 +1,86 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/core/utils/date_ar.dart';
 import 'package:t3afy/volunteer/performance/domain/entities/performance_entities.dart';
 import 'bar_column.dart';
+import 'package:t3afy/base/widgets/after_transition.dart';
 
+/// Hours for the last three calendar months; months without hours show an
+/// empty bar so the current month always sits at the same place.
 class MonthlyChart extends StatelessWidget {
   const MonthlyChart({super.key, required this.monthlyHours});
 
   final List<MonthlyHoursEntity> monthlyHours;
 
-  static const _monthNames = [
-    '',
-    'يناير',
-    'فبراير',
-    'مارس',
-    'أبريل',
-    'مايو',
-    'يونيو',
-    'يوليو',
-    'أغسطس',
-    'سبتمبر',
-    'أكتوبر',
-    'نوفمبر',
-    'ديسمبر',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final maxHours = monthlyHours.isEmpty
-        ? 1.0
-        : monthlyHours
-              .map((m) => m.hours)
-              .reduce((a, b) => a > b ? a : b)
-              .clamp(1.0, double.infinity);
+    final now = DateTime.now();
+    final months = List.generate(
+      3,
+      (i) => DateTime(now.year, now.month - 2 + i),
+    );
+    final hours = months.map((m) {
+      final match = monthlyHours.where(
+        (e) => e.year == m.year && e.month == m.month,
+      );
+      return match.isEmpty ? 0.0 : match.first.hours;
+    }).toList();
+    final maxHours = hours.reduce((a, b) => a > b ? a : b);
+    final isEmpty = maxHours <= 0;
 
     return Container(
       width: double.infinity,
-      height: 192.sp,
-      padding: EdgeInsets.all(12.sp),
+      height: 220.h,
+      padding: EdgeInsets.all(Space.l),
       decoration: BoxDecoration(
-        color: ColorManager.white,
-        borderRadius: BorderRadius.circular(AppRadius.s16),
+        color: ColorManager.surface,
+        borderRadius: BorderRadius.circular(Radii.card),
       ),
       child: Column(
-        crossAxisAlignment: .start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'ساعات التطوع الشهرية',
-            style: getBoldStyle(
-              fontFamily: FontConstants.fontFamily,
-              color: ColorManager.natural600,
-              fontSize: FontSize.s14,
-            ),
-          ),
-          SizedBox(height: AppHeight.s13),
+          Text('ساعات التطوع الشهرية', style: AppText.title()),
+          SizedBox(height: Space.vm),
           Expanded(
-            child: monthlyHours.isEmpty
+            child: isEmpty
                 ? Center(
-                    child: Text(
-                      'لا توجد بيانات',
-                      style: getMediumStyle(
-                        fontFamily: FontConstants.fontFamily,
-                        color: ColorManager.blueTwo100,
-                        fontSize: FontSize.s12,
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          AppIcons.hours,
+                          size: AppSizes.iconL + 8,
+                          color: ColorManager.inkFaint,
+                        ),
+                        SizedBox(height: Space.vs),
+                        Text(
+                          'لا توجد ساعات مسجلة في آخر 3 أشهر',
+                          style: AppText.label(),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
                   )
-                : LayoutBuilder(
-                    builder: (context, constraints) {
-                      final count = monthlyHours.length;
-                      final minWidth = count * AppWidth.s64;
-                      final chartWidth = minWidth > constraints.maxWidth
-                          ? minWidth
-                          : constraints.maxWidth;
-                      final barWidth = (chartWidth / count).clamp(
-                        AppWidth.s64,
-                        AppWidth.s81,
-                      );
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        reverse: true,
-                        child: SizedBox(
-                          width: chartWidth,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: monthlyHours.map((m) {
-                              final ratio = m.hours / maxHours;
-                              final name = (m.month >= 1 && m.month <= 12)
-                                  ? _monthNames[m.month]
-                                  : '${m.month}';
-                              return BarColumn(
-                                label: name,
-                                hours: m.hours,
-                                ratio: ratio,
-                                barWidth: barWidth,
-                              );
-                            }).toList(),
+                : AfterTransition(
+                    placeholder: const SizedBox.shrink(),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        for (var i = 0; i < months.length; i++)
+                          Expanded(
+                            child: BarColumn(
+                              label: DateAr.month(months[i].month),
+                              hours: hours[i],
+                              ratio: hours[i] / maxHours,
+                              highlighted: i == months.length - 1,
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
           ),
         ],

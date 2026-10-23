@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:t3afy/app/di.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
 import 'package:t3afy/base/primary_widgets.dart';
 import 'package:t3afy/volunteer/task_details/presentation/cubit/report_cubit.dart';
+
 import 'submit_report_sheet.dart';
 
 class ReportButton extends StatelessWidget {
@@ -24,22 +22,18 @@ class ReportButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PrimaryElevatedButton(
       title: 'رفع تقرير',
-      width: double.infinity,
-      height: AppHeight.s46,
-      backGroundColor: ColorManager.primary500,
-      buttonRadius: AppRadius.s24,
-      textStyle: getBoldStyle(
-        fontFamily: FontConstants.fontFamily,
-        fontSize: FontSize.s16,
-        color: ColorManager.white,
-      ),
+      icon: AppIcons.reports,
       onPress: () async {
+        final cubit = context.read<ReportCubit>();
         final submitted = await showModalBottomSheet<bool>(
           context: context,
           isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (context) => BlocProvider(
-            create: (_) => getIt<ReportCubit>(),
+          // Drag-to-dismiss bypasses PopScope; the sheet confirms before
+          // discarding a filled form, so dismissal goes through maybePop.
+          enableDrag: false,
+          backgroundColor: ColorManager.transparent,
+          builder: (_) => BlocProvider.value(
+            value: cubit,
             child: SubmitReportSheet(taskId: taskId, taskTitle: taskTitle),
           ),
         );

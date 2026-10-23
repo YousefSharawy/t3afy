@@ -1,11 +1,11 @@
-import 'dart:math' as math;
-
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:t3afy/admin/performance/domain/entities/admin_performance_entity.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/star_bloom_progress.dart';
 
 class CampaignCompletionCard extends StatelessWidget {
   const CampaignCompletionCard({
@@ -17,153 +17,80 @@ class CampaignCompletionCard extends StatelessWidget {
   final AdminPerformanceEntity data;
   final String selectedPeriod;
 
+  /// The datasource uses rolling windows, not calendar periods.
+  static String periodLabel(String period) => switch (period) {
+    'week' => 'آخر 7 أيام',
+    'months' => 'آخر 30 يومًا',
+    _ => 'آخر 12 شهرًا',
+  };
+
   @override
   Widget build(BuildContext context) {
     final pct = data.campaignCompletionPercent;
     final change = data.completionPercentChange;
     final isPositive = change >= 0;
-
-    final periodLabel = switch (selectedPeriod) {
-      'week' => 'هذا الأسبوع',
-      'months' => 'هذا الشهر',
-      _ => 'هذا العام',
-    };
-
-    final comparisonLabel = switch (selectedPeriod) {
-      'week' => 'عن الأسبوع الماضي',
-      'months' => 'عن الشهر الماضي',
-      _ => 'عن العام الماضي',
-    };
+    final fg = isPositive ? ColorManager.sproutText : ColorManager.error;
 
     return Container(
-      padding: EdgeInsets.all(AppWidth.s12),
+      padding: EdgeInsetsDirectional.all(Space.l),
       decoration: BoxDecoration(
-        color: ColorManager.white,
-        borderRadius: BorderRadius.circular(AppRadius.s16),
+        color: ColorManager.surface,
+        borderRadius: BorderRadius.circular(Radii.card),
       ),
       child: Row(
         children: [
-          SizedBox(
-            width: AppWidth.s80,
-            height: AppWidth.s80,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CustomPaint(
-                  size: Size(AppWidth.s80, AppWidth.s80),
-                  painter: _CircularRingPainter(
-                    progress: (pct / 100).clamp(0.0, 1.0),
-                  ),
-                ),
-                Text(
-                  '${pct.round()}%',
-                  style: getBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s18,
-                    color: ColorManager.primary500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: AppWidth.s16),
+          StarBloomProgress(value: pct / 100, size: 80, stroke: 8),
+          SizedBox(width: Space.l),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text('معدل إنجاز الحملات', style: AppText.bodyStrong()),
+                SizedBox(height: Space.vxs),
                 Text(
-                  'معدل إنجاز الحملات',
-                  style: getBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s14,
-                    color: ColorManager.natural600,
-                  ),
+                  '${data.completedCampaigns} حملة مكتملة من ${data.totalCampaigns} مجدولة · ${periodLabel(selectedPeriod)}',
+                  style: AppText.label(),
                 ),
-                Text(
-                  '${data.completedCampaigns} حملة مكتملة من ${data.totalCampaigns} مجدولة $periodLabel',
-                  style: getRegularStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s12,
-                    color: ColorManager.natural400,
-                  ),
-                ),
-                SizedBox(height: AppHeight.s16),
+                SizedBox(height: Space.vm),
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: AppHeight.s4,
-                    horizontal: AppWidth.s8,
+                  padding: EdgeInsetsDirectional.symmetric(
+                    vertical: Space.vxs,
+                    horizontal: Space.s,
                   ),
                   decoration: BoxDecoration(
                     color: isPositive
-                        ? ColorManager.infoLight
+                        ? ColorManager.sproutSoft
                         : ColorManager.errorLight,
-                    borderRadius: BorderRadius.circular(AppRadius.s8),
+                    borderRadius: BorderRadius.circular(Radii.small),
                   ),
-                  child: Text(
-                    isPositive
-                        ? '↑ ${change.abs().toStringAsFixed(1)}% $comparisonLabel'
-                        : '↓ ${change.abs().toStringAsFixed(1)}% $comparisonLabel',
-                    style: getBoldStyle(
-                      fontFamily: FontConstants.fontFamily,
-                      fontSize: FontSize.s10,
-                      color: isPositive
-                          ? ColorManager.info
-                          : ColorManager.error,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isPositive
+                            ? AppIcons.trendUp
+                            : AppIcons.trendDown,
+                        size: AppSizes.iconS,
+                        color: fg,
+                      ),
+                      SizedBox(width: Space.xxs),
+                      Flexible(
+                        child: Text(
+                          '${change.abs().toStringAsFixed(1)}% عن الفترة السابقة',
+                          style: getNumericStyle(
+                            fontSize: FontSize.s11,
+                            color: fg,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(width: AppWidth.s16),
         ],
       ),
     );
   }
-}
-
-class _CircularRingPainter extends CustomPainter {
-  final double progress;
-  _CircularRingPainter({required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const strokeWidth = 9.0;
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width / 2) - strokeWidth / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    // Background track
-    final trackPaint = Paint()
-      ..color = ColorManager.primary500.withOpacity(0.15)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-    canvas.drawCircle(center, radius, trackPaint);
-
-    // Gradient progress arc
-    if (progress > 0) {
-      const startAngle = -math.pi / 2;
-      final sweepAngle = 2 * math.pi * progress;
-
-      final gradient = SweepGradient(
-        startAngle: startAngle,
-        endAngle: startAngle + sweepAngle,
-        colors: const [ColorManager.primary300, ColorManager.primary500],
-        stops: const [0.0, 1.0],
-      );
-
-      final progressPaint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round
-        ..shader = gradient.createShader(rect);
-
-      canvas.drawArc(rect, startAngle, sweepAngle, false, progressPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _CircularRingPainter old) =>
-      old.progress != progress;
 }

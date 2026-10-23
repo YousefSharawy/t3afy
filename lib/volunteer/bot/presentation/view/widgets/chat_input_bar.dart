@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 
 class ChatInputBar extends StatelessWidget {
   const ChatInputBar({
@@ -18,57 +16,60 @@ class ChatInputBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(Radii.chip),
+      borderSide: const BorderSide(color: ColorManager.line),
+    );
     return Padding(
-      padding: EdgeInsetsDirectional.only(
-        start: AppWidth.s18,
-        end: AppWidth.s18,
-      ),
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: controller,
-                textDirection: TextDirection.rtl,
-                textAlign: TextAlign.right,
-                style: getRegularStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  color: ColorManager.natural50,
-                  fontSize: FontSize.s14,
+      padding: EdgeInsetsDirectional.symmetric(horizontal: Space.gutter),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              textInputAction: TextInputAction.send,
+              minLines: 1,
+              maxLines: 4,
+              style: AppText.body(),
+              decoration: InputDecoration(
+                hintText: 'اكتب هنا…',
+                hintStyle: AppText.body(color: ColorManager.inkFaint),
+                filled: true,
+                fillColor: ColorManager.surface,
+                isDense: true,
+                contentPadding: EdgeInsetsDirectional.symmetric(
+                  horizontal: Space.l,
+                  vertical: Space.vm,
                 ),
-                decoration: InputDecoration(
-                  hintText: 'أكتب هنا ....',
-                  hintTextDirection: TextDirection.rtl,
-                  hintStyle: getRegularStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    color: ColorManager.natural50,
-                    fontSize: FontSize.s14,
-                  ),
-                  filled: true,
-                  fillColor: ColorManager.primary500,
-                  contentPadding: EdgeInsets.all(10.sp),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s25),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s25),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s25),
-                    borderSide: BorderSide.none,
-                  ),
+                border: border,
+                enabledBorder: border,
+                focusedBorder: border.copyWith(
+                  borderSide: const BorderSide(color: ColorManager.brand),
                 ),
-                onSubmitted: (_) => onSend(),
               ),
+              onSubmitted: (_) => onSend(),
             ),
-            SizedBox(width: 10.sp),
-            // Send icon
-            GestureDetector(onTap: onSend, child: Image.asset(IconAssets.send)),
-          ],
-        ),
+          ),
+          SizedBox(width: Space.s),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: controller,
+            builder: (context, value, _) {
+              final enabled = value.text.trim().isNotEmpty;
+              return IconButton.filled(
+                tooltip: 'إرسال',
+                onPressed: enabled ? onSend : null,
+                style: IconButton.styleFrom(
+                  backgroundColor: ColorManager.brand,
+                  foregroundColor: ColorManager.white,
+                  disabledBackgroundColor: ColorManager.natural100,
+                  disabledForegroundColor: ColorManager.inkFaint,
+                  minimumSize: Size.square(AppSizes.touch),
+                ),
+                icon: const Icon(AppIcons.send),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

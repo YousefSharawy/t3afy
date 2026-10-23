@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Future<void> openDirections(double lat, double lng) async {
   final googleMapsUrl =
@@ -45,32 +44,21 @@ class MapButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _openDirections,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppWidth.s10,
-          vertical: AppHeight.s4,
+    return OutlinedButton.icon(
+      onPressed: _openDirections,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: ColorManager.brand,
+        side: const BorderSide(color: ColorManager.line),
+        minimumSize: Size(0, AppSizes.touch),
+        padding: EdgeInsets.symmetric(horizontal: Space.l),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Radii.input),
         ),
-        decoration: BoxDecoration(
-          color: ColorManager.primary600,
-          borderRadius: BorderRadius.circular(AppRadius.s8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(IconAssets.map),
-            SizedBox(width: AppWidth.s4),
-            Text(
-              _hasCoords ? 'الاتجاهات إلى الموقع 🧭' : 'بحث في الخريطة 🔍',
-              style: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s12,
-                color: ColorManager.white,
-              ),
-            ),
-          ],
-        ),
+      ),
+      icon: Icon(_hasCoords ? AppIcons.map : AppIcons.search, size: 18),
+      label: Text(
+        _hasCoords ? 'الاتجاهات إلى الموقع' : 'بحث في الخريطة',
+        style: AppText.label(color: ColorManager.brand),
       ),
     );
   }

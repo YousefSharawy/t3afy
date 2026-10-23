@@ -1,161 +1,131 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:t3afy/admin/profile/domain/entities/admin_profile_entity.dart';
 import 'package:t3afy/admin/profile/presentation/cubit/admin_profile_cubit.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/primary_widgets.dart';
 
 class AdminEditSheet extends StatefulWidget {
-  const AdminEditSheet({
-    super.key,
-    required this.nameCtrl,
-    required this.emailCtrl,
-    required this.phoneCtrl,
-    required this.userId,
-  });
+  const AdminEditSheet({super.key, required this.profile});
 
-  final TextEditingController nameCtrl;
-  final TextEditingController emailCtrl;
-  final TextEditingController phoneCtrl;
-  final String userId;
+  final AdminProfileEntity profile;
 
   @override
   State<AdminEditSheet> createState() => _AdminEditSheetState();
 }
 
 class _AdminEditSheetState extends State<AdminEditSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _emailCtrl;
+  late final TextEditingController _phoneCtrl;
   bool _saving = false;
 
-  Future<void> _save() async {
-    HapticFeedback.mediumImpact();
-    setState(() => _saving = true);
-    await context.read<AdminProfileCubit>().updateProfile(
-      userId: widget.userId,
-      name: widget.nameCtrl.text.trim(),
-      email: widget.emailCtrl.text.trim(),
-      phone: widget.phoneCtrl.text.trim().isEmpty
-          ? null
-          : widget.phoneCtrl.text.trim(),
-    );
-    if (mounted) Navigator.of(context).pop();
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.profile.name);
+    _emailCtrl = TextEditingController(text: widget.profile.email);
+    _phoneCtrl = TextEditingController(text: widget.profile.phone ?? '');
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: AppWidth.s18,
-          right: AppWidth.s18,
-          top: AppHeight.s24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'تعديل الملف الشخصي',
-              style: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s16,
-                color: ColorManager.natural900,
-              ),
-            ),
-            SizedBox(height: AppHeight.s20),
-            _field(controller: widget.nameCtrl, hint: 'الاسم'),
-            SizedBox(height: AppHeight.s12),
-            _field(
-              controller: widget.emailCtrl,
-              hint: 'البريد الإلكتروني',
-              keyboardType: TextInputType.emailAddress,
-            ),
-            SizedBox(height: AppHeight.s12),
-            _field(
-              controller: widget.phoneCtrl,
-              hint: 'رقم الهاتف',
-              keyboardType: TextInputType.phone,
-            ),
-            SizedBox(height: AppHeight.s20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _saving ? null : _save,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ColorManager.primary500,
-                  padding: EdgeInsets.symmetric(vertical: AppHeight.s14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.s12),
-                  ),
-                ),
-                child: _saving
-                    ? SizedBox(
-                        width: 20.sp,
-                        height: 20.sp,
-                        child: const CircularProgressIndicator(
-                          color: ColorManager.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Text(
-                        'حفظ',
-                        style: getBoldStyle(
-                          fontFamily: FontConstants.fontFamily,
-                          fontSize: FontSize.s14,
-                          color: ColorManager.white,
-                        ),
-                      ),
-              ),
-            ),
-            SizedBox(height: AppHeight.s24),
-          ],
-        ),
-      ),
-    );
+  void dispose() {
+    _nameCtrl.dispose();
+    _emailCtrl.dispose();
+    _phoneCtrl.dispose();
+    super.dispose();
   }
 
-  Widget _field({
-    required TextEditingController controller,
-    required String hint,
-    TextInputType? keyboardType,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      textDirection: TextDirection.rtl,
-      style: getRegularStyle(
-        fontFamily: FontConstants.fontFamily,
-        fontSize: FontSize.s13,
-        color: ColorManager.natural900,
-      ),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: getRegularStyle(
-          fontFamily: FontConstants.fontFamily,
-          fontSize: FontSize.s13,
-          color: ColorManager.natural400,
-        ),
-        filled: true,
-        fillColor: ColorManager.natural50,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: AppWidth.s12,
-          vertical: AppHeight.s12,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s10),
-          borderSide: BorderSide(color: ColorManager.natural200),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s10),
-          borderSide: BorderSide(color: ColorManager.natural200),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s10),
-          borderSide: BorderSide(color: ColorManager.primary500),
+  Future<void> _save() async {
+    HapticFeedback.mediumImpact();
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    setState(() => _saving = true);
+    final phone = _phoneCtrl.text.trim();
+    final error = await context.read<AdminProfileCubit>().updateProfile(
+      userId: widget.profile.id,
+      name: _nameCtrl.text.trim(),
+      email: _emailCtrl.text.trim(),
+      phone: phone.isEmpty ? null : phone,
+    );
+    if (!mounted) return;
+    if (error == null) {
+      Navigator.of(context).pop();
+      Toast.success.show(context, title: 'تم حفظ التغييرات');
+    } else {
+      setState(() => _saving = false);
+      Toast.error.show(context, title: error);
+    }
+  }
+
+  static String? _required(String? v, String message) =>
+      (v == null || v.trim().isEmpty) ? message : null;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.vl,
+            Space.gutter,
+            Space.vl,
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: ColorManager.line,
+                      borderRadius: BorderRadius.circular(Radii.chip),
+                    ),
+                  ),
+                ),
+                SizedBox(height: Space.vl),
+                Text('تعديل الملف الشخصي', style: AppText.headline()),
+                SizedBox(height: Space.vxl),
+                PrimaryTextFF(
+                  controller: _nameCtrl,
+                  hint: 'الاسم',
+                  textInputAction: TextInputAction.next,
+                  validator: (v) => _required(v, 'اكتب الاسم'),
+                ),
+                SizedBox(height: Space.vm),
+                PrimaryTextFF(
+                  controller: _emailCtrl,
+                  hint: 'البريد الإلكتروني',
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  validator: (v) => _required(v, 'اكتب البريد الإلكتروني'),
+                ),
+                SizedBox(height: Space.vm),
+                PrimaryTextFF(
+                  controller: _phoneCtrl,
+                  hint: 'رقم الهاتف',
+                  keyboardType: TextInputType.phone,
+                ),
+                SizedBox(height: Space.vxl),
+                PrimaryElevatedButton(
+                  title: 'حفظ التغييرات',
+                  onPress: _save,
+                  isLoading: _saving,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

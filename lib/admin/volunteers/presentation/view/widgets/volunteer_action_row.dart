@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/widgets/app_card.dart';
 
 class VolunteerActionRow extends StatelessWidget {
   const VolunteerActionRow({
@@ -10,44 +11,51 @@ class VolunteerActionRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.color = ColorManager.brand,
+    this.isLoading = false,
   });
 
-  final String icon;
+  final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final Color color;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: AppHeight.s50,
-        margin: EdgeInsets.only(bottom: AppHeight.s8),
-        padding: EdgeInsets.symmetric(
-          horizontal: AppWidth.s12,
-          vertical: AppHeight.s8,
-        ),
-        decoration: BoxDecoration(
-          color: ColorManager.white,
-          borderRadius: BorderRadius.circular(AppRadius.s16),
-        ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: Space.vs),
+      child: AppCard(
+        onTap: isLoading ? null : onTap,
+        semanticLabel: label,
+        padding: EdgeInsets.symmetric(horizontal: Space.l, vertical: Space.vm),
         child: Row(
           children: [
-            Image.asset(
-              icon,
-              width: AppWidth.s24,
-              height: AppHeight.s24,
-              fit: BoxFit.contain,
-            ),
-            SizedBox(width: AppWidth.s8),
-            Text(
-              label,
-              style: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s12,
-                color: ColorManager.natural700,
+            isLoading
+                ? SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: color,
+                      ),
+                    ),
+                  )
+                : AppIconBadge(icon: icon, color: color),
+            SizedBox(width: Space.m),
+            Expanded(
+              child: Text(
+                label,
+                style: AppText.bodyStrong(
+                  color: color == ColorManager.error
+                      ? ColorManager.error
+                      : ColorManager.ink,
+                ),
               ),
             ),
+            const Icon(AppIcons.chevron, color: ColorManager.inkFaint),
           ],
         ),
       ),

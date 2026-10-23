@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:t3afy/admin/volunteers/domain/entities/volunteer_details_entity.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_cubit.dart';
 import 'package:t3afy/admin/volunteers/presentation/cubit/volunteer_details_state.dart';
@@ -10,16 +9,17 @@ import 'package:t3afy/admin/volunteers/presentation/view/widgets/edit_rating_she
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/edit_volunteer_data_sheet.dart';
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/send_message_sheet.dart';
 import 'package:t3afy/admin/volunteers/presentation/view/widgets/upgrade_level_sheet.dart';
-import 'package:t3afy/app/resources/assets_manager.dart';
+import 'package:t3afy/admin/volunteers/presentation/view/widgets/volunteer_sheet_frame.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/extenstions.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/base/primary_widgets.dart';
 import 'package:t3afy/base/widgets/confirm_dialog.dart';
 import 'delete_button.dart';
 import 'volunteer_action_row.dart';
 
+/// Actions for the volunteer. Navigation after delete / suspend / approve /
+/// reject is handled once, in VolunteerDetailsView.
 class VolunteerManageTab extends StatefulWidget {
   const VolunteerManageTab({super.key, required this.details});
 
@@ -36,138 +36,79 @@ class _VolunteerManageTabState extends State<VolunteerManageTab>
 
   VolunteerDetailsEntity get details => widget.details;
 
+  EdgeInsets get _padding => EdgeInsets.only(
+    top: Space.vs,
+    bottom: Space.vxl + MediaQuery.paddingOf(context).bottom,
+  );
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final isPending = details.role == 'user';
-    return BlocListener<VolunteerDetailsCubit, VolunteerDetailsState>(
-      listener: (context, state) {
-        if (state is VolunteerDetailsSuspended) {
-          context.pop(true);
-          Toast.success.show(context, title: 'تم تعليق الحساب بنجاح');
-        } else if (state is VolunteerDetailsActionSuccess) {
-          if (state.message == 'تم قبول المتطوع' ||
-              state.message == 'تم رفض الطلب') {
-            Toast.success.show(context, title: state.message);
-            context.pop(true);
-          }
-        }
-      },
-      child: isPending
-          ? _buildPendingActions(context)
-          : _buildVolunteerActions(context),
-    );
+    return details.role == 'user'
+        ? _buildPendingActions(context)
+        : _buildVolunteerActions(context);
   }
 
   Widget _buildPendingActions(BuildContext context) {
     return ListView(
+      padding: _padding,
       children: [
-        SizedBox(height: AppHeight.s16),
-        _PendingApproveButton(volunteerId: details.id),
-        SizedBox(height: AppHeight.s8),
+        _PendingApproveButton(volunteerId: details.id, name: details.name),
+        SizedBox(height: Space.vm),
         _RejectButton(volunteerId: details.id, name: details.name),
-        SizedBox(height: AppHeight.s50),
       ],
     );
   }
 
   Widget _buildVolunteerActions(BuildContext context) {
     return ListView(
+      padding: _padding,
       children: [
         VolunteerActionRow(
-          icon: IconAssets.reports,
+          icon: AppIcons.reports,
           label: 'تعيين مهمة جديدة',
-          onTap: () => _showAssignTask(context),
+          onTap: () => _open(context, const AssignTaskSheet()),
         ),
         VolunteerActionRow(
-          icon: IconAssets.message,
+          icon: AppIcons.message,
           label: 'إرسال رسالة مباشرة',
-          onTap: () => _showSendMessage(context),
+          onTap: () => _open(context, const SendMessageSheet()),
         ),
         VolunteerActionRow(
-          icon: IconAssets.star,
+          icon: AppIcons.star,
           label: 'تعديل التقييم',
-          onTap: () => _showEditRating(context),
+          onTap: () =>
+              _open(context, EditRatingSheet(currentRating: details.rating)),
         ),
         VolunteerActionRow(
-          icon: IconAssets.promotion,
+          icon: AppIcons.promotion,
           label: 'ترقية المستوى',
-          onTap: () => _showUpgradeLevel(context),
+          onTap: () => _open(context, UpgradeLevelSheet(details: details)),
         ),
         VolunteerActionRow(
-          icon: IconAssets.edit,
+          icon: AppIcons.edit,
           label: 'تعديل البيانات',
-          onTap: () => _showEditData(context),
-        ),
-        VolunteerActionRow(
-          icon: IconAssets.settings,
-          label: 'تعليق الحساب',
-          onTap: () => _showSuspend(context),
+          onTap: () => _open(context, EditVolunteerDataSheet(details: details)),
         ),
         _ExportPdfRow(details: details),
-        SizedBox(height: AppHeight.s8),
+        VolunteerActionRow(
+          icon: AppIcons.pause,
+          label: 'تعليق الحساب',
+          color: ColorManager.error,
+          onTap: () => _showSuspend(context),
+        ),
+        SizedBox(height: Space.vm),
         DeleteButton(volunteerId: details.id),
-        SizedBox(height: AppHeight.s50),
       ],
     );
   }
 
-  void _showAssignTask(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
+  void _open(BuildContext context, Widget sheet) {
+    showVolunteerSheet<void>(
+      context,
+      BlocProvider.value(
         value: context.read<VolunteerDetailsCubit>(),
-        child: const AssignTaskSheet(),
-      ),
-    );
-  }
-
-  void _showSendMessage(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
-        value: context.read<VolunteerDetailsCubit>(),
-        child: const SendMessageSheet(),
-      ),
-    );
-  }
-
-  void _showEditRating(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
-        value: context.read<VolunteerDetailsCubit>(),
-        child: EditRatingSheet(currentRating: details.rating),
-      ),
-    );
-  }
-
-  void _showUpgradeLevel(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
-        value: context.read<VolunteerDetailsCubit>(),
-        child: UpgradeLevelSheet(details: details),
-      ),
-    );
-  }
-
-  void _showEditData(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
-        value: context.read<VolunteerDetailsCubit>(),
-        child: EditVolunteerDataSheet(details: details),
+        child: sheet,
       ),
     );
   }
@@ -194,171 +135,50 @@ class _ExportPdfRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<VolunteerDetailsCubit, VolunteerDetailsState>(
-      builder: (context, state) {
-        final isLoading = state is VolunteerDetailsActionLoading;
-        return GestureDetector(
-          onTap: isLoading
-              ? null
-              : () => context.read<VolunteerDetailsCubit>().exportVolunteerPdf(
-                  details,
-                ),
-          child: Container(
-            height: AppHeight.s50,
-            margin: EdgeInsets.only(bottom: AppHeight.s8),
-            padding: EdgeInsets.symmetric(
-              horizontal: AppWidth.s12,
-              vertical: AppHeight.s8,
-            ),
-            decoration: BoxDecoration(
-              color: ColorManager.white,
-              borderRadius: BorderRadius.circular(AppRadius.s16),
-            ),
-            child: Row(
-              children: [
-                isLoading
-                    ? SizedBox(
-                        width: AppWidth.s24,
-                        height: AppHeight.s24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: ColorManager.primary500,
-                        ),
-                      )
-                    : Icon(
-                        Icons.picture_as_pdf_rounded,
-                        color: ColorManager.primary500,
-                        size: AppWidth.s24,
-                      ),
-                SizedBox(width: AppWidth.s8),
-                Text(
-                  'تصدير بيانات المتطوع PDF',
-                  style: getBoldStyle(
-                    fontFamily: FontConstants.fontFamily,
-                    fontSize: FontSize.s12,
-                    color: ColorManager.natural700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+    return BlocSelector<VolunteerDetailsCubit, VolunteerDetailsState, bool>(
+      selector: (s) => s is VolunteerDetailsExporting,
+      builder: (context, exporting) => VolunteerActionRow(
+        icon: AppIcons.pdf,
+        label: 'تصدير بيانات المتطوع PDF',
+        isLoading: exporting,
+        onTap: () =>
+            context.read<VolunteerDetailsCubit>().exportVolunteerPdf(details),
+      ),
     );
   }
 }
 
 class _PendingApproveButton extends StatelessWidget {
-  const _PendingApproveButton({required this.volunteerId});
+  const _PendingApproveButton({required this.volunteerId, required this.name});
 
   final String volunteerId;
+  final String name;
+
+  Future<void> _confirm(BuildContext context) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'قبول الطلب',
+      body: 'هل أنت متأكد من قبول $name كمتطوع؟',
+      confirmLabel: 'قبول',
+    );
+    if (confirmed && context.mounted) {
+      context.read<VolunteerDetailsCubit>().approveVolunteer(
+        volunteerId,
+        isPending: true,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _confirm(context),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppWidth.s16,
-          vertical: AppHeight.s14,
-        ),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [ColorManager.successLight, Color(0xFF166534)],
-          ),
-          borderRadius: BorderRadius.circular(AppRadius.s8),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.check_circle_outline,
-              color: ColorManager.successLight,
-              size: 20,
-            ),
-            SizedBox(width: AppWidth.s8),
-            Text(
-              'قبول',
-              style: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s14,
-                color: ColorManager.successLight,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _confirm(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          backgroundColor: ColorManager.natural50,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.s20),
-          ),
-          title: Text(
-            'قبول الطلب',
-            style: getSemiBoldStyle(
-              color: ColorManager.natural900,
-              fontSize: FontSize.s18,
-            ),
-          ),
-          content: Text(
-            'هل أنت متأكد من قبول هذا المتطوع؟',
-            style: getRegularStyle(
-              color: ColorManager.natural900.withValues(alpha: 0.7),
-              fontSize: FontSize.s14,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(
-                'إلغاء',
-                style: getMediumStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: ColorManager.natural900.withValues(alpha: 0.6),
-                ),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColorManager.primary500,
-                foregroundColor: ColorManager.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.s30),
-                ),
-              ),
-              onPressed: () {
-                HapticFeedback.mediumImpact();
-                Navigator.of(ctx).pop();
-                context.read<VolunteerDetailsCubit>().approveVolunteer(
-                  volunteerId,
-                  isPending: true,
-                );
-              },
-              child: Text(
-                'قبول',
-                style: getMediumStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s14,
-                  color: ColorManager.white,
-                ),
-              ),
-            ),
-          ],
-        ),
+    return BlocSelector<VolunteerDetailsCubit, VolunteerDetailsState, bool>(
+      selector: (s) => s is VolunteerDetailsApproving,
+      builder: (context, approving) => PrimaryElevatedButton(
+        title: 'قبول',
+        icon: AppIcons.done,
+        backGroundColor: ColorManager.sprout,
+        isLoading: approving,
+        onPress: () => _confirm(context),
       ),
     );
   }
@@ -369,43 +189,6 @@ class _RejectButton extends StatelessWidget {
 
   final String volunteerId;
   final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _confirm(context),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppWidth.s16,
-          vertical: AppHeight.s14,
-        ),
-        decoration: BoxDecoration(
-          color: ColorManager.white,
-          borderRadius: BorderRadius.circular(AppRadius.s8),
-          border: Border.all(color: ColorManager.error),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.cancel_outlined,
-              color: ColorManager.error,
-              size: 20,
-            ),
-            SizedBox(width: AppWidth.s8),
-            Text(
-              'رفض',
-              style: getBoldStyle(
-                fontFamily: FontConstants.fontFamily,
-                fontSize: FontSize.s14,
-                color: ColorManager.error,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Future<void> _confirm(BuildContext context) async {
     HapticFeedback.mediumImpact();
@@ -419,5 +202,18 @@ class _RejectButton extends StatelessWidget {
     if (confirmed && context.mounted) {
       context.read<VolunteerDetailsCubit>().rejectVolunteer(volunteerId);
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<VolunteerDetailsCubit, VolunteerDetailsState, bool>(
+      selector: (s) => s is VolunteerDetailsRejecting,
+      builder: (context, rejecting) => DangerOutlineButton(
+        label: 'رفض',
+        icon: Icons.cancel_outlined,
+        isLoading: rejecting,
+        onPressed: () => _confirm(context),
+      ),
+    );
   }
 }

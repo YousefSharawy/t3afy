@@ -10,26 +10,34 @@ class VolunteerImplHomeRemoteDataSource
     implements VolunteerHomeRemoteDataSource {
   final _client = Supabase.instance.client;
 
+  static const _ttl = Duration(seconds: 30);
+
   @override
-  Future<VolunteerStatsModel> getVolunteerStats(String userId) async {
+  Future<VolunteerStatsModel> getVolunteerStats(
+    String userId, {
+    bool skipCache = false,
+  }) async {
     try {
-      const ttl = Duration(seconds: 30);
       final cacheKey = 'vol_stats_v2_$userId';
-      final cached = LocalAppStorage.getCache(cacheKey);
-      if (cached != null) {
-        return VolunteerStatsModel.fromJson(
-          Map<String, dynamic>.from(cached as Map),
-        );
+      if (!skipCache) {
+        final cached = LocalAppStorage.getCache(cacheKey);
+        if (cached != null) {
+          return VolunteerStatsModel.fromJson(
+            Map<String, dynamic>.from(cached as Map),
+          );
+        }
       }
 
+      // `role` is read here so a realtime refresh can detect suspension
+      // without a separate query.
       final response = await _client
           .from('users')
           .select(
-            'id, name, email, phone, avatar_url, level, level_title, rating, total_hours, total_tasks, places_visited, total_points',
+            'id, name, email, phone, role, avatar_url, level, level_title, rating, total_hours, total_tasks, places_visited, total_points',
           )
           .eq('id', userId)
           .single();
-      await LocalAppStorage.setCache(cacheKey, response, ttl: ttl);
+      await LocalAppStorage.setCache(cacheKey, response, ttl: _ttl);
       return VolunteerStatsModel.fromJson(response);
     } catch (error) {
       throw ErrorHandler.handle(error).failture;
@@ -37,18 +45,24 @@ class VolunteerImplHomeRemoteDataSource
   }
 
   @override
-  Future<List<TaskModel>> getTodayTasks(String userId) async {
+  Future<List<TaskModel>> getTodayTasks(
+    String userId, {
+    bool skipCache = false,
+  }) async {
     try {
-      const ttl = Duration(seconds: 30);
       final today = DateTime.now().toIso8601String().split('T').first;
-      final cacheKey = 'today_tasks_${userId}_$today';
-      final cached = LocalAppStorage.getCache(cacheKey);
-      if (cached != null) {
-        return (cached as List)
-            .map<TaskModel>(
-              (e) => TaskModel.fromJson(Map<String, dynamic>.from(e as Map)),
-            )
-            .toList();
+      // Own key: the Tasks tab caches a differently-resolved shape under
+      // 'today_tasks_…'.
+      final cacheKey = 'vol_home_today_${userId}_$today';
+      if (!skipCache) {
+        final cached = LocalAppStorage.getCache(cacheKey);
+        if (cached != null) {
+          return (cached as List)
+              .map<TaskModel>(
+                (e) => TaskModel.fromJson(Map<String, dynamic>.from(e as Map)),
+              )
+              .toList();
+        }
       }
 
       final response = await _client
@@ -82,7 +96,7 @@ class VolunteerImplHomeRemoteDataSource
       await LocalAppStorage.setCache(
         cacheKey,
         tasks.map((t) => t.toJson()).toList(),
-        ttl: ttl,
+        ttl: _ttl,
       );
       return tasks;
     } catch (error) {
@@ -97,8 +111,9 @@ class VolunteerImplHomeRemoteDataSource
           .from('admin_notes')
           .select('id')
           .eq('volunteer_id', userId)
-          .eq('is_read', false);
-      return (res as List).length;
+          .eq('is_read', false)
+          .count(CountOption.exact);
+      return res.count;
     } catch (error) {
       throw ErrorHandler.handle(error).failture;
     }

@@ -15,10 +15,3 @@ class AdminProfileError extends AdminProfileState {
   final String message;
   AdminProfileError(this.message);
 }
-
-class AdminProfileUpdateSuccess extends AdminProfileState {}
-
-class AdminProfileUpdateError extends AdminProfileState {
-  final String message;
-  AdminProfileUpdateError(this.message);
-}

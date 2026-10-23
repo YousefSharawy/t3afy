@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
-import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
-import 'package:t3afy/app/services/tutorial_service.dart';
-import 'package:t3afy/base/widgets/empty_state_text.dart';
-import 'package:t3afy/base/widgets/error_state.dart';
-import 'package:t3afy/base/widgets/loading_indicator.dart';
+import 'package:t3afy/admin/reports/domain/entities/admin_report_entity.dart';
 import 'package:t3afy/admin/reports/presentation/cubit/admin_reports_cubit.dart';
 import 'package:t3afy/admin/reports/presentation/view/widgets/admin_report_card.dart';
 import 'package:t3afy/admin/reports/presentation/view/widgets/admin_review_sheet.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
+import 'package:t3afy/app/resources/color_manager.dart';
+import 'package:t3afy/app/resources/extenstions.dart';
+import 'package:t3afy/app/resources/tokens.dart';
+import 'package:t3afy/app/services/tutorial_service.dart';
+import 'package:t3afy/base/shimmers.dart';
+import 'package:t3afy/base/widgets/app_async_body.dart';
+import 'package:t3afy/base/widgets/app_nav_shell.dart';
+import 'package:t3afy/base/widgets/app_page_header.dart';
+import 'package:t3afy/base/widgets/empty_state_text.dart';
 import 'package:t3afy/base/widgets/filter_chip_item.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
@@ -52,152 +54,187 @@ class _AdminReportsViewState extends State<AdminReportsView> {
     if (svc.currentPhase != 4 || !svc.isAdmin) return;
     if (_lastCheckedPhase == 4) return; // Already showed phase 4
 
-    debugPrint('📘 TUTORIAL: Reports screen starting phase 4, marking _lastCheckedPhase=4');
     _lastCheckedPhase = 4; // Mark immediately since reports list renders synchronously
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) _showReportsTutorial();
     });
   }
 
+  static const _filters = [
+    ('all', 'الكل'),
+    ('pending', 'قيد المراجعة'),
+    ('approved', 'موافق عليه'),
+    ('rejected', 'مرفوض'),
+  ];
+
+  Future<void> _refresh(BuildContext context) async {
+    HapticFeedback.mediumImpact();
+    final error = await context.read<AdminReportsCubit>().refresh();
+    if (error != null && context.mounted) {
+      Toast.error.show(context, title: error);
+    }
+  }
+
+  void _openReview(BuildContext context, AdminReportEntity report) {
+    final cubit = context.read<AdminReportsCubit>();
+    showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocProvider.value(
+        value: cubit,
+        child: AdminReviewSheet(report: report),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorManager.background,
-      appBar: AppBar(
-        backgroundColor: ColorManager.white,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          'تقارير المهام',
-          style: getBoldStyle(
-            fontFamily: FontConstants.fontFamily,
-            fontSize: FontSize.s16,
-            color: ColorManager.natural900,
-          ),
+      backgroundColor: ColorManager.canvas,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const AppPageHeader(
+              title: 'مراجعة التقارير',
+              reserveBellSpace: true,
+            ),
+            Expanded(
+              child: BlocConsumer<AdminReportsCubit, AdminReportsState>(
+                // reviewing / reviewed are no longer emitted; never let an
+                // action state blank the list.
+                buildWhen: (_, curr) => curr.maybeWhen(
+                  reviewing: () => false,
+                  reviewed: () => false,
+                  orElse: () => true,
+                ),
+                listenWhen: (prev, curr) =>
+                    curr.maybeWhen(loaded: (_, _) => true, orElse: () => false) &&
+                    !prev.maybeWhen(loaded: (_, _) => true, orElse: () => false),
+                listener: (context, state) {
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => _checkTutorial(),
+                  );
+                },
+                builder: (context, state) {
+                  final cubit = context.read<AdminReportsCubit>();
+                  return AppAsyncBody(
+                    hasData: state.maybeWhen(
+                      loaded: (_, _) => true,
+                      orElse: () => false,
+                    ),
+                    errorMessage: state.maybeWhen(
+                      error: (m) => m,
+                      orElse: () => null,
+                    ),
+                    onRetry: cubit.loadReports,
+                    skeleton: SkeletonList(
+                      count: 6,
+                      itemHeight: 96,
+                      padding: EdgeInsetsDirectional.symmetric(
+                        horizontal: Space.gutter,
+                        vertical: Space.vs,
+                      ),
+                    ),
+                    builder: (context) => state.maybeWhen(
+                      loaded: (reports, filter) =>
+                          _buildLoaded(context, reports, filter),
+                      orElse: () => const SizedBox.shrink(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
-      body: BlocConsumer<AdminReportsCubit, AdminReportsState>(
-        listener: (context, state) {
-          state.maybeWhen(
-            loaded: (_, filter) {
-              WidgetsBinding.instance.addPostFrameCallback(
-                (_) => _checkTutorial(),
+    );
+  }
+
+  Widget _buildLoaded(
+    BuildContext context,
+    List<AdminReportEntity> reports,
+    String filter,
+  ) {
+    final cubit = context.read<AdminReportsCubit>();
+    final list = filter == 'all'
+        ? reports
+        : reports.where((r) => r.status == filter).toList();
+    int countOf(String f) => f == 'all'
+        ? reports.length
+        : reports.where((r) => r.status == f).length;
+    final bottom = AppNavShell.bottomInset(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          key: _filterRowKey,
+          height: AppSizes.touch,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsetsDirectional.symmetric(
+              horizontal: Space.gutter,
+              vertical: Space.vxs,
+            ),
+            itemCount: _filters.length,
+            separatorBuilder: (_, _) => SizedBox(width: Space.s),
+            itemBuilder: (_, i) {
+              final (key, label) = _filters[i];
+              return FilterChipItem(
+                label: label,
+                count: countOf(key),
+                selected: filter == key,
+                onTap: () => cubit.setFilter(key),
               );
             },
-            orElse: () {},
-          );
-        },
-        builder: (context, state) {
-          return state.when(
-            initial: () => const SizedBox.shrink(),
-            loading: () => const LoadingIndicator(),
-            error: (message) => ErrorState(
-              message: message,
-              onRetry: () => context.read<AdminReportsCubit>().loadReports(),
-            ),
-            loaded: (reports, filter) {
-              final cubit = context.read<AdminReportsCubit>();
-              final list = filter == 'all'
-                  ? reports
-                  : reports.where((r) => r.status == filter).toList();
-              return Column(
-                children: [
-                  SizedBox(height: AppHeight.s10),
-                  SizedBox(
-                    key: _filterRowKey,
-                    height: AppHeight.s48,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppWidth.s16,
-                        vertical: AppHeight.s8,
+          ),
+        ),
+        SizedBox(height: Space.vs),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => _refresh(context),
+            color: ColorManager.brand,
+            backgroundColor: ColorManager.surface,
+            semanticsLabel: 'تحديث التقارير',
+            child: list.isEmpty
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsetsDirectional.only(
+                      top: Space.vxl,
+                      bottom: bottom,
+                    ),
+                    children: [
+                      AppEmptyState(
+                        title: filter == 'pending'
+                            ? 'لا توجد تقارير بانتظار المراجعة'
+                            : 'لا توجد تقارير',
+                        message: 'تظهر هنا تقارير المتطوعين بعد إنهاء مهامهم.',
+                        icon: AppIcons.reports,
                       ),
-                      children: [
-                        FilterChipItem(
-                          label: 'الكل',
-                          selected: filter == 'all',
-                          onTap: () => cubit.setFilter('all'),
-                        ),
-                        SizedBox(width: AppWidth.s8),
-                        FilterChipItem(
-                          label: 'قيد المراجعة',
-                          selected: filter == 'pending',
-                          onTap: () => cubit.setFilter('pending'),
-                        ),
-                        SizedBox(width: AppWidth.s8),
-                        FilterChipItem(
-                          label: 'موافق عليه',
-                          selected: filter == 'approved',
-                          onTap: () => cubit.setFilter('approved'),
-                        ),
-                        SizedBox(width: AppWidth.s8),
-                        FilterChipItem(
-                          label: 'مرفوض',
-                          selected: filter == 'rejected',
-                          onTap: () => cubit.setFilter('rejected'),
-                        ),
-                      ],
+                    ],
+                  )
+                : ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsetsDirectional.fromSTEB(
+                      Space.gutter,
+                      Space.vxs,
+                      Space.gutter,
+                      bottom,
+                    ),
+                    itemCount: list.length,
+                    itemBuilder: (context, i) => AdminReportCard(
+                      key: ValueKey(list[i].id),
+                      report: list[i],
+                      onTap: () => _openReview(context, list[i]),
                     ),
                   ),
-                  Expanded(
-                    child: list.isEmpty
-                        ? const EmptyStateText(message: 'لا توجد تقارير')
-                        : RefreshIndicator(
-                            onRefresh: () async {
-                              HapticFeedback.mediumImpact();
-                              try {
-                                await context.read<AdminReportsCubit>().loadReports();
-                                HapticFeedback.lightImpact();
-                              } catch (e) {
-                                HapticFeedback.heavyImpact();
-                              }
-                            },
-                            color: ColorManager.white,
-                            backgroundColor: ColorManager.primary500,
-                            displacement: 40.0,
-                            strokeWidth: 2.5,
-                            semanticsLabel: 'تحديث التقارير',
-                            semanticsValue: '0%',
-                            child: ListView.builder(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: AppWidth.s16,
-                                vertical: AppHeight.s8,
-                              ),
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              itemCount: list.length,
-                              itemBuilder: (context, i) => AdminReportCard(
-                                report: list[i],
-                                onTap: () async {
-                                  final refreshed =
-                                      await showModalBottomSheet<bool>(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        backgroundColor: Colors.transparent,
-                                        builder: (_) => BlocProvider.value(
-                                          value: cubit,
-                                          child: AdminReviewSheet(
-                                            report: list[i],
-                                          ),
-                                        ),
-                                      );
-                                  if (refreshed == true && context.mounted) {
-                                    context
-                                        .read<AdminReportsCubit>()
-                                        .loadReports();
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                  ),
-                ],
-              );
-            },
-            reviewing: () => const LoadingIndicator(),
-            reviewed: () => const LoadingIndicator(),
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -220,28 +257,13 @@ class _AdminReportsViewState extends State<AdminReportsView> {
     }
 
     if (targets.isEmpty) {
-      debugPrint(
-        '📘 TUTORIAL: AdminReports screen has no targets, advancing to next phase',
-      );
       TutorialPhaseService.instance.advanceToNextPhase();
       return;
     }
 
-    TutorialCoachMark(
+    TutorialService.buildPhaseContinuing(
       targets: targets,
-      colorShadow: Colors.black,
-      opacityShadow: 0.8,
-      textSkip: "تخطي",
-      paddingFocus: 10,
-      focusAnimationDuration: const Duration(milliseconds: 300),
-      unFocusAnimationDuration: const Duration(milliseconds: 300),
-      pulseAnimationDuration: const Duration(milliseconds: 600),
-      textStyleSkip: TextStyle(color: Colors.white, fontSize: 14.sp, fontFamily: FontConstants.fontFamily),
-      onFinish: () => TutorialPhaseService.instance.advanceToNextPhase(),
-      onSkip: () {
-        TutorialPhaseService.instance.advanceToNextPhase(); // Continue chain, don't kill it
-        return true;
-      },
+      onFinish: TutorialPhaseService.instance.advanceToNextPhase,
     ).show(context: context, rootOverlay: true);
   }
 }

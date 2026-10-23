@@ -123,3 +123,53 @@ TextStyle getBlackStyle({
     fontFamily,
   );
 }
+
+/// Display face (Alexandria) — screen titles and KPI numbers only.
+TextStyle getDisplayStyle({
+  double fontSize = 20,
+  Color color = ColorManager.ink,
+  FontWeight fontWeight = FontWeightManager.bold,
+  double? height,
+}) {
+  return TextStyle(
+    fontSize: fontSize,
+    color: color,
+    fontWeight: fontWeight,
+    height: height ?? 1.25,
+    fontFamily: FontConstants.displayFamily,
+    fontFeatures: const [FontFeature.tabularFigures()],
+  );
+}
+
+/// Body face with tabular digits — times, counters, hours, points.
+TextStyle getNumericStyle({
+  double fontSize = 14,
+  Color color = ColorManager.ink,
+  FontWeight fontWeight = FontWeightManager.semiBold,
+}) {
+  return TextStyle(
+    fontSize: fontSize,
+    color: color,
+    fontWeight: fontWeight,
+    fontFamily: FontConstants.fontFamily,
+    fontFeatures: const [FontFeature.tabularFigures()],
+  );
+}
+
+/// Named type scale (sp). Prefer these over ad-hoc FontSize values.
+class AppText {
+  static TextStyle display({Color color = ColorManager.ink}) =>
+      getDisplayStyle(fontSize: FontSize.s28, color: color);
+  static TextStyle headline({Color color = ColorManager.ink}) =>
+      getDisplayStyle(fontSize: FontSize.s20, color: color);
+  static TextStyle title({Color color = ColorManager.ink}) =>
+      getSemiBoldStyle(fontSize: FontSize.s17, color: color);
+  static TextStyle body({Color color = ColorManager.ink}) =>
+      getRegularStyle(fontSize: FontSize.s15, color: color, height: 1.5);
+  static TextStyle bodyStrong({Color color = ColorManager.ink}) =>
+      getMediumStyle(fontSize: FontSize.s15, color: color, height: 1.5);
+  static TextStyle label({Color color = ColorManager.inkMuted}) =>
+      getMediumStyle(fontSize: FontSize.s13, color: color);
+  static TextStyle caption({Color color = ColorManager.inkFaint}) =>
+      getRegularStyle(fontSize: FontSize.s11, color: color);
+}

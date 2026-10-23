@@ -3,6 +3,7 @@ import 'package:t3afy/admin/performance/domain/entities/admin_performance_entity
 abstract class AdminPerformanceRemoteDatasource {
   Future<AdminPerformanceEntity> getPerformanceData(
     DateTime startDate,
-    String period,
-  );
+    String period, {
+    bool forceRefresh = false,
+  });
 }

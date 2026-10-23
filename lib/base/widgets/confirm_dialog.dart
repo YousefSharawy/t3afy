@@ -21,23 +21,31 @@ Future<bool> showConfirmDialog(
     builder: (ctx) => Directionality(
       textDirection: TextDirection.rtl,
       child: AlertDialog(
-        backgroundColor: ColorManager.natural50,
+        backgroundColor: ColorManager.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        actionsPadding: EdgeInsets.fromLTRB(
+          AppWidth.s16,
+          0,
+          AppWidth.s16,
+          AppHeight.s16,
+        ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.s20),
+          borderRadius: BorderRadius.circular(AppRadius.s24),
         ),
         title: Text(
           title,
-          style: getSemiBoldStyle(
-            color: ColorManager.natural900,
+          style: getDisplayStyle(
+            color: ColorManager.ink,
             fontSize: FontSize.s18,
+            fontWeight: FontWeightManager.semiBold,
           ),
         ),
         content: Text(
           body,
           style: getRegularStyle(
-            color: ColorManager.natural900.withValues(alpha: 0.7),
+            color: ColorManager.inkMuted,
+            height: 1.5,
             fontSize: FontSize.s14,
           ),
         ),
@@ -47,9 +55,8 @@ Future<bool> showConfirmDialog(
             child: Text(
               'إلغاء',
               style: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s14,
-                color: ColorManager.natural900.withValues(alpha: 0.6),
+                color: ColorManager.inkMuted,
               ),
             ),
           ),
@@ -58,8 +65,9 @@ Future<bool> showConfirmDialog(
               backgroundColor: confirmColor,
               foregroundColor: ColorManager.white,
               elevation: 0,
+              minimumSize: Size(AppWidth.s96, AppHeight.s44),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.s30),
+                borderRadius: BorderRadius.circular(AppRadius.s12),
               ),
             ),
             onPressed: () {
@@ -69,7 +77,6 @@ Future<bool> showConfirmDialog(
             child: Text(
               confirmLabel,
               style: getMediumStyle(
-                fontFamily: FontConstants.fontFamily,
                 fontSize: FontSize.s14,
                 color: ColorManager.white,
               ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
-import 'package:t3afy/app/resources/font_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
-import 'package:t3afy/app/resources/values_manager.dart';
+import 'package:t3afy/app/resources/tokens.dart';
 
 import 'package:t3afy/admin/home/presentation/cubit/admin_home_cubit.dart';
 import 'package:t3afy/app/resources/extenstions.dart';
@@ -18,6 +18,7 @@ class SendAnnouncementSheet extends StatefulWidget {
 }
 
 class _SendAnnouncementSheetState extends State<SendAnnouncementSheet> {
+  final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
   late final TextEditingController _bodyController;
 
@@ -35,16 +36,16 @@ class _SendAnnouncementSheetState extends State<SendAnnouncementSheet> {
     super.dispose();
   }
 
+  static String? _required(String? v, String message) =>
+      (v == null || v.trim().isEmpty) ? message : null;
+
   void _handleSend() {
     HapticFeedback.mediumImpact();
-    if (_titleController.text.isEmpty || _bodyController.text.isEmpty) {
-      Toast.warning.show(context, title: 'الرجاء ملء جميع الحقول');
-      return;
-    }
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
     context.read<AdminHomeCubit>().sendAnnouncement(
-      title: _titleController.text,
-      body: _bodyController.text,
+      title: _titleController.text.trim(),
+      body: _bodyController.text.trim(),
     );
   }
 
@@ -61,7 +62,6 @@ class _SendAnnouncementSheetState extends State<SendAnnouncementSheet> {
           announcementSent: () {
             Navigator.of(context).pop();
             Toast.success.show(context, title: 'تم إرسال الإعلان بنجاح');
-            context.read<AdminHomeCubit>().loadDashboard();
           },
           announcementError: (message) {
             Toast.error.show(context, title: message);
@@ -69,86 +69,98 @@ class _SendAnnouncementSheetState extends State<SendAnnouncementSheet> {
           orElse: () {},
         );
       },
-      child: SingleChildScrollView(
+      child: Padding(
+        // Lifts the sheet above the keyboard.
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: Container(
           decoration: BoxDecoration(
-            color: ColorManager.white,
+            color: ColorManager.surface,
             borderRadius: BorderRadius.vertical(
-              top: Radius.circular(AppRadius.s20),
+              top: Radius.circular(Radii.sheet),
             ),
           ),
-          padding: EdgeInsets.only(
-            left: AppWidth.s18,
-            right: AppWidth.s18,
-            top: AppHeight.s20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + AppHeight.s20,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'إرسال إعلان للمتطوعين',
-                style: getBoldStyle(
-                  fontFamily: FontConstants.fontFamily,
-                  fontSize: FontSize.s18,
-                  color: ColorManager.natural900,
-                ),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                Space.gutter,
+                Space.vl,
+                Space.gutter,
+                Space.vl,
               ),
-              SizedBox(height: AppHeight.s20),
-              PrimaryTextFF(
-                textAlign: .right,
-                controller: _titleController,
-                hint: 'عنوان الإعلان',
-              ),
-              SizedBox(height: AppHeight.s16),
-              PrimaryTextFF(
-                textAlign: .right,
-                controller: _bodyController,
-                hint: 'نص الرسالة',
-                maxLines: 4,
-              ),
-              SizedBox(height: AppHeight.s24),
-              BlocBuilder<AdminHomeCubit, AdminHomeState>(
-                buildWhen: (prev, curr) => curr.maybeWhen(
-                  announcementSending: () => true,
-                  loaded: (_) => true,
-                  orElse: () => false,
-                ),
-                builder: (context, state) {
-                  final isSending = state.maybeWhen(
-                    announcementSending: () => true,
-                    orElse: () => false,
-                  );
-
-                  return Column(
-                    children: [
-                      PrimaryElevatedButton(
-                        title: 'إرسال',
-                        onPress: isSending ? () {} : _handleSend,
-                        isLoading: isSending,
-                        textStyle: getBoldStyle(
-                          fontFamily: FontConstants.fontFamily,
-                          fontSize: FontSize.s16,
-                          color: Colors.white,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: ColorManager.line,
+                          borderRadius: BorderRadius.circular(Radii.chip),
                         ),
                       ),
-                      SizedBox(height: AppHeight.s12),
-                      PrimaryElevatedButton(
-                        title: 'إلغاء',
-                        onPress: () => Navigator.pop(context),
-                        backGroundColor: ColorManager.natural200,
-                        textStyle: getBoldStyle(
-                          fontFamily: FontConstants.fontFamily,
-                          fontSize: FontSize.s16,
-                          color: ColorManager.natural600,
-                        ),
+                    ),
+                    SizedBox(height: Space.vl),
+                    Text(
+                      'إرسال إعلان للمتطوعين',
+                      style: AppText.headline(),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: Space.vxl),
+                    PrimaryTextFF(
+                      controller: _titleController,
+                      hint: 'عنوان الإعلان',
+                      textInputAction: TextInputAction.next,
+                      validator: (v) => _required(v, 'اكتب عنوان الإعلان'),
+                    ),
+                    SizedBox(height: Space.vl),
+                    PrimaryTextFF(
+                      controller: _bodyController,
+                      hint: 'نص الرسالة',
+                      maxLines: 4,
+                      validator: (v) => _required(v, 'اكتب نص الرسالة'),
+                    ),
+                    SizedBox(height: Space.vxl),
+                    BlocBuilder<AdminHomeCubit, AdminHomeState>(
+                      buildWhen: (prev, curr) => curr.maybeWhen(
+                        announcementSending: () => true,
+                        announcementSent: () => true,
+                        announcementError: (_) => true,
+                        loaded: (_) => true,
+                        orElse: () => false,
                       ),
-                      SizedBox(height: AppHeight.s100),
-                    ],
-                  );
-                },
+                      builder: (context, state) {
+                        final isSending = state.maybeWhen(
+                          announcementSending: () => true,
+                          orElse: () => false,
+                        );
+                        return PrimaryElevatedButton(
+                          title: 'إرسال الإعلان',
+                          icon: AppIcons.send,
+                          onPress: _handleSend,
+                          isLoading: isSending,
+                        );
+                      },
+                    ),
+                    SizedBox(height: Space.vs),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        foregroundColor: ColorManager.inkMuted,
+                        minimumSize: Size.fromHeight(AppSizes.touch),
+                      ),
+                      child: const Text('إلغاء'),
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),

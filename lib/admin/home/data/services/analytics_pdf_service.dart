@@ -1,138 +1,211 @@
+import 'dart:io';
+import 'dart:isolate';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/admin/home/data/models/analytics_data_model.dart';
 import 'package:t3afy/core/utils/pdf_utils.dart';
 
+/// Thrown by [AnalyticsPdfService.exportAndShare] with a user-facing message.
+class AnalyticsExportException implements Exception {
+  const AnalyticsExportException(this.message);
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 class AnalyticsPdfService {
-  // ── Colors ────────────────────────────────────────────────────────────────
-  static const PdfColor _primary = PdfColor.fromInt(0xFF007599);
-  static const PdfColor _primaryLight = PdfColor.fromInt(0xFFE6F2F5);
-  static const PdfColor _primary200 = PdfColor.fromInt(0xFF8AC0D0);
-  static const PdfColor _natural900 = PdfColor.fromInt(0xFF111827);
-  static const PdfColor _natural600 = PdfColor.fromInt(0xFF4B5563);
-  static const PdfColor _natural200 = PdfColor.fromInt(0xFFD8DCE3);
+  // ── Colors (brand palette — mirrors ColorManager) ─────────────────────────
+  static const PdfColor _primary = PdfColor.fromInt(0xFF00728F); // brand
+  static const PdfColor _primaryLight = PdfColor.fromInt(0xFFE3F1F4); // brandSoft
+  static const PdfColor _primary200 = PdfColor.fromInt(0xFF93C5D1);
+  static const PdfColor _natural900 = PdfColor.fromInt(0xFF0B2A33); // ink
+  static const PdfColor _natural600 = PdfColor.fromInt(0xFF4A6169); // inkMuted
+  static const PdfColor _natural200 = PdfColor.fromInt(0xFFD7E3E6); // line
   static const PdfColor _white = PdfColor.fromInt(0xFFFFFFFF);
-  static const PdfColor _bg = PdfColor.fromInt(0xFFF7F8FA);
-  static const PdfColor _green = PdfColor.fromInt(0xFF166534);
-  static const PdfColor _greenLight = PdfColor.fromInt(0xFFDCFCE7);
-  static const PdfColor _orange = PdfColor.fromInt(0xFFD97706);
-  static const PdfColor _red = PdfColor.fromInt(0xFFDC2626);
-  static const PdfColor _redLight = PdfColor.fromInt(0xFFFEE2E2);
+  static const PdfColor _bg = PdfColor.fromInt(0xFFEEF5F6); // canvas
+  static const PdfColor _green = PdfColor.fromInt(0xFF1E7F5C); // sproutText
+  static const PdfColor _greenLight = PdfColor.fromInt(0xFFDDF3EA); // sproutSoft
+  static const PdfColor _orange = PdfColor.fromInt(0xFFB26A00); // warning
+  static const PdfColor _orangeLight = PdfColor.fromInt(0xFFFDF0D5); // warningLight
+  static const PdfColor _red = PdfColor.fromInt(0xFFC93A3A); // error
+  static const PdfColor _redLight = PdfColor.fromInt(0xFFFBE4E4); // errorLight
+  static const PdfColor _shadow = PdfColor.fromInt(0x220B2A33);
 
   // ── Data fetching ─────────────────────────────────────────────────────────
+
+  /// Runs one query; a failing section becomes an empty list (same behavior
+  /// as before) instead of failing the whole report.
+  static Future<List<Map<String, dynamic>>> _safe(
+    String label,
+    Future<List<Map<String, dynamic>>> query,
+  ) async {
+    try {
+      return await query;
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('Failed to fetch $label: $e\n$st');
+      return const [];
+    }
+  }
 
   static Future<AnalyticsDataModel> fetchAllData() async {
     final client = Supabase.instance.client;
     final adminName =
         client.auth.currentUser?.userMetadata?['name'] as String? ?? 'المشرف';
 
-    List<dynamic> volunteers = [];
-    try {
-      volunteers = await client
-          .from('users')
-          .select('*')
-          .inFilter('role', ['volunteer', 'user', 'suspended'])
-          .order('name');
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('Failed to fetch volunteers: $e');
-        debugPrint('Stack trace: $st');
-      }
-    }
-
-    List<dynamic> campaigns = [];
-    try {
-      campaigns = await client
-          .from('tasks')
-          .select('*')
-          .order('date', ascending: false);
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('Failed to fetch campaigns: $e\n$st');
-      }
-    }
-
-    List<dynamic> assignments = [];
-    try {
-      assignments = await client
-          .from('task_assignments')
-          .select(
-            '*, tasks(id, title, type, date, duration_hours, points), users!task_assignments_user_id_fkey(name)',
-          )
-          .order('assigned_at', ascending: false);
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('Failed to fetch assignments: $e\n$st');
-      }
-    }
-
-    List<dynamic> reports = [];
-    try {
-      reports = await client
-          .from('task_reports')
-          .select('*, tasks(title), users!task_reports_user_id_fkey(name)')
-          .order('created_at', ascending: false);
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('Failed to fetch reports: $e\n$st');
-      }
-    }
-
-    List<dynamic> assessments = [];
-    try {
-      assessments = await client
-          .from('assessments')
-          .select(
-            '*, users!assessments_volunteer_id_fkey(name), admin:users!assessments_admin_id_fkey(name)',
-          )
-          .order('created_at', ascending: false);
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('Failed to fetch assessments: $e\n$st');
-      }
-    }
+    // Independent queries run in parallel; only the columns the report reads.
+    final results = await Future.wait([
+      _safe(
+        'volunteers',
+        client
+            .from('users')
+            .select(
+              'id, name, role, region, level, rating, total_hours, total_tasks, total_points, joined_at',
+            )
+            .inFilter('role', ['volunteer', 'user', 'suspended'])
+            .order('name'),
+      ),
+      _safe(
+        'campaigns',
+        client
+            .from('tasks')
+            .select('id, title, type, status, date, points')
+            .order('date', ascending: false),
+      ),
+      _safe(
+        'assignments',
+        client
+            .from('task_assignments')
+            .select(
+              'id, task_id, is_verified, verified_hours, assigned_at, tasks(id, title, type, date, duration_hours, points), users!task_assignments_user_id_fkey(name)',
+            )
+            .order('assigned_at', ascending: false),
+      ),
+      _safe(
+        'reports',
+        client
+            .from('task_reports')
+            .select(
+              'id, status, created_at, tasks(title), users!task_reports_user_id_fkey(name)',
+            )
+            .order('created_at', ascending: false),
+      ),
+      _safe(
+        'assessments',
+        client
+            .from('assessments')
+            .select(
+              'id, rating, created_at, users!assessments_volunteer_id_fkey(name), admin:users!assessments_admin_id_fkey(name)',
+            )
+            .order('created_at', ascending: false),
+      ),
+    ]);
 
     return AnalyticsDataModel(
       adminName: adminName,
-      volunteers: List<Map<String, dynamic>>.from(volunteers),
-      campaigns: List<Map<String, dynamic>>.from(campaigns),
-      assignments: List<Map<String, dynamic>>.from(assignments),
-      reports: List<Map<String, dynamic>>.from(reports),
-      assessments: List<Map<String, dynamic>>.from(assessments),
+      volunteers: results[0],
+      campaigns: results[1],
+      assignments: results[2],
+      reports: results[3],
+      assessments: results[4],
       generatedAt: DateTime.now(),
     );
   }
 
+  // ── Export (fetch → render → share) ───────────────────────────────────────
+
+  /// One-shot export used by Home and Profile. Throws
+  /// [AnalyticsExportException] with an Arabic message on failure.
+  static Future<void> exportAndShare() async {
+    final AnalyticsDataModel data;
+    try {
+      data = await fetchAllData();
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('Data fetch error: $e\n$st');
+      throw const AnalyticsExportException('فشل جلب البيانات');
+    }
+
+    final Uint8List bytes;
+    try {
+      bytes = await generate(data);
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('PDF creation error: $e\n$st');
+      throw const AnalyticsExportException('فشل إنشاء ملف PDF');
+    }
+
+    try {
+      final dir = await getTemporaryDirectory();
+      final file = File(
+        '${dir.path}/T3afy_Analytics_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      );
+      await file.writeAsBytes(bytes);
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/pdf')],
+        subject: 'التقرير التحليلي الشامل — تعافي',
+        sharePositionOrigin: const Rect.fromLTWH(0, 0, 10, 10),
+      );
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('File save / share error: $e\n$st');
+      throw const AnalyticsExportException('فشل حفظ الملف');
+    }
+  }
+
   // ── PDF generation ────────────────────────────────────────────────────────
 
+  static Map<String, pw.Font>? _fonts;
+
+  /// Brand font (IBM Plex Sans Arabic — includes the Arabic presentation forms
+  /// the pdf package shapes into). Parsed once per app run.
   static Future<Map<String, pw.Font>> loadFonts() async {
-    return {
-      'regular': pw.Font.ttf(
-        await rootBundle.load('assets/fonts/Cairo-Regular.ttf'),
-      ),
-      'bold': pw.Font.ttf(
-        await rootBundle.load('assets/fonts/Cairo-Bold.ttf'),
-      ),
-      'semiBold': pw.Font.ttf(
-        await rootBundle.load('assets/fonts/Cairo-SemiBold.ttf'),
-      ),
-      'medium': pw.Font.ttf(
-        await rootBundle.load('assets/fonts/Cairo-Medium.ttf'),
-      ),
+    final cached = _fonts;
+    if (cached != null) return cached;
+    Future<pw.Font> load(String weight) async => pw.Font.ttf(
+      await rootBundle.load('assets/fonts/IBMPlexSansArabic-$weight.ttf'),
+    );
+    final loaded = await Future.wait([
+      load('Regular'),
+      load('Bold'),
+      load('SemiBold'),
+      load('Medium'),
+    ]);
+    return _fonts = {
+      'regular': loaded[0],
+      'bold': loaded[1],
+      'semiBold': loaded[2],
+      'medium': loaded[3],
     };
   }
 
+  /// Builds and serializes the report off the UI isolate (layout + `save()`
+  /// of a multi-page RTL document takes long enough to drop frames). The data
+  /// maps and parsed fonts are plain Dart objects, so they copy into the
+  /// worker isolate; if that ever fails we render on the main isolate.
   static Future<Uint8List> generate(
     AnalyticsDataModel data, {
     Map<String, pw.Font>? fonts,
   }) async {
+    final fontMap = fonts ?? await loadFonts();
+    try {
+      return await Isolate.run(() => _render(data, fontMap));
+    } catch (e) {
+      if (kDebugMode) debugPrint('PDF isolate failed, rendering inline: $e');
+      return _render(data, fontMap);
+    }
+  }
+
+  static Future<Uint8List> _render(
+    AnalyticsDataModel data,
+    Map<String, pw.Font> fontMap,
+  ) async {
     final pdf = pw.Document();
 
     try {
-      final fontMap = fonts ?? await loadFonts();
       final regular = fontMap['regular']!;
       final bold = fontMap['bold']!;
       final semiBold = fontMap['semiBold']!;
@@ -292,7 +365,6 @@ class AnalyticsPdfService {
       debugPrint('Generating fallback PDF...');
 
       final fallbackPdf = pw.Document();
-      final fontMap = fonts ?? await loadFonts();
       final regular = fontMap['regular']!;
       final bold = fontMap['bold']!;
       fallbackPdf.addPage(
@@ -415,7 +487,7 @@ class AnalyticsPdfService {
                     ),
                     boxShadow: [
                       const pw.BoxShadow(
-                        color: PdfColor.fromInt(0x22000000),
+                        color: _shadow,
                         blurRadius: 8,
                         offset: PdfPoint(0, 3),
                       ),
@@ -732,7 +804,7 @@ class AnalyticsPdfService {
                 'جارية',
                 '${data.activeCampaigns}',
                 _orange,
-                const PdfColor.fromInt(0xFFFEF9C3),
+                _orangeLight,
               ),
               pw.SizedBox(width: 8),
               _pillStat(
@@ -918,7 +990,7 @@ class AnalyticsPdfService {
                 'جدد هذا الشهر',
                 '${data.newVolunteersThisMonth}',
                 _orange,
-                const PdfColor.fromInt(0xFFFEF9C3),
+                _orangeLight,
               ),
             ],
           ),
@@ -1168,7 +1240,7 @@ class AnalyticsPdfService {
                 'معدل التحقق',
                 '${data.attendanceRate.toStringAsFixed(1)}%',
                 _orange,
-                const PdfColor.fromInt(0xFFFEF9C3),
+                _orangeLight,
               ),
               pw.SizedBox(width: 8),
               _pillStat(
@@ -1212,7 +1284,7 @@ class AnalyticsPdfService {
                     ? '${(data.totalVerifiedHours / data.totalPlannedHours * 100).toStringAsFixed(1)}%'
                     : '-',
                 _orange,
-                const PdfColor.fromInt(0xFFFEF9C3),
+                _orangeLight,
               ),
               pw.SizedBox(width: 8),
               pw.Expanded(child: pw.SizedBox()),
@@ -1274,7 +1346,7 @@ class AnalyticsPdfService {
                 'قيد المراجعة',
                 '${data.pendingReports}',
                 _orange,
-                const PdfColor.fromInt(0xFFFEF9C3),
+                _orangeLight,
               ),
             ],
           ),
@@ -1333,7 +1405,7 @@ class AnalyticsPdfService {
                 'متوسط التقييم',
                 data.averageAssessmentRating.toStringAsFixed(1),
                 _orange,
-                const PdfColor.fromInt(0xFFFEF9C3),
+                _orangeLight,
               ),
               pw.SizedBox(width: 8),
               pw.Expanded(child: pw.SizedBox()),
