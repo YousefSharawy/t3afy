@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:t3afy/app/fcm_service.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/routes.dart';
@@ -27,6 +28,13 @@ class SplashCubit extends Cubit<SplashState> with SafeEmit<SplashState> {
       return;
     }
 
+    if (await _accountRemoved(userId)) {
+      await LocalAppStorage.clearUserSession();
+      await LocalAppStorage.clearAllCache();
+      safeEmit(SplashState.success(route: Routes.login));
+      return;
+    }
+
     // Token rotations were only tracked after an explicit login before; keep
     // tracking them for restored sessions too.
     FcmService.listenForTokenRefresh(userId);
@@ -35,5 +43,22 @@ class SplashCubit extends Cubit<SplashState> with SafeEmit<SplashState> {
         route: role == 'admin' ? Routes.adminHome : Routes.volunteerHome,
       ),
     );
+  }
+
+  /// True only when the server confirms the saved account no longer exists
+  /// (deleted by an admin). Offline or slow network keeps the session so the
+  /// app still opens with cached data.
+  Future<bool> _accountRemoved(String userId) async {
+    try {
+      final row = await Supabase.instance.client
+          .from('users')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 4));
+      return row == null;
+    } catch (_) {
+      return false;
+    }
   }
 }
