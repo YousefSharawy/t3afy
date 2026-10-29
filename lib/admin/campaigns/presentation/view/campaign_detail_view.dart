@@ -47,6 +47,10 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
     final cubit = context.read<CampaignDetailCubit>();
     return Scaffold(
       backgroundColor: ColorManager.canvas,
+      // No fields on this page; the alert sheet lifts itself above the
+      // keyboard. Resizing here would squeeze the fixed hero + tabs behind the
+      // sheet and overflow on short screens.
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -66,7 +70,10 @@ class _CampaignDetailViewState extends State<CampaignDetailView>
                   } else if (state is CampaignDetailActionError) {
                     Toast.error.show(context, title: state.message);
                   } else if (state is CampaignDetailAlertSent) {
-                    Toast.success.show(context, title: 'تم إرسال التنبيه بنجاح');
+                    Toast.success.show(
+                      context,
+                      title: 'تم إرسال التنبيه بنجاح',
+                    );
                   }
                 },
                 buildWhen: (previous, current) =>

@@ -47,6 +47,7 @@ class HomeActionCard extends StatelessWidget {
             style: AppText.label(color: ColorManager.ink),
             textAlign: TextAlign.center,
             maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

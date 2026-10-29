@@ -7,10 +7,12 @@ import 'package:t3afy/volunteer/tasks/domain/entities/home_enities.dart';
 import 'package:t3afy/volunteer/tasks/domain/use_cases/get_completed_tasks.dart';
 import 'package:t3afy/volunteer/tasks/domain/use_cases/get_tasks_stats.dart';
 import 'package:t3afy/volunteer/tasks/domain/use_cases/get_today_tasks.dart';
+import 'package:t3afy/volunteer/tasks/domain/use_cases/get_upcoming_tasks.dart';
 import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_state.dart';
 
 class TasksCubit extends Cubit<TasksState> with SafeEmit<TasksState> {
   final GetTodayTasks _getTodayTasks;
+  final GetUpcomingTasks _getUpcomingTasks;
   final GetCompletedTasks _getCompletedTasks;
   final GetTasksStats _getTasksStats;
   final RealtimeHub _hub = RealtimeHub();
@@ -19,8 +21,12 @@ class TasksCubit extends Cubit<TasksState> with SafeEmit<TasksState> {
   /// ignored instead of reloading this screen on every device.
   Set<String> _taskIds = const {};
 
-  TasksCubit(this._getTodayTasks, this._getCompletedTasks, this._getTasksStats)
-    : super(const TasksState.initial()) {
+  TasksCubit(
+    this._getTodayTasks,
+    this._getUpcomingTasks,
+    this._getCompletedTasks,
+    this._getTasksStats,
+  ) : super(const TasksState.initial()) {
     final userId = LocalAppStorage.getUserId();
     if (userId != null) _subscribeToRealtime(userId);
   }
@@ -78,8 +84,9 @@ class TasksCubit extends Cubit<TasksState> with SafeEmit<TasksState> {
       return false;
     }
 
-    final (todayResult, completedResult, statsResult) = await (
+    final (todayResult, upcomingResult, completedResult, statsResult) = await (
       _getTodayTasks(userId, skipCache: skipCache),
+      _getUpcomingTasks(userId, skipCache: skipCache),
       _getCompletedTasks(userId, skipCache: skipCache),
       _getTasksStats(userId, skipCache: skipCache),
     ).wait;
@@ -99,6 +106,11 @@ class TasksCubit extends Cubit<TasksState> with SafeEmit<TasksState> {
       (_) => current is TasksStateLoaded ? current.todayTasks : <TaskEntity>[],
       (t) => t,
     );
+    final upcomingTasks = upcomingResult.fold(
+      (_) =>
+          current is TasksStateLoaded ? current.upcomingTasks : <TaskEntity>[],
+      (t) => t,
+    );
     final completedTasks = completedResult.fold(
       (_) =>
           current is TasksStateLoaded ? current.completedTasks : <TaskEntity>[],
@@ -106,12 +118,14 @@ class TasksCubit extends Cubit<TasksState> with SafeEmit<TasksState> {
     );
     _taskIds = {
       ...todayTasks.map((t) => t.id),
+      ...upcomingTasks.map((t) => t.id),
       ...completedTasks.map((t) => t.id),
     };
 
     safeEmit(
       TasksState.loaded(
         todayTasks: todayTasks,
+        upcomingTasks: upcomingTasks,
         completedTasks: completedTasks,
         stats: TasksStatsEntity(
           todayCount: todayTasks.length,
@@ -121,7 +135,9 @@ class TasksCubit extends Cubit<TasksState> with SafeEmit<TasksState> {
         selectedTab: current is TasksStateLoaded ? current.selectedTab : 0,
       ),
     );
-    return todayResult.isRight() && completedResult.isRight();
+    return todayResult.isRight() &&
+        upcomingResult.isRight() &&
+        completedResult.isRight();
   }
 
   void switchTab(int index) {

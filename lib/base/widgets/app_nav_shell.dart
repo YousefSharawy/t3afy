@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -218,12 +220,17 @@ class _NavBar extends StatelessWidget {
   // Fixed item geometry so the sliding pill lines up with every icon.
   static double get _pillW => 52.w;
   static double get _pillH => 30.h;
-  static double get _labelH => 16.h;
+  // Never shorter than one line of the label at the current text scale, so
+  // short screens (.h shrinks) don't clip it.
+  static double _labelH(BuildContext context) => math.max(
+    16.h,
+    MediaQuery.textScalerOf(context).scale(FontSize.s11) * 1.3,
+  );
   static double get _gap => 2.h;
 
   @override
   Widget build(BuildContext context) {
-    final contentH = _pillH + _gap + _labelH;
+    final contentH = _pillH + _gap + _labelH(context);
     return Container(
       height: AppNavShell.barHeight,
       padding: EdgeInsets.symmetric(horizontal: Space.xs),
@@ -320,7 +327,7 @@ class _NavItem extends StatelessWidget {
             ),
             SizedBox(height: _NavBar._gap),
             SizedBox(
-              height: _NavBar._labelH,
+              height: _NavBar._labelH(context),
               child: Text(
                 destination.label,
                 maxLines: 1,

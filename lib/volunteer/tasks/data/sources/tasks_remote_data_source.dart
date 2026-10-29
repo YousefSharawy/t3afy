@@ -5,6 +5,10 @@ abstract class TasksRemoteDataSource {
     String userId, {
     bool skipCache = false,
   });
+  Future<List<TaskModel>> getUpcomingTasks(
+    String userId, {
+    bool skipCache = false,
+  });
   Future<List<TaskModel>> getCompletedTasks(
     String userId, {
     bool skipCache = false,

@@ -137,19 +137,25 @@ class AppMapPreview extends StatelessWidget {
                 PositionedDirectional(
                   top: Space.vs,
                   start: Space.s,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Space.s,
-                      vertical: Space.vxs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: ColorManager.surface,
-                      borderRadius: BorderRadius.circular(Radii.chip),
-                      boxShadow: AppShadows.card,
-                    ),
-                    child: Text(
-                      label!,
-                      style: AppText.label(color: ColorManager.ink),
+                  end: Space.s,
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Space.s,
+                        vertical: Space.vxs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ColorManager.surface,
+                        borderRadius: BorderRadius.circular(Radii.chip),
+                        boxShadow: AppShadows.card,
+                      ),
+                      child: Text(
+                        label!,
+                        style: AppText.label(color: ColorManager.ink),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                 ),

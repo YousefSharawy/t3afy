@@ -65,7 +65,13 @@ class AppPageHeader extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (subtitle != null) Text(subtitle!, style: AppText.label()),
+                  if (subtitle != null)
+                    Text(
+                      subtitle!,
+                      style: AppText.label(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                 ],
               ),
             ),

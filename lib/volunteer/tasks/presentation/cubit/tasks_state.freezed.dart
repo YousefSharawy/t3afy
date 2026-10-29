@@ -128,12 +128,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<TaskEntity> todayTasks,  List<TaskEntity> completedTasks,  TasksStatsEntity stats,  int selectedTab)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<TaskEntity> todayTasks,  List<TaskEntity> upcomingTasks,  List<TaskEntity> completedTasks,  TasksStatsEntity stats,  int selectedTab)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case TasksStateInitial() when initial != null:
 return initial();case TasksStateLoading() when loading != null:
 return loading();case TasksStateLoaded() when loaded != null:
-return loaded(_that.todayTasks,_that.completedTasks,_that.stats,_that.selectedTab);case TasksStateError() when error != null:
+return loaded(_that.todayTasks,_that.upcomingTasks,_that.completedTasks,_that.stats,_that.selectedTab);case TasksStateError() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -152,12 +152,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<TaskEntity> todayTasks,  List<TaskEntity> completedTasks,  TasksStatsEntity stats,  int selectedTab)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<TaskEntity> todayTasks,  List<TaskEntity> upcomingTasks,  List<TaskEntity> completedTasks,  TasksStatsEntity stats,  int selectedTab)  loaded,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case TasksStateInitial():
 return initial();case TasksStateLoading():
 return loading();case TasksStateLoaded():
-return loaded(_that.todayTasks,_that.completedTasks,_that.stats,_that.selectedTab);case TasksStateError():
+return loaded(_that.todayTasks,_that.upcomingTasks,_that.completedTasks,_that.stats,_that.selectedTab);case TasksStateError():
 return error(_that.message);case _:
   throw StateError('Unexpected subclass');
 
@@ -175,12 +175,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<TaskEntity> todayTasks,  List<TaskEntity> completedTasks,  TasksStatsEntity stats,  int selectedTab)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<TaskEntity> todayTasks,  List<TaskEntity> upcomingTasks,  List<TaskEntity> completedTasks,  TasksStatsEntity stats,  int selectedTab)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case TasksStateInitial() when initial != null:
 return initial();case TasksStateLoading() when loading != null:
 return loading();case TasksStateLoaded() when loaded != null:
-return loaded(_that.todayTasks,_that.completedTasks,_that.stats,_that.selectedTab);case TasksStateError() when error != null:
+return loaded(_that.todayTasks,_that.upcomingTasks,_that.completedTasks,_that.stats,_that.selectedTab);case TasksStateError() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -257,7 +257,7 @@ String toString() {
 
 
 class TasksStateLoaded implements TasksState {
-  const TasksStateLoaded({required final  List<TaskEntity> todayTasks, required final  List<TaskEntity> completedTasks, required this.stats, this.selectedTab = 0}): _todayTasks = todayTasks,_completedTasks = completedTasks;
+  const TasksStateLoaded({required final  List<TaskEntity> todayTasks, required final  List<TaskEntity> upcomingTasks, required final  List<TaskEntity> completedTasks, required this.stats, this.selectedTab = 0}): _todayTasks = todayTasks,_upcomingTasks = upcomingTasks,_completedTasks = completedTasks;
   
 
  final  List<TaskEntity> _todayTasks;
@@ -265,6 +265,13 @@ class TasksStateLoaded implements TasksState {
   if (_todayTasks is EqualUnmodifiableListView) return _todayTasks;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_todayTasks);
+}
+
+ final  List<TaskEntity> _upcomingTasks;
+ List<TaskEntity> get upcomingTasks {
+  if (_upcomingTasks is EqualUnmodifiableListView) return _upcomingTasks;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_upcomingTasks);
 }
 
  final  List<TaskEntity> _completedTasks;
@@ -287,16 +294,16 @@ $TasksStateLoadedCopyWith<TasksStateLoaded> get copyWith => _$TasksStateLoadedCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TasksStateLoaded&&const DeepCollectionEquality().equals(other._todayTasks, _todayTasks)&&const DeepCollectionEquality().equals(other._completedTasks, _completedTasks)&&(identical(other.stats, stats) || other.stats == stats)&&(identical(other.selectedTab, selectedTab) || other.selectedTab == selectedTab));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TasksStateLoaded&&const DeepCollectionEquality().equals(other._todayTasks, _todayTasks)&&const DeepCollectionEquality().equals(other._upcomingTasks, _upcomingTasks)&&const DeepCollectionEquality().equals(other._completedTasks, _completedTasks)&&(identical(other.stats, stats) || other.stats == stats)&&(identical(other.selectedTab, selectedTab) || other.selectedTab == selectedTab));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_todayTasks),const DeepCollectionEquality().hash(_completedTasks),stats,selectedTab);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_todayTasks),const DeepCollectionEquality().hash(_upcomingTasks),const DeepCollectionEquality().hash(_completedTasks),stats,selectedTab);
 
 @override
 String toString() {
-  return 'TasksState.loaded(todayTasks: $todayTasks, completedTasks: $completedTasks, stats: $stats, selectedTab: $selectedTab)';
+  return 'TasksState.loaded(todayTasks: $todayTasks, upcomingTasks: $upcomingTasks, completedTasks: $completedTasks, stats: $stats, selectedTab: $selectedTab)';
 }
 
 
@@ -307,7 +314,7 @@ abstract mixin class $TasksStateLoadedCopyWith<$Res> implements $TasksStateCopyW
   factory $TasksStateLoadedCopyWith(TasksStateLoaded value, $Res Function(TasksStateLoaded) _then) = _$TasksStateLoadedCopyWithImpl;
 @useResult
 $Res call({
- List<TaskEntity> todayTasks, List<TaskEntity> completedTasks, TasksStatsEntity stats, int selectedTab
+ List<TaskEntity> todayTasks, List<TaskEntity> upcomingTasks, List<TaskEntity> completedTasks, TasksStatsEntity stats, int selectedTab
 });
 
 
@@ -324,9 +331,10 @@ class _$TasksStateLoadedCopyWithImpl<$Res>
 
 /// Create a copy of TasksState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? todayTasks = null,Object? completedTasks = null,Object? stats = null,Object? selectedTab = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? todayTasks = null,Object? upcomingTasks = null,Object? completedTasks = null,Object? stats = null,Object? selectedTab = null,}) {
   return _then(TasksStateLoaded(
 todayTasks: null == todayTasks ? _self._todayTasks : todayTasks // ignore: cast_nullable_to_non_nullable
+as List<TaskEntity>,upcomingTasks: null == upcomingTasks ? _self._upcomingTasks : upcomingTasks // ignore: cast_nullable_to_non_nullable
 as List<TaskEntity>,completedTasks: null == completedTasks ? _self._completedTasks : completedTasks // ignore: cast_nullable_to_non_nullable
 as List<TaskEntity>,stats: null == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
 as TasksStatsEntity,selectedTab: null == selectedTab ? _self.selectedTab : selectedTab // ignore: cast_nullable_to_non_nullable

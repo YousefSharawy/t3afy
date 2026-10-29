@@ -71,7 +71,7 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
     final state = cubit.state;
 
     state.maybeWhen(
-      loaded: (_, _, _, _) {
+      loaded: (_, _, _, _, _) {
         _lastCheckedPhase = 2; // Mark as processed ONLY when state is loaded
         Future.delayed(const Duration(milliseconds: 300), () {
           if (!mounted) return;
@@ -110,7 +110,7 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
           keyTarget: _tabSwitcherKey,
           title: 'تبديل العرض',
           description:
-              'تنقل بين مهام اليوم والمهام المنجزة. المهام المنجزة تظهر مع ساعاتها ونقاطها',
+              'تنقل بين مهام اليوم والمهام القادمة والمنجزة. افتح أي مهمة لترى موقعها وأوراقها وتفاصيلها',
           contentAlign: ContentAlign.bottom,
           stepIndex: 2,
           totalSteps: 2,
@@ -160,7 +160,7 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
       bottom: false,
       child: Column(
         children: [
-          const AppPageHeader(title: 'المهام اليومية', reserveBellSpace: true),
+          const AppPageHeader(title: 'المهام', reserveBellSpace: true),
           Expanded(
             child: BlocConsumer<TasksCubit, TasksState>(
               listenWhen: (prev, curr) =>
@@ -189,7 +189,11 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
 
   Widget _content(TasksStateLoaded state) {
     final tab = state.selectedTab;
-    final tasks = tab == 0 ? state.todayTasks : state.completedTasks;
+    final tasks = switch (tab) {
+      0 => state.todayTasks,
+      1 => state.upcomingTasks,
+      _ => state.completedTasks,
+    };
     final stats = state.stats;
 
     return RefreshIndicator(
@@ -243,9 +247,10 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
                   SizedBox(height: Space.vl),
                   AppSegmentedTabs(
                     key: _tabSwitcherKey,
-                    labels: const ['مهام اليوم', 'المنجزة'],
+                    labels: const ['اليوم', 'القادمة', 'المنجزة'],
                     counts: [
                       state.todayTasks.length,
+                      state.upcomingTasks.length,
                       state.completedTasks.length,
                     ],
                     selectedIndex: tab,
@@ -263,17 +268,23 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
                 padding: EdgeInsets.only(
                   bottom: AppNavShell.bottomInset(context),
                 ),
-                child: tab == 0
-                    ? const AppEmptyState(
-                        icon: AppIcons.tasks,
-                        title: 'لا توجد مهام اليوم',
-                        message: 'عندما تُسند إليك مهمة لهذا اليوم ستظهر هنا',
-                      )
-                    : const AppEmptyState(
-                        icon: AppIcons.done,
-                        title: 'لا توجد مهام منجزة بعد',
-                        message: 'المهام التي تنجزها ستظهر هنا مع نقاطها',
-                      ),
+                child: switch (tab) {
+                  0 => const AppEmptyState(
+                    icon: AppIcons.tasks,
+                    title: 'لا توجد مهام اليوم',
+                    message: 'عندما تُسند إليك مهمة لهذا اليوم ستظهر هنا',
+                  ),
+                  1 => const AppEmptyState(
+                    icon: AppIcons.calendar,
+                    title: 'لا توجد مهام قادمة',
+                    message: 'المهام المُسندة إليك في الأيام القادمة ستظهر هنا',
+                  ),
+                  _ => const AppEmptyState(
+                    icon: AppIcons.done,
+                    title: 'لا توجد مهام منجزة بعد',
+                    message: 'المهام التي تنجزها ستظهر هنا مع نقاطها',
+                  ),
+                },
               ),
             )
           else
@@ -291,7 +302,7 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
                   return VolunteerTaskCard(
                     key: index == 0 ? _taskCardKey : ValueKey(task.id),
                     task: task,
-                    showDate: tab == 1,
+                    showDate: tab != 0,
                     onTap: () => _openTask(task),
                   );
                 },

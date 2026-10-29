@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/tokens.dart';
 import 'package:t3afy/app/resources/values_manager.dart';
@@ -125,18 +126,23 @@ class SkeletonList extends StatelessWidget {
 
 class SkeletonCard extends StatelessWidget {
   const SkeletonCard({super.key, this.height});
+
+  /// Minimum height in design pixels (scaled like the rest of the layout).
+  /// The card grows past it if its content needs more room, so it can never
+  /// overflow on short screens or with larger text.
   final double? height;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: height ?? AppHeight.s100,
+      constraints: BoxConstraints(minHeight: (height ?? 100).h),
       padding: EdgeInsets.all(Space.l),
       decoration: BoxDecoration(
         color: ColorManager.surface,
         borderRadius: BorderRadius.circular(Radii.card),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -148,10 +154,18 @@ class SkeletonCard extends StatelessWidget {
               SkeletonBox(width: AppWidth.s56, height: AppHeight.s20),
             ],
           ),
-          const Spacer(),
-          SkeletonBox(width: AppWidth.s200, height: AppHeight.s12),
+          SizedBox(height: Space.vm),
+          FractionallySizedBox(
+            alignment: AlignmentDirectional.centerStart,
+            widthFactor: 0.6,
+            child: SkeletonBox(height: AppHeight.s12),
+          ),
           SizedBox(height: Space.vs),
-          SkeletonBox(width: AppWidth.s120, height: AppHeight.s12),
+          FractionallySizedBox(
+            alignment: AlignmentDirectional.centerStart,
+            widthFactor: 0.35,
+            child: SkeletonBox(height: AppHeight.s12),
+          ),
         ],
       ),
     );

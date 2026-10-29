@@ -249,7 +249,14 @@ class _LiveMapTabState extends State<LiveMapTab> {
                               : ColorManager.inkFaint,
                         ),
                         SizedBox(width: Space.s),
-                        Expanded(child: Text(pin.name, style: AppText.body())),
+                        Expanded(
+                          child: Text(
+                            pin.name,
+                            style: AppText.body(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                         if (pin.recordedAt != null)
                           Text(
                             DateAr.timeAgo(pin.recordedAt),

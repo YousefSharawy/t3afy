@@ -44,7 +44,7 @@ class ReportForm extends StatelessWidget {
         Space.gutter,
         Space.vs,
         Space.gutter,
-        Space.vl + MediaQuery.viewInsetsOf(context).bottom,
+        Space.vl,
       ),
       child: Form(
         key: formKey,

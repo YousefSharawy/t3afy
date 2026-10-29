@@ -27,43 +27,53 @@ class AppEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final circle = compact ? 48.0 : 64.0;
+    // Centered when it fits; scrolls instead of overflowing when it's the
+    // whole body of a short tab/sheet. A SingleChildScrollView (not a
+    // LayoutBuilder) so it also works in ListViews and inside
+    // SliverFillRemaining(hasScrollBody: false), which asks for intrinsics.
     return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: Space.xl,
-          vertical: compact ? Space.vl : Space.vxl,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: circle,
-              height: circle,
-              decoration: const BoxDecoration(
-                color: ColorManager.brandSoft,
-                shape: BoxShape.circle,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Space.xl,
+            vertical: compact ? Space.vl : Space.vxl,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: circle,
+                height: circle,
+                decoration: const BoxDecoration(
+                  color: ColorManager.brandSoft,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: ColorManager.brand,
+                  size: circle * 0.46,
+                ),
               ),
-              child: Icon(icon, color: ColorManager.brand, size: circle * 0.46),
-            ),
-            SizedBox(height: Space.vm),
-            Text(
-              title,
-              style: compact ? AppText.bodyStrong() : AppText.title(),
-              textAlign: TextAlign.center,
-            ),
-            if (message != null) ...[
-              SizedBox(height: Space.vxs),
+              SizedBox(height: Space.vm),
               Text(
-                message!,
-                style: AppText.label(),
+                title,
+                style: compact ? AppText.bodyStrong() : AppText.title(),
                 textAlign: TextAlign.center,
               ),
+              if (message != null) ...[
+                SizedBox(height: Space.vxs),
+                Text(
+                  message!,
+                  style: AppText.label(),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              if (actionLabel != null && onAction != null) ...[
+                SizedBox(height: Space.vl),
+                OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
+              ],
             ],
-            if (actionLabel != null && onAction != null) ...[
-              SizedBox(height: Space.vl),
-              OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
-            ],
-          ],
+          ),
         ),
       ),
     );

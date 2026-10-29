@@ -9,6 +9,7 @@ abstract class TasksState with _$TasksState {
   const factory TasksState.loading() = TasksStateLoading;
   const factory TasksState.loaded({
     required List<TaskEntity> todayTasks,
+    required List<TaskEntity> upcomingTasks,
     required List<TaskEntity> completedTasks,
     required TasksStatsEntity stats,
     @Default(0) int selectedTab,

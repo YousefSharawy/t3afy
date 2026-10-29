@@ -45,7 +45,14 @@ class MyApp extends StatelessWidget {
               value: SystemUiOverlayStyle.dark.copyWith(
                 statusBarColor: Colors.transparent,
               ),
-              child: child ?? const SizedBox.shrink(),
+              // Text already scales with the screen (.sp); cap the system
+              // font-size setting on top of that so fixed-height rows, chips
+              // and the nav bar can't overflow at the largest sizes.
+              child: MediaQuery.withClampedTextScaling(
+                minScaleFactor: 0.9,
+                maxScaleFactor: 1.2,
+                child: child ?? const SizedBox.shrink(),
+              ),
             ),
           );
         },

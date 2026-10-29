@@ -10,7 +10,11 @@ import 'package:t3afy/base/widgets/app_card.dart';
 import 'package:t3afy/base/widgets/status_badge.dart';
 
 class VolunteerCard extends StatelessWidget {
-  const VolunteerCard({super.key, required this.volunteer, required this.onTap});
+  const VolunteerCard({
+    super.key,
+    required this.volunteer,
+    required this.onTap,
+  });
 
   final AdminVolunteerEntity volunteer;
   final VoidCallback onTap;
@@ -74,20 +78,29 @@ class VolunteerCard extends StatelessWidget {
                 SizedBox(height: Space.vxs),
                 Row(
                   children: [
-                    Flexible(
-                      child: MetaItem(
-                        icon: AppIcons.done,
-                        text: '${v.totalTasks} مهمة',
+                    // Expanded (not Spacer) so the counts get all the free
+                    // width instead of a third each, and only ellipsize when
+                    // the row is genuinely full.
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: MetaItem(
+                              icon: AppIcons.done,
+                              text: '${v.totalTasks} مهمة',
+                            ),
+                          ),
+                          SizedBox(width: Space.m),
+                          Flexible(
+                            child: MetaItem(
+                              icon: AppIcons.hours,
+                              text: '${v.totalHours} ساعة',
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(width: Space.m),
-                    Flexible(
-                      child: MetaItem(
-                        icon: AppIcons.hours,
-                        text: '${v.totalHours} ساعة',
-                      ),
-                    ),
-                    const Spacer(),
+                    SizedBox(width: Space.s),
                     Icon(
                       hasRating ? AppIcons.star : AppIcons.unstar,
                       size: AppSizes.iconS,

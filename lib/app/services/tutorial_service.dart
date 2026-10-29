@@ -477,13 +477,9 @@ class TutorialService {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Radii.card),
       ),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          Space.xl,
-          Space.vxl,
-          Space.xl,
-          Space.vl,
-        ),
+      // Scrolls instead of overflowing on short screens / large text.
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(Space.xl, Space.vxl, Space.xl, Space.vl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -494,7 +490,11 @@ class TutorialService {
                 color: iconBackground,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: iconColor, size: AppSizes.iconL + Space.xs),
+              child: Icon(
+                icon,
+                color: iconColor,
+                size: AppSizes.iconL + Space.xs,
+              ),
             ),
             SizedBox(height: Space.vl),
             Text(title, textAlign: TextAlign.center, style: AppText.headline()),

@@ -119,11 +119,15 @@ class StatusBadge extends StatelessWidget {
             ),
           ),
           SizedBox(width: Space.xs + 1),
-          Text(
-            style.label,
-            style: getSemiBoldStyle(
-              color: style.textColor,
-              fontSize: compact ? FontSize.s11 : FontSize.s12,
+          Flexible(
+            child: Text(
+              style.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: getSemiBoldStyle(
+                color: style.textColor,
+                fontSize: compact ? FontSize.s11 : FontSize.s12,
+              ),
             ),
           ),
         ],

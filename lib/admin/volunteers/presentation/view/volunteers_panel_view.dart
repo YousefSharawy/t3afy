@@ -64,7 +64,8 @@ class _VolunteersPanelViewState extends State<VolunteersPanelView> {
     if (svc.currentPhase != 2 || !svc.isAdmin) return;
     if (_lastCheckedPhase == 2) return; // Already showed phase 2
 
-    _lastCheckedPhase = 2; // Mark immediately since volunteers list renders synchronously
+    _lastCheckedPhase =
+        2; // Mark immediately since volunteers list renders synchronously
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) _showVolunteersTutorial();
     });
@@ -95,8 +96,14 @@ class _VolunteersPanelViewState extends State<VolunteersPanelView> {
             Expanded(
               child: BlocConsumer<VolunteersCubit, VolunteersState>(
                 listenWhen: (p, c) =>
-                    c.maybeWhen(loaded: (_, _, _, _, _) => true, orElse: () => false) &&
-                    !p.maybeWhen(loaded: (_, _, _, _, _) => true, orElse: () => false),
+                    c.maybeWhen(
+                      loaded: (_, _, _, _, _) => true,
+                      orElse: () => false,
+                    ) &&
+                    !p.maybeWhen(
+                      loaded: (_, _, _, _, _) => true,
+                      orElse: () => false,
+                    ),
                 listener: (context, state) {
                   WidgetsBinding.instance.addPostFrameCallback(
                     (_) => _checkTutorial(),
@@ -410,7 +417,9 @@ class _PanelSkeleton extends StatelessWidget {
         Expanded(
           child: SkeletonList(
             count: 6,
-            itemHeight: AppHeight.s90,
+            // Design px: SkeletonCard scales it itself (AppHeight would
+            // double-scale).
+            itemHeight: 90,
             padding: EdgeInsets.fromLTRB(
               Space.gutter,
               Space.vm,

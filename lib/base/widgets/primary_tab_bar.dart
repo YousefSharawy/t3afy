@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/font_manager.dart';
@@ -20,7 +22,9 @@ class PrimaryTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: AppHeight.s44,
+      // Never below the 44 px design height: .h shrinks on short screens
+      // while the .sp label doesn't.
+      height: math.max(AppHeight.s44, 44),
       padding: EdgeInsets.all(Space.xs),
       decoration: BoxDecoration(
         color: ColorManager.natural100,

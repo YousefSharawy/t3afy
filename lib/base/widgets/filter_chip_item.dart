@@ -57,11 +57,17 @@ class FilterChipItem extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                label,
-                style: selected
-                    ? getSemiBoldStyle(fontSize: FontSize.s13, color: fg)
-                    : getMediumStyle(fontSize: FontSize.s13, color: fg),
+              // Flexible (loose) so a long label ellipsizes inside a Wrap
+              // instead of overflowing; still sizes to content in scroll rows.
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: selected
+                      ? getSemiBoldStyle(fontSize: FontSize.s13, color: fg)
+                      : getMediumStyle(fontSize: FontSize.s13, color: fg),
+                ),
               ),
               if (count != null) ...[
                 SizedBox(width: Space.xs),

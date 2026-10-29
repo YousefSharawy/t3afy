@@ -122,6 +122,11 @@ class PerformanceBarChart extends StatelessWidget {
             ? count * minSlot
             : constraints.maxWidth;
         final barWidth = (chartWidth / count * 0.55).clamp(12.w, 36.w);
+        // Axis labels are caption text (sp × system text scale); a fixed .h
+        // reserve is too short on squat screens at large text sizes.
+        final labelReserve =
+            Space.vxs +
+            MediaQuery.textScalerOf(context).scale(FontSize.s11) * 1.8;
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(
@@ -183,7 +188,7 @@ class PerformanceBarChart extends StatelessWidget {
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 28.h,
+                      reservedSize: labelReserve < 28.h ? 28.h : labelReserve,
                       getTitlesWidget: (value, meta) {
                         final idx = value.toInt();
                         if (idx < 0 || idx >= bars.length) {

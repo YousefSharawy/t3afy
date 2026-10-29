@@ -76,6 +76,10 @@ class _VolunteerDetailsViewState extends State<VolunteerDetailsView>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorManager.canvas,
+      // No fields on this page; the action sheets lift themselves above the
+      // keyboard. Resizing here would squeeze the fixed header + tabs behind
+      // the sheet and overflow on short screens.
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [
@@ -92,9 +96,9 @@ class _VolunteerDetailsViewState extends State<VolunteerDetailsView>
                   if (state is VolunteerDetailsError) {
                     return ErrorState(
                       message: state.message,
-                      onRetry: () => context
-                          .read<VolunteerDetailsCubit>()
-                          .load(widget.volunteerId),
+                      onRetry: () => context.read<VolunteerDetailsCubit>().load(
+                        widget.volunteerId,
+                      ),
                     );
                   }
                   final details = state.detailsOrNull;
@@ -142,7 +146,8 @@ class _ExportAction extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<VolunteerDetailsCubit, VolunteerDetailsState>(
       buildWhen: (p, c) =>
-          (p is VolunteerDetailsExporting) != (c is VolunteerDetailsExporting) ||
+          (p is VolunteerDetailsExporting) !=
+              (c is VolunteerDetailsExporting) ||
           (p.detailsOrNull == null) != (c.detailsOrNull == null),
       builder: (context, state) {
         final details = state.detailsOrNull;
@@ -166,9 +171,8 @@ class _ExportAction extends StatelessWidget {
         return IconButton(
           tooltip: 'تصدير بيانات المتطوع PDF',
           icon: const Icon(AppIcons.pdf, color: ColorManager.brand),
-          onPressed: () => context
-              .read<VolunteerDetailsCubit>()
-              .exportVolunteerPdf(details),
+          onPressed: () =>
+              context.read<VolunteerDetailsCubit>().exportVolunteerPdf(details),
         );
       },
     );

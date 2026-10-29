@@ -150,6 +150,7 @@ class _RegisterViewState extends State<RegisterView> {
       builder: (ctx) => PopScope(
         canPop: false,
         child: AlertDialog(
+          scrollable: true,
           backgroundColor: ColorManager.surface,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
@@ -162,12 +163,7 @@ class _RegisterViewState extends State<RegisterView> {
             Space.xl,
             Space.vl,
           ),
-          actionsPadding: EdgeInsets.fromLTRB(
-            Space.xl,
-            0,
-            Space.xl,
-            Space.vxl,
-          ),
+          actionsPadding: EdgeInsets.fromLTRB(Space.xl, 0, Space.xl, Space.vxl),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -387,7 +383,9 @@ class _RegisterViewState extends State<RegisterView> {
             button: true,
             label: 'رفع صورة الهوية',
             child: Material(
-              color: _idError ? ColorManager.errorLight : ColorManager.brandSoft,
+              color: _idError
+                  ? ColorManager.errorLight
+                  : ColorManager.brandSoft,
               borderRadius: BorderRadius.circular(Radii.input),
               child: InkWell(
                 onTap: _pickFile,
@@ -399,10 +397,17 @@ class _RegisterViewState extends State<RegisterView> {
                     strokeWidth: 1.5,
                     dashPattern: const [6, 4],
                   ),
-                  child: SizedBox(
+                  // Min height, not fixed: .h shrinks on short screens while
+                  // the .sp text inside doesn't.
+                  child: Container(
                     width: double.infinity,
-                    height: boxHeight,
+                    constraints: BoxConstraints(minHeight: boxHeight),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Space.l,
+                      vertical: Space.vm,
+                    ),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
@@ -415,6 +420,7 @@ class _RegisterViewState extends State<RegisterView> {
                         SizedBox(height: Space.vs),
                         Text(
                           'اضغط لرفع صورة الهوية',
+                          textAlign: TextAlign.center,
                           style: getSemiBoldStyle(
                             fontSize: FontSize.s14,
                             color: ColorManager.ink,
@@ -423,6 +429,7 @@ class _RegisterViewState extends State<RegisterView> {
                         SizedBox(height: Space.vxs),
                         Text(
                           'JPG أو PNG أو PDF — حد أقصى 5 ميجا',
+                          textAlign: TextAlign.center,
                           style: AppText.caption(),
                         ),
                       ],
@@ -440,10 +447,14 @@ class _RegisterViewState extends State<RegisterView> {
                 child: _isPdf
                     ? Container(
                         width: double.infinity,
-                        height: boxHeight,
+                        constraints: BoxConstraints(minHeight: boxHeight),
                         color: ColorManager.surfaceSunken,
-                        padding: EdgeInsets.symmetric(horizontal: Space.l),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Space.l,
+                          vertical: Space.vm,
+                        ),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(

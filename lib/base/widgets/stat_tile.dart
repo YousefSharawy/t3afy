@@ -103,11 +103,15 @@ class StatTile extends StatelessWidget {
                 ),
               ),
               SizedBox(width: Space.xxs),
-              Text(
-                trend!,
-                style: getNumericStyle(
-                  fontSize: FontSize.s11,
-                  color: _trendColor,
+              Flexible(
+                child: Text(
+                  trend!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: getNumericStyle(
+                    fontSize: FontSize.s11,
+                    color: _trendColor,
+                  ),
                 ),
               ),
             ],

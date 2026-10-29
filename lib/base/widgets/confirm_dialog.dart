@@ -21,6 +21,8 @@ Future<bool> showConfirmDialog(
     builder: (ctx) => Directionality(
       textDirection: TextDirection.rtl,
       child: AlertDialog(
+        // Scrolls instead of overflowing on short screens / large text.
+        scrollable: true,
         backgroundColor: ColorManager.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,

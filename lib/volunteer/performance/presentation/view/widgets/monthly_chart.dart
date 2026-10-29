@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:t3afy/app/resources/app_icons.dart';
@@ -34,7 +36,9 @@ class MonthlyChart extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      height: 220.h,
+      // Not below 220 design px: .h shrinks on short screens but the .sp
+      // title/labels inside don't, which squeezed the bars into overflow.
+      height: math.max(220, 220.h),
       padding: EdgeInsets.all(Space.l),
       decoration: BoxDecoration(
         color: ColorManager.surface,

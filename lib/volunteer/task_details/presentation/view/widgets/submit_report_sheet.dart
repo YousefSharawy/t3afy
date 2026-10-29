@@ -111,70 +111,77 @@ class _SubmitReportSheetState extends State<SubmitReportSheet> {
             Toast.error.show(context, title: state.message);
           }
         },
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+        // Lift the sheet above the keyboard so the scroll viewport ends at
+        // the keyboard and the focused field is scrolled into view.
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(context).bottom,
           ),
-          decoration: BoxDecoration(
-            color: ColorManager.surface,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(Radii.sheet),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.92,
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ReportFormHeader(
-                title: 'رفع تقرير',
-                subtitle: widget.taskTitle,
-                onClose: () => Navigator.of(context).maybePop(),
+            decoration: BoxDecoration(
+              color: ColorManager.surface,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(Radii.sheet),
               ),
-              Flexible(
-                child: BlocBuilder<ReportCubit, ReportState>(
-                  builder: (context, state) {
-                    if (state is ReportStateCheckingExisting ||
-                        state is ReportStateInitial) {
-                      return Padding(
-                        padding: EdgeInsets.all(Space.gutter),
-                        child: Skeleton(
-                          child: Column(
-                            children: [
-                              SkeletonBox(height: 110, radius: Radii.input),
-                              SizedBox(height: Space.vl),
-                              SkeletonBox(height: 72, radius: Radii.input),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                    if (state is ReportStateExistingFound) {
-                      return SingleChildScrollView(
-                        padding: EdgeInsets.fromLTRB(
-                          Space.gutter,
-                          Space.vs,
-                          Space.gutter,
-                          Space.vxl,
-                        ),
-                        child: ExistingReportView(report: state.report),
-                      );
-                    }
-                    return ReportForm(
-                      formKey: _formKey,
-                      summaryCtrl: _summaryCtrl,
-                      challengesCtrl: _challengesCtrl,
-                      attendeesCtrl: _attendeesCtrl,
-                      materialsCtrl: _materialsCtrl,
-                      notesCtrl: _notesCtrl,
-                      rating: _rating,
-                      isSubmitting: state is ReportStateLoading,
-                      onRatingChanged: (v) => setState(() => _rating = v),
-                      onSubmit: _submit,
-                      onCancel: () => Navigator.of(context).maybePop(),
-                    );
-                  },
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ReportFormHeader(
+                  title: 'رفع تقرير',
+                  subtitle: widget.taskTitle,
+                  onClose: () => Navigator.of(context).maybePop(),
                 ),
-              ),
-            ],
+                Flexible(
+                  child: BlocBuilder<ReportCubit, ReportState>(
+                    builder: (context, state) {
+                      if (state is ReportStateCheckingExisting ||
+                          state is ReportStateInitial) {
+                        return Padding(
+                          padding: EdgeInsets.all(Space.gutter),
+                          child: Skeleton(
+                            child: Column(
+                              children: [
+                                SkeletonBox(height: 110, radius: Radii.input),
+                                SizedBox(height: Space.vl),
+                                SkeletonBox(height: 72, radius: Radii.input),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                      if (state is ReportStateExistingFound) {
+                        return SingleChildScrollView(
+                          padding: EdgeInsets.fromLTRB(
+                            Space.gutter,
+                            Space.vs,
+                            Space.gutter,
+                            Space.vxl,
+                          ),
+                          child: ExistingReportView(report: state.report),
+                        );
+                      }
+                      return ReportForm(
+                        formKey: _formKey,
+                        summaryCtrl: _summaryCtrl,
+                        challengesCtrl: _challengesCtrl,
+                        attendeesCtrl: _attendeesCtrl,
+                        materialsCtrl: _materialsCtrl,
+                        notesCtrl: _notesCtrl,
+                        rating: _rating,
+                        isSubmitting: state is ReportStateLoading,
+                        onRatingChanged: (v) => setState(() => _rating = v),
+                        onSubmit: _submit,
+                        onCancel: () => Navigator.of(context).maybePop(),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

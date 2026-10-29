@@ -27,6 +27,22 @@ class TasksImplRepository implements TasksRepository {
   }
 
   @override
+  Future<Either<Failture, List<TaskEntity>>> getUpcomingTasks(
+    String userId, {
+    bool skipCache = false,
+  }) async {
+    try {
+      final models = await _dataSource.getUpcomingTasks(
+        userId,
+        skipCache: skipCache,
+      );
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on Failture catch (f) {
+      return Left(f);
+    }
+  }
+
+  @override
   Future<Either<Failture, List<TaskEntity>>> getCompletedTasks(
     String userId, {
     bool skipCache = false,

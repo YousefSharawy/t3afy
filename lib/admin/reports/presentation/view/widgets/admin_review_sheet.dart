@@ -85,13 +85,17 @@ class _AdminReviewSheetState extends State<AdminReviewSheet> {
   Widget build(BuildContext context) {
     final report = widget.report;
     final isPending = report.status == 'pending';
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.only(bottom: keyboard),
       child: DraggableScrollableSheet(
         initialChildSize: 0.85,
         maxChildSize: 0.95,
-        minChildSize: 0.5,
+        // Sizes are fractions of the space above the keyboard. With it open,
+        // half of that can't hold the header + action bar on short screens,
+        // so the sheet stays tall while typing.
+        minChildSize: keyboard > 0 ? 0.85 : 0.5,
         expand: false,
         builder: (context, scrollCtrl) => Container(
           decoration: BoxDecoration(

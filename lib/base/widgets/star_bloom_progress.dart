@@ -97,11 +97,20 @@ class _StarBloomProgressState extends State<StarBloomProgress>
                   builder: (context, _) {
                     final t = Curves.easeOutBack.transform(_bloom.value);
                     if (_bloom.value == 0) {
-                      return Text(
-                        widget.label ?? '${(v * 100).round()}%',
-                        style: getNumericStyle(
-                          fontSize: widget.size * 0.24,
-                          color: ColorManager.ink,
+                      // Scales down inside the ring instead of spilling out
+                      // (long labels / large text scale).
+                      return Padding(
+                        padding: EdgeInsets.all(widget.stroke + 2),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            widget.label ?? '${(v * 100).round()}%',
+                            maxLines: 1,
+                            style: getNumericStyle(
+                              fontSize: widget.size * 0.24,
+                              color: ColorManager.ink,
+                            ),
+                          ),
                         ),
                       );
                     }

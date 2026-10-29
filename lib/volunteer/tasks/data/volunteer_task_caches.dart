@@ -6,6 +6,7 @@ import 'package:t3afy/app/local_storage.dart';
 /// in flight, or realtime may be unavailable).
 Future<void> invalidateVolunteerTaskCaches(String userId) => Future.wait([
   LocalAppStorage.invalidateCacheByPrefix('today_tasks_${userId}_'),
+  LocalAppStorage.invalidateCacheByPrefix('upcoming_tasks_${userId}_'),
   LocalAppStorage.invalidateCacheByPrefix('vol_home_today_${userId}_'),
   LocalAppStorage.invalidateCache('completed_tasks_$userId'),
   LocalAppStorage.invalidateCache('tasks_stats_$userId'),

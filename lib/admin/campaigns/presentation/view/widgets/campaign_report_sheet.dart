@@ -19,15 +19,25 @@ class CampaignReportSheet extends StatelessWidget {
     final time = DateAr.timeRange(detail.timeStart, detail.timeEnd);
     final rows = <(IconData, String, String)>[
       (AppIcons.target, 'الهدف المحدد', '${detail.targetBeneficiaries} مستفيد'),
-      (AppIcons.done, 'تم الوصول إليهم', '${detail.reachedBeneficiaries} مستفيد'),
-      (AppIcons.calendar, 'تاريخ الحملة', date == null ? detail.date : DateAr.date(date)),
+      (
+        AppIcons.done,
+        'تم الوصول إليهم',
+        '${detail.reachedBeneficiaries} مستفيد',
+      ),
+      (
+        AppIcons.calendar,
+        'تاريخ الحملة',
+        date == null ? detail.date : DateAr.date(date),
+      ),
       (AppIcons.alarm, 'الوقت', time.isEmpty ? '—' : time),
       (AppIcons.location, 'المنطقة', detail.locationName ?? '—'),
       (AppIcons.group2, 'فريق العمل', '${detail.members.length} متطوع'),
     ];
 
     return Container(
-      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.9),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+      ),
       padding: EdgeInsets.fromLTRB(
         Space.gutter,
         Space.vm,
@@ -65,8 +75,8 @@ class CampaignReportSheet extends StatelessWidget {
                     Icon(r.$1, size: AppSizes.iconM, color: ColorManager.brand),
                     SizedBox(width: Space.s),
                     Text(r.$2, style: AppText.label()),
-                    const Spacer(),
-                    Flexible(
+                    SizedBox(width: Space.m),
+                    Expanded(
                       child: Text(
                         r.$3,
                         textAlign: TextAlign.end,
@@ -90,7 +100,11 @@ class CampaignReportSheet extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(AppIcons.done2, size: AppSizes.iconM, color: ColorManager.sprout),
+                      Icon(
+                        AppIcons.done2,
+                        size: AppSizes.iconM,
+                        color: ColorManager.sprout,
+                      ),
                       SizedBox(width: Space.s),
                       Expanded(child: Text(o.title, style: AppText.body())),
                     ],

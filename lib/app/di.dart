@@ -33,6 +33,7 @@ import 'package:t3afy/volunteer/tasks/domain/repository/tasks_repository.dart';
 import 'package:t3afy/volunteer/tasks/domain/use_cases/get_completed_tasks.dart';
 import 'package:t3afy/volunteer/tasks/domain/use_cases/get_tasks_stats.dart';
 import 'package:t3afy/volunteer/tasks/domain/use_cases/get_today_tasks.dart';
+import 'package:t3afy/volunteer/tasks/domain/use_cases/get_upcoming_tasks.dart';
 import 'package:t3afy/volunteer/tasks/presentation/cubit/tasks_cubit.dart';
 import 'package:t3afy/volunteer/task_details/data/sources/task_details_remote_data_source.dart';
 import 'package:t3afy/volunteer/task_details/data/sources/task_details_impl_remote_data_source.dart';
@@ -213,6 +214,9 @@ Future<void> initAppModule() async {
   // Use cases
   getIt.registerLazySingleton(() => GetTodayTasks(getIt<TasksRepository>()));
   getIt.registerLazySingleton(
+    () => GetUpcomingTasks(getIt<TasksRepository>()),
+  );
+  getIt.registerLazySingleton(
     () => GetCompletedTasks(getIt<TasksRepository>()),
   );
   getIt.registerLazySingleton(() => GetTasksStats(getIt<TasksRepository>()));
@@ -221,6 +225,7 @@ Future<void> initAppModule() async {
   getIt.registerFactory(
     () => TasksCubit(
       getIt<GetTodayTasks>(),
+      getIt<GetUpcomingTasks>(),
       getIt<GetCompletedTasks>(),
       getIt<GetTasksStats>(),
     ),

@@ -14,10 +14,25 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
   Future<List<TaskModel>> getTodayTasks(
     String userId, {
     bool skipCache = false,
+  }) => _openTasks(userId, upcoming: false, skipCache: skipCache);
+
+  @override
+  Future<List<TaskModel>> getUpcomingTasks(
+    String userId, {
+    bool skipCache = false,
+  }) => _openTasks(userId, upcoming: true, skipCache: skipCache);
+
+  /// Assigned, not yet completed/missed tasks: today's ([upcoming] false) or
+  /// every later date ([upcoming] true, soonest first).
+  Future<List<TaskModel>> _openTasks(
+    String userId, {
+    required bool upcoming,
+    required bool skipCache,
   }) async {
     try {
       final today = DateTime.now().toIso8601String().split('T')[0];
-      final cacheKey = 'today_tasks_${userId}_$today';
+      final cacheKey =
+          '${upcoming ? 'upcoming_tasks' : 'today_tasks'}_${userId}_$today';
       if (!skipCache) {
         final cached = LocalAppStorage.getCache(cacheKey);
         if (cached != null) {
@@ -29,7 +44,7 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
         }
       }
 
-      final response = await _client
+      var query = _client
           .from('task_assignments')
           .select('''
           status,
@@ -41,9 +56,15 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
             users!tasks_created_by_fkey(id, name)
           )
         ''')
-          .eq('user_id', userId)
-          .eq('tasks.date', today)
-          .not('status', 'in', '("completed","missed")');
+          .eq('user_id', userId);
+      query = upcoming
+          ? query.gt('tasks.date', today)
+          : query.eq('tasks.date', today);
+      final response = await query.not(
+        'status',
+        'in',
+        '("completed","missed")',
+      );
 
       final tasks = response.map<TaskModel>((row) {
         final task = row['tasks'] as Map<String, dynamic>;
@@ -74,6 +95,11 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
           'assignment_status': assignmentStatus,
         });
       }).toList();
+      if (upcoming) {
+        tasks.sort(
+          (a, b) => '${a.date} ${a.timeStart}'.compareTo('${b.date} ${b.timeStart}'),
+        );
+      }
 
       await LocalAppStorage.setCache(
         cacheKey,

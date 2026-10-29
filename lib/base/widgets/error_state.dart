@@ -20,8 +20,9 @@ class ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Scrolls instead of overflowing on short screens / large text.
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: Space.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,

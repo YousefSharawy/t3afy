@@ -7,6 +7,10 @@ abstract class TasksRepository {
     String userId, {
     bool skipCache = false,
   });
+  Future<Either<Failture, List<TaskEntity>>> getUpcomingTasks(
+    String userId, {
+    bool skipCache = false,
+  });
   Future<Either<Failture, List<TaskEntity>>> getCompletedTasks(
     String userId, {
     bool skipCache = false,
