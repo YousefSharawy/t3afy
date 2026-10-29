@@ -1,16 +1,33 @@
-# t3afy
+# تعافي — T3afy
 
-A new Flutter project.
+Team and volunteer management app for addiction-recovery field work. It has two
+roles: **مشرف** (supervisor/admin) and **متطوع** (volunteer).
 
-## Getting Started
+## Run it
 
-This project is a starting point for a Flutter application.
+Requirements: Flutter 3.47+ and Dart 3.13+.
 
-A few resources to get you started if this is your first Flutter project:
+1. Copy `.env.example` to `.env`, then fill in the Supabase project URL and anon key.
+2. Install dependencies and run:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+   ```bash
+   flutter pub get
+   flutter run
+   ```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Build the Android APK
+
+```bash
+flutter build apk --release
+```
+
+The APK is written to `build/app/outputs/flutter-apk/app-release.apk`.
+
+## Backend
+
+The backend is Supabase (Postgres, Realtime and Storage). Two SQL scripts in
+`supabase/` set it up:
+
+- `realtime_publication.sql` turns on live updates between the supervisor and
+  volunteer apps.
+- `missed_tasks_migration.sql` marks overdue tasks as missed.

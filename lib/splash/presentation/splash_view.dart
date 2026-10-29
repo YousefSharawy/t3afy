@@ -50,6 +50,13 @@ class _SplashViewState extends State<SplashView>
     0.68,
     Curves.easeOutBack,
   );
+  // Separate from [_logo]: easeOutBack overshoots past 1, which is fine for
+  // scale but not for opacity or a chained curve.
+  late final Animation<double> _logoFade = _interval(
+    0.38,
+    0.56,
+    Curves.easeOut,
+  );
   late final Animation<double> _glint = _interval(0.62, 0.92, Curves.easeOut);
   late final Animation<double> _name = _interval(
     0.66,
@@ -138,12 +145,7 @@ class _SplashViewState extends State<SplashView>
                     width: logoSize,
                     height: logoSize,
                     child: FadeTransition(
-                      opacity: _logo.drive(
-                        Tween(
-                          begin: 0.0,
-                          end: 1.0,
-                        ).chain(CurveTween(curve: const Interval(0, 0.6))),
-                      ),
+                      opacity: _logoFade,
                       child: ScaleTransition(
                         scale: _logo.drive(Tween(begin: 0.82, end: 1.0)),
                         child: Image.asset(
