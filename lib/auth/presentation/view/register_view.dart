@@ -131,13 +131,12 @@ class _RegisterViewState extends State<RegisterView> {
     if (_formKey.currentState?.validate() ?? false) {
       if (isVolunteer && _idFile == null) return;
       setState(() => _sending = true);
-      // Gender is validated but not sent: register() / the datasource have no
-      // gender field yet.
       cubit.register(
         email: _emailController.text.trim(),
         name: _nameController.text.trim(),
         password: _passwordController.text.trim(),
         role: isVolunteer ? 'user' : 'admin',
+        gender: cubit.gender,
         idFile: _idFile,
       );
     }

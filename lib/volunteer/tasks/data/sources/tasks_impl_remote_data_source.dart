@@ -30,7 +30,7 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
     required bool skipCache,
   }) async {
     try {
-      final today = DateTime.now().toIso8601String().split('T')[0];
+      final today = riyadhToday();
       final cacheKey =
           '${upcoming ? 'upcoming_tasks' : 'today_tasks'}_${userId}_$today';
       if (!skipCache) {
@@ -97,7 +97,8 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
       }).toList();
       if (upcoming) {
         tasks.sort(
-          (a, b) => '${a.date} ${a.timeStart}'.compareTo('${b.date} ${b.timeStart}'),
+          (a, b) =>
+              '${a.date} ${a.timeStart}'.compareTo('${b.date} ${b.timeStart}'),
         );
       }
 
@@ -144,10 +145,22 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
             )
           ''')
           .eq('user_id', userId)
-          .inFilter('status', ['completed', 'missed'])
           .order('assigned_at', ascending: false);
 
-      final tasks = response.map<TaskModel>((row) {
+      // History = finished assignments plus every past-dated one. Missed is
+      // only resolved client-side (nothing flips the row once the deadline
+      // passes), so filtering on the raw status alone made past tasks that
+      // were never checked in / reported vanish from every tab.
+      final today = riyadhToday();
+      final rows = response.where((row) {
+        final raw = row['status'] as String?;
+        final date = (row['tasks'] as Map<String, dynamic>)['date'] as String?;
+        return raw == 'completed' ||
+            raw == 'missed' ||
+            (date != null && date.compareTo(today) < 0);
+      });
+
+      final tasks = rows.map<TaskModel>((row) {
         final task = row['tasks'] as Map<String, dynamic>;
         final adminUser = task['users'] as Map<String, dynamic>?;
         final adminName = adminUser?['name'] as String? ?? '';
@@ -168,7 +181,11 @@ class TasksImplRemoteDataSource implements TasksRemoteDataSource {
               : ((task['supervisor_name'] as String?) ?? ''),
           'supervisor_phone': (task['supervisor_phone'] as String?) ?? '',
           'status': resolvedTaskStatus,
-          'assignment_status': row['status'] as String? ?? 'completed',
+          'assignment_status': resolveAssignmentStatus(
+            row['status'] as String? ?? 'completed',
+            task['date'] as String?,
+            task['time_end'] as String?,
+          ),
         });
       }).toList();
 

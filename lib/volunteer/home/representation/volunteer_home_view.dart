@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:t3afy/auth/presentation/cubit/auth_cubit.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
@@ -93,7 +94,15 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
       Routes.taskDetails,
       extra: task.id,
     );
-    if (changed == true && mounted) cubit.refresh();
+    if (!mounted) return;
+    // Check-in/out on that screen drops the task caches without popping a
+    // result, so a cache-first reload picks those writes up too.
+    final userId = LocalAppStorage.getUserId();
+    if (changed == true) {
+      cubit.refresh();
+    } else if (userId != null) {
+      cubit.loadHome(userId);
+    }
   }
 
   void _onLoaded() {
@@ -151,7 +160,13 @@ class _VolunteerHomeViewState extends State<VolunteerHomeView> {
                   loaded: (_, _, _) => _onLoaded(),
                   error: (message) {
                     if (message == HomeCubit.suspendedError) {
-                      LocalAppStorage.clearUserSession();
+                      // Full logout (presence, push token, cached data), not
+                      // just the session keys.
+                      Toast.error.show(
+                        context,
+                        title: 'تم تعليق حسابك، تواصل مع الإدارة',
+                      );
+                      context.read<AuthCubit>().logout();
                       context.go(Routes.login);
                     }
                   },

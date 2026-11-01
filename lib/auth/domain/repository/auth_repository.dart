@@ -12,6 +12,7 @@ abstract class AuthRepository {
     required String name,
     required String password,
     required String role,
+    String? gender,
     File? idFile,
   });
   Future<Either<Failture, void>> logout();

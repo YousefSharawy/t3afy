@@ -9,6 +9,7 @@ import 'package:t3afy/admin/campaigns/domain/usecases/get_campaign_detail_usecas
 import 'package:t3afy/admin/campaigns/domain/usecases/create_campaign_usecase.dart';
 import 'package:t3afy/admin/campaigns/domain/usecases/update_campaign_usecase.dart';
 import 'package:t3afy/app/local_storage.dart';
+import 'package:t3afy/app/ui_utiles.dart';
 import 'package:t3afy/core/data/safe_emit.dart';
 part 'create_campaign_state.dart';
 
@@ -193,6 +194,17 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState>
       final existingStatus = detail.status == 'done'
           ? 'completed'
           : detail.status;
+      // Only a real manual override turns the switch on. A campaign that is
+      // completed simply because its time passed must stay editable: with the
+      // switch pre-ticked, moving it to a future date still saved 'completed'.
+      final autoStatus = detail.timeStart != null && detail.timeEnd != null
+          ? resolveNewCampaignStatus(
+              detail.date,
+              detail.timeStart!,
+              detail.timeEnd!,
+              false,
+            )
+          : null;
       safeEmit(
         CreateCampaignReady(
           volunteers: List.from(_volunteers),
@@ -201,7 +213,8 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState>
           selectedType: campaignTypes.contains(detail.type)
               ? detail.type
               : campaignTypes.first,
-          isForceCompleted: existingStatus == 'completed',
+          isForceCompleted:
+              existingStatus == 'completed' && autoStatus != 'completed',
           selectedDate: DateTime.tryParse(detail.date),
           timeStart: timeStart,
           timeEnd: timeEnd,
@@ -248,6 +261,8 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState>
   static String formatTime(TimeOfDay t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
+  /// Status from the campaign's Riyadh date/time window (task times are
+  /// Saudi wall-clock values, so the device time zone must not matter).
   static String resolveNewCampaignStatus(
     String date,
     String timeStart,
@@ -256,37 +271,10 @@ class CreateCampaignCubit extends Cubit<CreateCampaignState>
   ) {
     if (forceCompleted) return 'completed';
     final now = DateTime.now();
-    final campaignDate = DateTime.parse(date);
-    final today = DateTime(now.year, now.month, now.day);
-    final campDay = DateTime(
-      campaignDate.year,
-      campaignDate.month,
-      campaignDate.day,
-    );
-
-    if (campDay.isAfter(today)) return 'upcoming';
-    if (campDay.isBefore(today)) return 'completed';
-
-    // Same day — check time
-    final startParts = timeStart.split(':');
-    final endParts = timeEnd.split(':');
-    final startDT = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      int.parse(startParts[0]),
-      int.parse(startParts[1]),
-    );
-    final endDT = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      int.parse(endParts[0]),
-      int.parse(endParts[1]),
-    );
-
-    if (now.isBefore(startDT)) return 'upcoming';
-    if (now.isAfter(endDT)) return 'completed';
+    final start = taskInstant(date, timeStart, defaultHour: 0, defaultMinute: 0);
+    final end = taskInstant(date, timeEnd);
+    if (start != null && now.isBefore(start)) return 'upcoming';
+    if (end != null && now.isAfter(end)) return 'completed';
     return 'active';
   }
 

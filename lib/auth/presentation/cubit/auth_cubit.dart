@@ -56,6 +56,7 @@ class AuthCubit extends Cubit<AuthState> with SafeEmit<AuthState> {
     required String name,
     required String password,
     required String role,
+    String? gender,
     File? idFile,
   }) async {
     emit(const AuthState.loading());
@@ -64,6 +65,7 @@ class AuthCubit extends Cubit<AuthState> with SafeEmit<AuthState> {
       name: name,
       password: password,
       role: role,
+      gender: gender,
       idFile: idFile,
     );
     result.fold(

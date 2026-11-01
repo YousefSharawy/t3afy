@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -9,12 +11,24 @@ class ErrorHandler implements Exception {
   late Failture failture;
 
   ErrorHandler.handle(dynamic error) {
-    if (error is AuthException) {
+    // Already mapped further down (e.g. a validation message thrown by a
+    // datasource): keep its message instead of collapsing it to "unknown".
+    if (error is Failture) {
+      failture = error;
+    } else if (error is AuthException) {
       failture = _handleSupabaseAuthError(error);
     } else if (error is PostgrestException) {
       failture = _handleSupabasePostgrestError(error);
     } else if (error is StorageException) {
       failture = _handleSupabaseStorageError(error);
+    } else if (error is SocketException ||
+        error is HttpException ||
+        // package:http's ClientException (transitive dep, not importable
+        // here) is what Supabase throws when the device is offline.
+        '$error'.startsWith('ClientException')) {
+      failture = DataSource.noInternetConnection.toFailture();
+    } else if (error is TimeoutException) {
+      failture = DataSource.connectionTimeout.toFailture();
     } else {
       failture = DataSource.unknown.toFailture();
     }
@@ -62,6 +76,10 @@ class ErrorHandler implements Exception {
   Failture _handleSupabaseStorageError(StorageException error) {
     if (error.message.contains('not allowed')) {
       return DataSource.forbidden.toFailture();
+    }
+    if (error.statusCode == '413' ||
+        error.message.toLowerCase().contains('maximum allowed size')) {
+      return Failture(413, 'حجم الملف كبير جداً، اختر ملفاً أصغر');
     }
     return DataSource.unknown.toFailture();
   }
@@ -147,21 +165,23 @@ class ResponseCode {
   static const int cancel = -6;
 }
 
+/// Shown to the user as-is (toasts / error states), so they are Arabic.
 class ResponseMessage {
-  static const String success = 'success';
-  static const String noContent = 'noContent';
-  static const String badRequest = 'badRequest';
-  static const String forbidden = 'forbidden';
-  static const String unautorised = 'unautorised';
-  static const String notFound = 'notFound';
-  static const String internalServerError = 'internalServerError';
+  static const String success = 'تم بنجاح';
+  static const String noContent = 'لا توجد بيانات';
+  static const String badRequest = 'طلب غير صالح، تحقق من البيانات';
+  static const String forbidden = 'ليست لديك صلاحية لتنفيذ هذا الإجراء';
+  static const String unautorised = 'انتهت الجلسة، يرجى تسجيل الدخول مجدداً';
+  static const String notFound = 'العنصر غير موجود';
+  static const String internalServerError = 'حدث خطأ في الخادم، حاول لاحقاً';
 
-  static const String noInternetConnection = 'noInternetConnection';
-  static const String recieveTimeOut = 'recieveTimeOut';
-  static const String connectionTimeout = 'connectionTimeout';
-  static const String cacheError = 'cacheError';
-  static const String unknown = 'unknown';
-  static const String cancel = 'cancel';
+  static const String noInternetConnection =
+      'لا يوجد اتصال بالإنترنت، تحقق من الشبكة';
+  static const String recieveTimeOut = 'انتهت مهلة الاتصال، حاول مجدداً';
+  static const String connectionTimeout = 'انتهت مهلة الاتصال، حاول مجدداً';
+  static const String cacheError = 'تعذر قراءة البيانات المحفوظة';
+  static const String unknown = 'حدث خطأ غير متوقع، حاول مجدداً';
+  static const String cancel = 'تم إلغاء الطلب';
 }
 
 class ApiInternalState {

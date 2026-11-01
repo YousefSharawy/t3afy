@@ -123,12 +123,16 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
 
   Future<void> _pickDate() async {
     final cubit = context.read<CreateCampaignCubit>();
-    final current = cubit.form?.selectedDate;
+    final initial = cubit.form?.selectedDate ?? DateTime.now();
+    // Widen the range around an existing (old) date: showDatePicker asserts
+    // that initialDate lies within [firstDate, lastDate].
+    final first = DateTime(2024);
+    final last = DateTime(2030, 12, 31);
     final date = await showDatePicker(
       context: context,
-      initialDate: current ?? DateTime.now(),
-      firstDate: DateTime(2024),
-      lastDate: DateTime(2030),
+      initialDate: initial,
+      firstDate: initial.isBefore(first) ? initial : first,
+      lastDate: initial.isAfter(last) ? initial : last,
     );
     if (date != null) cubit.setDate(date);
   }
@@ -153,7 +157,13 @@ class _CreateCampaignViewState extends State<CreateCampaignView> {
   // ── Papers ────────────────────────────────────────────────────────────────
 
   Future<void> _pickPapers() async {
-    final picked = await _imagePicker.pickMultiImage();
+    // The campaign-papers bucket rejects files over 5 MB; full-size camera
+    // photos often exceed that and failed the whole save.
+    final picked = await _imagePicker.pickMultiImage(
+      imageQuality: 80,
+      maxWidth: 2048,
+      maxHeight: 2048,
+    );
     if (picked.isEmpty) return;
     setState(() {
       for (final xf in picked) {

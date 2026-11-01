@@ -5,25 +5,29 @@ import 'package:t3afy/app/resources/style_manager.dart';
 import 'package:t3afy/app/resources/tokens.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// canLaunchUrl() is false for https on Android 11+ unless the manifest
+/// declares `<queries>` for it (it doesn't), which made these buttons do
+/// nothing; so launch directly and fall back when a launch fails.
+Future<bool> _tryLaunch(String url) async {
+  try {
+    return await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
+  } catch (_) {
+    return false;
+  }
+}
+
 Future<void> openDirections(double lat, double lng) async {
   final googleMapsUrl =
       'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving';
   final appleMapsUrl = 'https://maps.apple.com/?daddr=$lat,$lng&dirflg=d';
   final geoUrl = 'geo:$lat,$lng?q=$lat,$lng';
 
-  if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-    await launchUrl(
-      Uri.parse(googleMapsUrl),
-      mode: LaunchMode.externalApplication,
-    );
-  } else if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
-    await launchUrl(
-      Uri.parse(appleMapsUrl),
-      mode: LaunchMode.externalApplication,
-    );
-  } else {
-    await launchUrl(Uri.parse(geoUrl), mode: LaunchMode.externalApplication);
-  }
+  if (await _tryLaunch(googleMapsUrl)) return;
+  if (await _tryLaunch(appleMapsUrl)) return;
+  await _tryLaunch(geoUrl);
 }
 
 class MapButton extends StatelessWidget {
@@ -69,12 +73,9 @@ class MapButton extends StatelessWidget {
     } else {
       final query = locationName ?? locationAddress ?? '';
       if (query.isEmpty) return;
-      final searchUrl = Uri.parse(
+      await _tryLaunch(
         'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}',
       );
-      if (await canLaunchUrl(searchUrl)) {
-        await launchUrl(searchUrl, mode: LaunchMode.externalApplication);
-      }
     }
   }
 }

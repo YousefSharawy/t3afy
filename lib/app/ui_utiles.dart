@@ -42,19 +42,43 @@ String resolveCampaignStatus(String rawStatus, String? date, String? timeEnd) {
 }
 
 String _resolveMissed(String rawStatus, String? date, String? timeEnd) {
-  if (date == null) return rawStatus;
-  try {
-    final d = DateTime.parse(date);
-    int endHour = 23, endMinute = 59;
-    if (timeEnd != null && timeEnd.contains(':')) {
-      final parts = timeEnd.split(':');
-      endHour = int.tryParse(parts[0]) ?? 23;
-      endMinute = int.tryParse(parts[1]) ?? 59;
-    }
-    final deadline = DateTime(d.year, d.month, d.day, endHour, endMinute);
-    if (DateTime.now().isAfter(deadline)) return 'missed';
-  } catch (_) {}
+  final deadline = taskInstant(date, timeEnd);
+  if (deadline != null && DateTime.now().isAfter(deadline)) return 'missed';
   return rawStatus;
+}
+
+/// Task dates/times are Saudi wall-clock values (Asia/Riyadh, UTC+3 all
+/// year, no DST). Comparing them with the device clock gave wrong results on
+/// phones set to another time zone.
+const Duration riyadhUtcOffset = Duration(hours: 3);
+
+/// Today's date in Riyadh as `yyyy-MM-dd` (matches the `tasks.date` column).
+String riyadhToday() => DateTime.now()
+    .toUtc()
+    .add(riyadhUtcOffset)
+    .toIso8601String()
+    .split('T')
+    .first;
+
+/// The absolute instant of a Riyadh [date] (`yyyy-MM-dd`) + [hhmm]
+/// (`HH:mm[:ss]`). A missing/invalid time falls back to [defaultHour]:
+/// [defaultMinute]. Returns null when [date] can't be parsed.
+DateTime? taskInstant(
+  String? date,
+  String? hhmm, {
+  int defaultHour = 23,
+  int defaultMinute = 59,
+}) {
+  if (date == null) return null;
+  final d = DateTime.tryParse(date);
+  if (d == null) return null;
+  var h = defaultHour, m = defaultMinute;
+  if (hhmm != null && hhmm.contains(':')) {
+    final parts = hhmm.split(':');
+    h = int.tryParse(parts[0]) ?? defaultHour;
+    m = int.tryParse(parts[1]) ?? defaultMinute;
+  }
+  return DateTime.utc(d.year, d.month, d.day, h, m).subtract(riyadhUtcOffset);
 }
 
 // import 'package:flutter/material.dart';

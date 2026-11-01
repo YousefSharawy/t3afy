@@ -15,6 +15,7 @@ class Register {
     required String name,
     required String password,
     required String role,
+    String? gender,
     File? idFile,
   }) {
     return _repository.register(
@@ -22,6 +23,7 @@ class Register {
       name: name,
       password: password,
       role: role,
+      gender: gender,
       idFile: idFile,
     );
   }

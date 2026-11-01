@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:t3afy/app/ui_utiles.dart';
 import 'package:t3afy/app/di.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
@@ -41,33 +42,36 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
     context.read<TaskDetailsCubit>().loadTaskDetails(widget.taskId);
   }
 
-  /// Returns true when:
-  /// - task has GPS coordinates
-  /// - current time is within 30 min before time_start until time_end
+  /// Returns true when the task has GPS coordinates and either:
+  /// - the volunteer already checked in (so check-out, which only opens at
+  ///   time_end, and the verified-hours summary stay reachable), or
+  /// - now is within 30 min before time_start until time_end (Riyadh time).
   bool _shouldShowCheckIn(TaskDetailsEntity task) {
     if (task.locationLat == null || task.locationLng == null) return false;
     if (task.locationLat == 0 && task.locationLng == 0) return false;
-    try {
-      final d = DateTime.parse(task.date);
-      final startParts = task.timeStart.split(':');
-      final endParts = task.timeEnd.split(':');
-      final startHour = int.tryParse(startParts[0]) ?? 0;
-      final startMin = int.tryParse(startParts[1]) ?? 0;
-      final endHour = int.tryParse(endParts[0]) ?? 23;
-      final endMin = int.tryParse(endParts[1]) ?? 59;
-      final windowStart = DateTime(
-        d.year,
-        d.month,
-        d.day,
-        startHour,
-        startMin,
-      ).subtract(const Duration(minutes: 30));
-      final windowEnd = DateTime(d.year, d.month, d.day, endHour, endMin);
-      final now = DateTime.now();
-      return now.isAfter(windowStart) && now.isBefore(windowEnd);
-    } catch (_) {
+    if (task.checkedInAt != null) return true;
+    // Nothing left to check in to: stopped by the admin, or already
+    // completed / reported without a GPS check-in.
+    const closed = {'cancelled', 'paused', 'completed'};
+    if (closed.contains(task.status) ||
+        const {
+          'completed',
+          'pending_review',
+          'missed',
+        }.contains(task.assignmentStatus)) {
       return false;
     }
+    final start = taskInstant(
+      task.date,
+      task.timeStart,
+      defaultHour: 0,
+      defaultMinute: 0,
+    );
+    final end = taskInstant(task.date, task.timeEnd);
+    if (start == null || end == null) return false;
+    final now = DateTime.now();
+    return now.isAfter(start.subtract(const Duration(minutes: 30))) &&
+        now.isBefore(end);
   }
 
   Future<void> _refresh() async {
@@ -149,6 +153,7 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
                   taskId: task.id,
                   taskLat: task.locationLat!,
                   taskLng: task.locationLng!,
+                  taskEnd: taskInstant(task.date, task.timeEnd),
                   dataSource: CheckInImplDataSource(),
                   checkedInAt: task.checkedInAt,
                   checkedOutAt: task.checkedOutAt,
@@ -157,7 +162,9 @@ class _TaskDetailsViewState extends State<TaskDetailsView> {
                 child: BlocListener<LocationCubit, LocationState>(
                   listener: (context, s) {
                     final cubit = context.read<TaskDetailsCubit>();
-                    if (s is LocationCheckedIn) cubit.applyCheckIn(s.checkedInAt);
+                    if (s is LocationCheckedIn) {
+                      cubit.applyCheckIn(s.checkedInAt);
+                    }
                     if (s is LocationCheckedOut) {
                       cubit.applyCheckOut(
                         s.checkedInAt,

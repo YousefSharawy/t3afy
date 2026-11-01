@@ -21,6 +21,10 @@ class TasksCubit extends Cubit<TasksState> with SafeEmit<TasksState> {
   /// ignored instead of reloading this screen on every device.
   Set<String> _taskIds = const {};
 
+  /// Bumped per fetch so a slower, older response never overwrites a newer
+  /// one (realtime can start a second refresh while the first is in flight).
+  int _fetchSeq = 0;
+
   TasksCubit(
     this._getTodayTasks,
     this._getUpcomingTasks,
@@ -84,6 +88,7 @@ class TasksCubit extends Cubit<TasksState> with SafeEmit<TasksState> {
       return false;
     }
 
+    final seq = ++_fetchSeq;
     final (todayResult, upcomingResult, completedResult, statsResult) = await (
       _getTodayTasks(userId, skipCache: skipCache),
       _getUpcomingTasks(userId, skipCache: skipCache),
@@ -91,6 +96,7 @@ class TasksCubit extends Cubit<TasksState> with SafeEmit<TasksState> {
       _getTasksStats(userId, skipCache: skipCache),
     ).wait;
 
+    if (seq != _fetchSeq) return true;
     final stats = statsResult.fold((_) => null, (s) => s);
     if (stats == null) {
       if (!silent) {

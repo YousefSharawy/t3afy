@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:t3afy/app/failture.dart';
 import 'package:t3afy/app/local_storage.dart';
 import 'package:t3afy/core/data/safe_emit.dart';
 import 'package:t3afy/volunteer/task_details/data/sources/check_in_data_source.dart';
@@ -16,6 +17,7 @@ class LocationCubit extends Cubit<LocationState> with SafeEmit<LocationState> {
     required this.taskLat,
     required this.taskLng,
     required this.dataSource,
+    this.taskEnd,
     DateTime? checkedInAt,
     DateTime? checkedOutAt,
     double? verifiedHours,
@@ -28,6 +30,10 @@ class LocationCubit extends Cubit<LocationState> with SafeEmit<LocationState> {
   final double taskLat;
   final double taskLng;
   final CheckInDataSource dataSource;
+
+  /// Scheduled end of the task. Check-out stays possible after it (e.g. the
+  /// app was closed at the deadline), but verified hours stop counting there.
+  final DateTime? taskEnd;
 
   static const double _checkInRadiusMeters = 200.0;
 
@@ -187,7 +193,13 @@ class LocationCubit extends Cubit<LocationState> with SafeEmit<LocationState> {
         emit(LocationError('تعذر تحديد موقعك. حاول مرة أخرى'));
       }
     } catch (e) {
-      if (!isClosed) emit(LocationError(e.toString()));
+      // Datasource errors are [Failture]s; toString() showed
+      // "Instance of 'Failture'" on the card.
+      if (!isClosed) {
+        emit(
+          LocationError(e is Failture ? e.message : 'حدث خطأ، حاول مرة أخرى'),
+        );
+      }
     }
   }
 
@@ -202,8 +214,11 @@ class LocationCubit extends Cubit<LocationState> with SafeEmit<LocationState> {
 
       final checkedInAt = _checkedInAt ?? DateTime.now();
       final now = DateTime.now();
+      final end = taskEnd;
+      final countedUntil = end != null && now.isAfter(end) ? end : now;
+      final minutes = countedUntil.difference(checkedInAt).inMinutes;
       final verifiedHours =
-          (now.difference(checkedInAt).inMinutes / 60.0 * 10).round() / 10.0;
+          ((minutes < 0 ? 0 : minutes) / 60.0 * 10).round() / 10.0;
 
       final userId = LocalAppStorage.getUserId() ?? '';
       await dataSource.checkOut(
@@ -223,7 +238,13 @@ class LocationCubit extends Cubit<LocationState> with SafeEmit<LocationState> {
         emit(LocationError('تعذر تحديد موقعك. حاول مرة أخرى'));
       }
     } catch (e) {
-      if (!isClosed) emit(LocationError(e.toString()));
+      // Datasource errors are [Failture]s; toString() showed
+      // "Instance of 'Failture'" on the card.
+      if (!isClosed) {
+        emit(
+          LocationError(e is Failture ? e.message : 'حدث خطأ، حاول مرة أخرى'),
+        );
+      }
     }
   }
 

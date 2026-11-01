@@ -12,6 +12,14 @@ import '../../../app/failture.dart';
 class AuthImplRemoteDataSource implements AuthRemoteDateSource {
   SupabaseClient get _client => Supabase.instance.client;
 
+  /// Case-insensitive exact match: `_` and `%` (common in emails, e.g.
+  /// john_doe@…) are LIKE wildcards, so they are escaped.
+  static String _likeLiteral(String value) => value
+      .trim()
+      .replaceAll(r'\', r'\\')
+      .replaceAll('%', r'\%')
+      .replaceAll('_', r'\_');
+
   // ─────────────────────────────────────────────
   // LOGIN
   // ─────────────────────────────────────────────
@@ -22,21 +30,30 @@ class AuthImplRemoteDataSource implements AuthRemoteDateSource {
       final userResponse = await _client
           .from('users')
           .select('id,email,name,role,approval_status')
-          .ilike('email', email)
-          .single();
+          .ilike('email', _likeLiteral(email))
+          .maybeSingle();
+      if (userResponse == null) {
+        throw Failture(404, 'لا يوجد حساب بهذا البريد الإلكتروني');
+      }
 
       final role = userResponse['role'] as String? ?? '';
       final approvalStatus = userResponse['approval_status'] as String? ?? '';
 
-      // 2. Role / status guards
-      if (role == 'volunteer' && approvalStatus == 'pending') {
-        throw Failture(0, 'حسابك قيد المراجعة، يرجى انتظار موافقة الإدارة');
-      }
-      if (role == 'volunteer' && approvalStatus == 'rejected') {
+      // 2. Role / status guards. The role is the source of truth: a new
+      // registration is stored as 'user' until an admin approves it (which
+      // only flips the role to 'volunteer'), and volunteers added by an admin
+      // keep the column default approval_status 'pending'.
+      if (approvalStatus == 'rejected') {
         throw Failture(0, 'تم رفض طلبك، تواصل مع الإدارة');
+      }
+      if (role == 'user') {
+        throw Failture(0, 'حسابك قيد المراجعة، يرجى انتظار موافقة الإدارة');
       }
       if (role == 'suspended') {
         throw Failture(0, 'تم تعليق حسابك، تواصل مع الإدارة');
+      }
+      if (role != 'volunteer' && role != 'admin') {
+        throw Failture(0, 'هذا الحساب غير مفعّل، تواصل مع الإدارة');
       }
 
       return UserModel.fromJson(userResponse);
@@ -55,20 +72,20 @@ class AuthImplRemoteDataSource implements AuthRemoteDateSource {
     required String name,
     required String password,
     required String role,
+    String? gender,
     File? idFile,
   }) async {
     try {
       // ── STEP 1: Check for duplicate email in public.users ──────────────
       final existing = await _client
           .from('users')
-          .select('id, role, approval_status')
-          .ilike('email', email)
+          .select('id, role')
+          .ilike('email', _likeLiteral(email))
           .maybeSingle();
 
       if (existing != null) {
         final existingRole = existing['role'] as String? ?? '';
-        final existingStatus = existing['approval_status'] as String? ?? '';
-        if (existingRole == 'volunteer' && existingStatus == 'pending') {
+        if (existingRole == 'user') {
           throw Failture(409, 'تم تقديم طلبك مسبقاً وهو قيد المراجعة');
         } else if (existingRole == 'volunteer') {
           throw Failture(409, 'هذا البريد مسجل بالفعل، يمكنك تسجيل الدخول');
@@ -86,7 +103,8 @@ class AuthImplRemoteDataSource implements AuthRemoteDateSource {
             'email': email,
             'name': name,
             'role': role,
-            'approval_status': role == 'volunteer' ? 'pending' : 'approved',
+            'gender': ?gender,
+            'approval_status': role == 'admin' ? 'approved' : 'pending',
           })
           .select('id,email,name,role,approval_status')
           .single();
@@ -131,6 +149,11 @@ class AuthImplRemoteDataSource implements AuthRemoteDateSource {
               .update({'id_file_url': publicUrl})
               .eq('id', userId);
         } catch (e, stack) {
+          // Roll back the profile row so the same email can register again
+          // instead of hitting "already registered" with no ID on file.
+          try {
+            await _client.from('users').delete().eq('id', userId);
+          } catch (_) {}
           if (kDebugMode) {
             debugPrint('--- UPLOAD FAILED ---');
             debugPrint(e.toString());

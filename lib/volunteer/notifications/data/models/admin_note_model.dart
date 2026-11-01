@@ -22,7 +22,9 @@ class AdminNote {
       title: json['title'] as String? ?? '',
       message: json['body'] as String? ?? '',
       isRead: json['is_read'] as bool? ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      // Nullable column; a null/odd value must not fail the whole list.
+      createdAt:
+          DateTime.tryParse('${json['created_at'] ?? ''}') ?? DateTime.now(),
     );
   }
 }

@@ -82,9 +82,12 @@ class PermitPapersSection extends StatelessWidget {
   }
 
   Future<void> _openPdf(String url) async {
+    // No canLaunchUrl() gate: it is false for https on Android 11+ without
+    // manifest <queries>, so PDFs never opened there.
     final uri = Uri.tryParse(url);
-    if (uri != null && await canLaunchUrl(uri)) {
+    if (uri == null) return;
+    try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    } catch (_) {}
   }
 }

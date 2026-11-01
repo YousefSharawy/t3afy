@@ -28,7 +28,9 @@ class AdminHomeRemoteDatasourceImpl implements AdminHomeRemoteDatasource {
   Future<AdminHomeDataEntity> getDashboardData(String adminId) async {
     try {
       final now = DateTime.now();
-      final today = now.toIso8601String().split('T')[0];
+      // tasks.date is a Riyadh date; the device date differs around midnight
+      // on phones in other time zones.
+      final today = riyadhToday();
       final twoMinutesAgo = now
           .toUtc()
           .subtract(const Duration(minutes: 2))

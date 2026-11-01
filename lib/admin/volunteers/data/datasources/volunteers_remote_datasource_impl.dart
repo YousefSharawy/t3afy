@@ -144,6 +144,10 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
           .from('task_assignments')
           .delete()
           .eq('user_id', volunteerId);
+      // task_reports.user_id has no ON DELETE CASCADE: without this, deleting
+      // (or rejecting) anyone who ever submitted a report failed with an FK
+      // error after their notes/assessments/assignments were already gone.
+      await _client.from('task_reports').delete().eq('user_id', volunteerId);
       await _client.from('users').delete().eq('id', volunteerId);
       await _invalidateVolunteerLists();
     } catch (e) {
@@ -156,7 +160,7 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
     try {
       await _client
           .from('users')
-          .update({'role': 'volunteer'})
+          .update({'role': 'volunteer', 'approval_status': 'approved'})
           .eq('id', volunteerId);
       await _invalidateVolunteerLists();
     } catch (e) {
@@ -232,7 +236,8 @@ class VolunteersRemoteDatasourceImpl implements VolunteersRemoteDatasource {
           .select('status, points, duration_hours')
           .eq('id', taskId)
           .single();
-      final isCompleted = (task['status'] as String?) == 'completed';
+      final isCompleted =
+          task['status'] == 'completed' || task['status'] == 'done';
       final assignmentStatus = isCompleted ? 'completed' : 'assigned';
 
       await _client.from('task_assignments').insert({

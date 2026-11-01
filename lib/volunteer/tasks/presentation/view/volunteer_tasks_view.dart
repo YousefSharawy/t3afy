@@ -87,7 +87,6 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
   void _showTasksTutorial() {
     final targets = <TargetFocus>[];
 
-
     // Build targets — only add if key has context
     if (_tasksHeaderKey.currentContext != null) {
       targets.add(
@@ -123,7 +122,6 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
       return;
     }
 
-
     void onTutorialComplete() {
       _currentTutorial = null;
       TutorialPhaseService.instance.advanceToNextPhase();
@@ -151,7 +149,10 @@ class _VolunteerTasksViewState extends State<VolunteerTasksView> {
       Routes.taskDetails,
       extra: task.id,
     );
-    if (changed == true && mounted) cubit.refresh();
+    if (!mounted) return;
+    // Check-in/out on that screen drops the task caches without popping a
+    // result, so a cache-first reload picks those writes up too.
+    changed == true ? cubit.refresh() : cubit.loadTasks();
   }
 
   @override

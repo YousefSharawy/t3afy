@@ -139,12 +139,21 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
     }
   }
 
+  /// [start]/[end] are Postgres `time` values ("HH:mm[:ss]"), which
+  /// DateTime.tryParse can't read (it always returned 0 before).
   double _hoursFromTime(String? start, String? end) {
-    if (start == null || end == null) return 0;
-    final s = DateTime.tryParse(start);
-    final e = DateTime.tryParse(end);
+    int? minutes(String? t) {
+      final parts = t?.split(':');
+      if (parts == null || parts.length < 2) return null;
+      final h = int.tryParse(parts[0]);
+      final m = int.tryParse(parts[1]);
+      return h == null || m == null ? null : h * 60 + m;
+    }
+
+    final s = minutes(start);
+    final e = minutes(end);
     if (s == null || e == null) return 0;
-    final diff = e.difference(s).inMinutes;
+    final diff = e - s;
     return diff > 0 ? diff / 60.0 : 0;
   }
 
@@ -175,7 +184,7 @@ class PerformanceImplRemoteDataSource implements PerformanceRemoteDataSource {
         entries.add(
           LeaderboardEntryModel(
             id: user['id'] as String,
-            name: user['name'] as String,
+            name: (user['name'] as String?) ?? '',
             avatarUrl: (user['avatar_url'] as String?) ?? '',
             totalHours: (user['total_hours'] as num?)?.toInt() ?? 0,
             pts: (user['total_points'] as num?)?.toInt() ?? 0,

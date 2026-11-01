@@ -24,6 +24,9 @@ class TaskDetailsCubit extends Cubit<TaskDetailsState>
   RealtimeHub? _hub;
   String? _taskId;
 
+  /// Latest fetch wins: an older response arriving late is dropped.
+  int _fetchSeq = 0;
+
   TaskDetailsEntity? get _task =>
       state.maybeWhen(loaded: (t) => t, orElse: () => null);
 
@@ -46,7 +49,9 @@ class TaskDetailsCubit extends Cubit<TaskDetailsState>
   }
 
   Future<String?> _fetch(String taskId) async {
+    final seq = ++_fetchSeq;
     final result = await _getTaskDetails(taskId);
+    if (seq != _fetchSeq) return null;
     return result.fold(
       (failure) {
         if (_task == null) safeEmit(TaskDetailsState.error(failure.message));
@@ -139,7 +144,9 @@ class TaskDetailsCubit extends Cubit<TaskDetailsState>
   Future<void> _silentRefresh() async {
     final id = _taskId;
     if (id == null || isClosed) return;
+    final seq = ++_fetchSeq;
     final result = await _getTaskDetails(id);
+    if (seq != _fetchSeq) return;
     result.fold((_) {}, (task) => safeEmit(TaskDetailsState.loaded(task)));
   }
 

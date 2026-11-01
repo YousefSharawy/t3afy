@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:t3afy/app/ui_utiles.dart';
 import 'package:t3afy/app/resources/app_icons.dart';
 import 'package:t3afy/app/resources/color_manager.dart';
 import 'package:t3afy/app/resources/style_manager.dart';
@@ -39,17 +40,8 @@ class _CheckedInCardState extends State<CheckedInCard> {
   late bool _canCheckOut = !DateTime.now().isBefore(_deadline);
   bool _submitting = false;
 
-  DateTime _buildDeadline() {
-    try {
-      final d = DateTime.parse(widget.date);
-      final parts = widget.timeEnd.split(':');
-      final endHour = int.tryParse(parts[0]) ?? 23;
-      final endMin = int.tryParse(parts[1]) ?? 59;
-      return DateTime(d.year, d.month, d.day, endHour, endMin);
-    } catch (_) {
-      return DateTime.now();
-    }
-  }
+  DateTime _buildDeadline() =>
+      taskInstant(widget.date, widget.timeEnd) ?? DateTime.now();
 
   Future<void> _checkOut(LocationCubit cubit) async {
     HapticFeedback.mediumImpact();

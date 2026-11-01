@@ -52,11 +52,12 @@ class SplashCubit extends Cubit<SplashState> with SafeEmit<SplashState> {
     try {
       final row = await Supabase.instance.client
           .from('users')
-          .select('id')
+          .select('id, role')
           .eq('id', userId)
           .maybeSingle()
           .timeout(const Duration(seconds: 4));
-      return row == null;
+      // Deleted, or suspended by an admin since the last launch.
+      return row == null || row['role'] == 'suspended';
     } catch (_) {
       return false;
     }

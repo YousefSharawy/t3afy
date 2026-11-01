@@ -145,12 +145,16 @@ class AdminReportsRemoteDatasourceImpl implements AdminReportsRemoteDatasource {
               .eq('id', taskId);
         }
       } else if (status == 'rejected') {
-        // Reset assignment so volunteer can resubmit.
+        // Reset assignment so volunteer can resubmit. A 'completed'
+        // assignment has already been credited (campaign marked completed):
+        // flipping it back without reversing the credit let the next save of
+        // that campaign credit the volunteer a second time.
         await _client
             .from('task_assignments')
             .update({'status': 'assigned'})
             .eq('task_id', taskId)
-            .eq('user_id', volunteerId);
+            .eq('user_id', volunteerId)
+            .neq('status', 'completed');
 
         // Send rejection notification to volunteer.
         await _client.from('admin_notes').insert({

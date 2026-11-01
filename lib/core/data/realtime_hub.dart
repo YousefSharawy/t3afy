@@ -58,9 +58,12 @@ class _Watch {
 
 /// Owns a set of realtime channels for one cubit/datasource.
 ///
-/// * Coalesces bursts of events into one call per distinct callback
-///   ([debounce], default 250 ms), but never delays longer than [maxWait]
-///   while events keep arriving (GPS pings, check-in waves).
+/// * The first event after a quiet period runs its callback right away (no
+///   added latency for a single admin edit). Further events within
+///   [debounce] (default 150 ms) are coalesced into one trailing call per
+///   distinct callback, never delayed longer than [maxWait] while events keep
+///   arriving (multi-row saves, GPS pings, check-in waves), so the screen ends
+///   on the final state.
 /// * Drops presence-only updates on `users` (unless the watch opts in via
 ///   `keepPresence` to patch them from the payload).
 /// * `onPayload` lets a cubit patch its state straight from the event; return
@@ -75,7 +78,7 @@ class _Watch {
 class RealtimeHub {
   RealtimeHub({
     SupabaseClient? client,
-    this.debounce = const Duration(milliseconds: 250),
+    this.debounce = const Duration(milliseconds: 150),
     Duration? maxWait,
     this.fallbackPoll = const Duration(seconds: 30),
     this.refreshOnResume = true,
@@ -103,6 +106,7 @@ class RealtimeHub {
   final Map<String, Map<String, dynamic>> _lastUsers = {};
   Timer? _timer;
   DateTime? _firstPendingAt;
+  DateTime? _lastFlushAt;
   Timer? _pollTimer;
   bool _disposed = false;
 
@@ -263,8 +267,15 @@ class RealtimeHub {
 
   void _schedule(void Function() cb) {
     if (_disposed) return;
-    _pending.add(cb);
     final now = DateTime.now();
+    final last = _lastFlushAt;
+    // Leading edge: nothing queued and nothing ran in the last [debounce].
+    if (_timer == null && (last == null || now.difference(last) >= debounce)) {
+      _lastFlushAt = now;
+      cb();
+      return;
+    }
+    _pending.add(cb);
     final first = _firstPendingAt ??= now;
     final left = maxWait - now.difference(first);
     final wait = left < debounce
@@ -277,6 +288,7 @@ class RealtimeHub {
   void _flush() {
     _timer = null;
     _firstPendingAt = null;
+    _lastFlushAt = DateTime.now();
     final cbs = List<void Function()>.of(_pending);
     _pending.clear();
     if (_disposed) return;

@@ -54,6 +54,7 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
   ]);
 
   Future<void> _invalidateVolunteerCaches(String uid) => Future.wait([
+    LocalAppStorage.invalidateCache('admin_volunteers'),
     LocalAppStorage.invalidateCache('completed_tasks_$uid'),
     LocalAppStorage.invalidateCache('tasks_stats_$uid'),
     LocalAppStorage.invalidateCache('vol_stats_v2_$uid'),
@@ -368,23 +369,40 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
       for (final r in rows) {...r, 'status': 'assigned'},
     ]);
     await Future.wait(
-      rows.map((r) async {
-        final uid = r['user_id'] as String;
-        await _creditVolunteer(
-          volunteerId: uid,
+      rows.map(
+        (r) => _completeAssignment(
           taskId: taskId,
+          volunteerId: r['user_id'] as String,
           points: points,
           durationHours: durationHours,
-        );
-        await _client
-            .from('task_assignments')
-            .update({'status': 'completed'})
-            .eq('task_id', taskId)
-            .eq('user_id', uid);
-        await _invalidateVolunteerCaches(uid);
-      }),
+        ),
+      ),
     );
   }
+
+  /// Credits one existing (not yet completed) assignment and flips it to
+  /// 'completed' only after the credit succeeded.
+  Future<void> _completeAssignment({
+    required String taskId,
+    required String volunteerId,
+    required int points,
+    required double durationHours,
+  }) async {
+    await _creditVolunteer(
+      volunteerId: volunteerId,
+      taskId: taskId,
+      points: points,
+      durationHours: durationHours,
+    );
+    await _client
+        .from('task_assignments')
+        .update({'status': 'completed'})
+        .eq('task_id', taskId)
+        .eq('user_id', volunteerId);
+    await _invalidateVolunteerCaches(volunteerId);
+  }
+
+  static bool _isCompletedStatus(String? s) => s == 'completed' || s == 'done';
 
   /// Reverses a volunteer's credits for a completed task: subtracts points,
   /// hours, tasks count, and places_visited, clamped to a minimum of 0.
@@ -612,6 +630,8 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
 
       await _invalidateListCaches();
       return taskId;
+    } on Failture {
+      rethrow;
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
@@ -636,61 +656,46 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
         data['duration_hours'] = _durationHours(timeStart, timeEnd);
       }
 
+      // Read before writing: earlier credits were given with the OLD
+      // points/hours, so reversing them must use those values.
+      final pre = await Future.wait<dynamic>([
+        _client
+            .from('tasks')
+            .select('status, points, duration_hours')
+            .eq('id', id)
+            .single(),
+        _client
+            .from('task_assignments')
+            .select('user_id, status')
+            .eq('task_id', id),
+      ]);
+      final oldTask = pre[0] as Map<String, dynamic>;
+      final current = <String, String?>{
+        for (final a in pre[1] as List)
+          a['user_id'] as String: a['status'] as String?,
+      };
+
       await _client.from('tasks').update(data).eq('id', id);
 
-      Future<void> reassign() async {
-        if (volunteerIds == null) return;
-        final pre = await Future.wait<dynamic>([
-          _client
-              .from('tasks')
-              .select('status, points, duration_hours')
-              .eq('id', id)
-              .single(),
-          _client
-              .from('task_assignments')
-              .select('user_id')
-              .eq('task_id', id)
-              .eq('status', 'completed'),
-        ]);
-        final taskRow = pre[0] as Map<String, dynamic>;
-        final taskPoints = (taskRow['points'] as num?)?.toInt() ?? 10;
-        final taskHours =
-            (taskRow['duration_hours'] as num?)?.toDouble() ?? 0.0;
-
-        // Re-saving replaces the whole team: undo every earlier credit first,
-        // then credit the new team once (if the campaign is completed).
-        await _reverseCredits(
-          [for (final r in pre[1] as List) r['user_id'] as String],
-          points: taskPoints,
-          durationHours: taskHours,
-        );
-        await _client.from('task_assignments').delete().eq('task_id', id);
-        if (volunteerIds.isEmpty) return;
-
-        final now = DateTime.now().toUtc().toIso8601String();
-        final rows = [
-          for (final uid in volunteerIds)
-            {
-              'task_id': id,
-              'user_id': uid,
-              'status': 'assigned',
-              'assigned_at': now,
-            },
-        ];
-        if ((taskRow['status'] as String?) == 'completed') {
-          await _insertCompletedAssignments(
-            taskId: id,
-            rows: rows,
-            points: taskPoints,
-            durationHours: taskHours,
-          );
-        } else {
-          await _client.from('task_assignments').insert(rows);
-        }
-      }
-
       await Future.wait([
-        reassign(),
+        _syncTeam(
+          taskId: id,
+          adminId: adminId,
+          current: current,
+          target: volunteerIds?.toSet() ?? current.keys.toSet(),
+          wasCompleted: _isCompletedStatus(oldTask['status'] as String?),
+          isCompleted: _isCompletedStatus(
+            (data['status'] ?? oldTask['status']) as String?,
+          ),
+          oldPoints: (oldTask['points'] as num?)?.toInt() ?? 10,
+          oldHours: (oldTask['duration_hours'] as num?)?.toDouble() ?? 0.0,
+          newPoints:
+              ((data['points'] ?? oldTask['points']) as num?)?.toInt() ?? 10,
+          newHours:
+              ((data['duration_hours'] ?? oldTask['duration_hours']) as num?)
+                  ?.toDouble() ??
+              0.0,
+        ),
         if (objectiveTitles != null) _replaceObjectives(id, objectiveTitles),
         if (suppliesData != null) _replaceSupplies(id, suppliesData),
         uploadCampaignPapers(taskId: id, adminId: adminId, files: paperFiles),
@@ -700,6 +705,97 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
     } catch (e) {
       throw ErrorHandler.handle(e).failture;
     }
+  }
+
+  /// Applies an edit to the team without touching unchanged members' rows
+  /// (their check-in/out, verified hours and report state survive):
+  /// removed members are deleted (credit reversed if they were credited),
+  /// added members are inserted (and credited if the campaign is completed),
+  /// and kept members' credits follow a status / points / hours change.
+  Future<void> _syncTeam({
+    required String taskId,
+    required String adminId,
+    required Map<String, String?> current,
+    required Set<String> target,
+    required bool wasCompleted,
+    required bool isCompleted,
+    required int oldPoints,
+    required double oldHours,
+    required int newPoints,
+    required double newHours,
+  }) async {
+    final removed = current.keys.where((u) => !target.contains(u)).toList();
+    final added = target.where((u) => !current.containsKey(u)).toList();
+    final kept = current.keys.where(target.contains).toList();
+    final valuesChanged = oldPoints != newPoints || oldHours != newHours;
+
+    Future<void> remove() async {
+      if (removed.isEmpty) return;
+      await _reverseCredits(
+        [for (final u in removed) if (current[u] == 'completed') u],
+        points: oldPoints,
+        durationHours: oldHours,
+      );
+      await _client
+          .from('task_assignments')
+          .delete()
+          .eq('task_id', taskId)
+          .inFilter('user_id', removed);
+    }
+
+    Future<void> add() async {
+      if (added.isEmpty) return;
+      final now = DateTime.now().toUtc().toIso8601String();
+      final rows = [
+        for (final uid in added)
+          {
+            'task_id': taskId,
+            'user_id': uid,
+            'status': 'assigned',
+            'assigned_at': now,
+            if (adminId.isNotEmpty) 'assigned_by': adminId,
+          },
+      ];
+      if (isCompleted) {
+        await _insertCompletedAssignments(
+          taskId: taskId,
+          rows: rows,
+          points: newPoints,
+          durationHours: newHours,
+        );
+      } else {
+        await _client.from('task_assignments').insert(rows);
+      }
+    }
+
+    Future<void> syncKept(String uid) async {
+      var credited = current[uid] == 'completed';
+      if (credited &&
+          ((wasCompleted && !isCompleted) || (isCompleted && valuesChanged))) {
+        await _reverseVolunteerCredit(
+          volunteerId: uid,
+          points: oldPoints,
+          durationHours: oldHours,
+        );
+        await _client
+            .from('task_assignments')
+            .update({'status': 'assigned'})
+            .eq('task_id', taskId)
+            .eq('user_id', uid);
+        await _invalidateVolunteerCaches(uid);
+        credited = false;
+      }
+      if (isCompleted && !credited) {
+        await _completeAssignment(
+          taskId: taskId,
+          volunteerId: uid,
+          points: newPoints,
+          durationHours: newHours,
+        );
+      }
+    }
+
+    await Future.wait([remove(), add(), ...kept.map(syncKept)]);
   }
 
   @override
@@ -777,7 +873,7 @@ class CampaignsRemoteDatasourceImpl implements CampaignsRemoteDatasource {
           .select('title, status, points, duration_hours')
           .eq('id', taskId)
           .single();
-      final isCompleted = (task['status'] as String?) == 'completed';
+      final isCompleted = _isCompletedStatus(task['status'] as String?);
       final rows = [
         for (final uid in userIds)
           {

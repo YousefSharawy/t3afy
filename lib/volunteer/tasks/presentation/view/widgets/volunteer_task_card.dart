@@ -22,10 +22,10 @@ class VolunteerTaskCard extends StatelessWidget {
   /// History rows need the date; today's rows don't.
   final bool showDate;
 
-  /// A finished assignment (completed / missed) outranks the task's own status.
+  /// A finished / reported assignment outranks the task's own status.
   String get _status {
     final a = task.assignmentStatus;
-    if (a == 'completed' || a == 'missed') return a;
+    if (a == 'completed' || a == 'missed' || a == 'pending_review') return a;
     return task.status;
   }
 

@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:t3afy/app/ui_utiles.dart';
+
 // import 'package:transly/domain/models.dart';
 
 class LocalAppStorage {
@@ -207,7 +209,7 @@ class LocalAppStorage {
     try {
       final now = DateTime.now();
       final nowMs = now.millisecondsSinceEpoch;
-      final today = now.toIso8601String().split('T').first;
+      final today = riyadhToday();
       final stale = <dynamic>[];
       for (final k in _appSettingsBoxInstance.keys) {
         if (k is! String || !k.startsWith(_cachePrefix)) continue;

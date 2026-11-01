@@ -50,7 +50,7 @@ class VolunteerImplHomeRemoteDataSource
     bool skipCache = false,
   }) async {
     try {
-      final today = DateTime.now().toIso8601String().split('T').first;
+      final today = riyadhToday();
       // Own key: the Tasks tab caches a differently-resolved shape under
       // 'today_tasks_…'.
       final cacheKey = 'vol_home_today_${userId}_$today';
